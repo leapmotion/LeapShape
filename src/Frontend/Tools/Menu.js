@@ -1,28 +1,41 @@
-import * as THREE from '../../node_modules/three/build/three.module.js';
-import { World } from './World.js';
+import * as THREE from '../../../node_modules/three/build/three.module.js';
+import { World } from '../World.js';
 
 /** The menu system for selecting tools and configuring behavior. */
 class Menu {
 
     /** Create the menu scaffolding
-     * @param {World} world */
-    constructor(world) {
-        this.world = world;
+     * @param {Tools} tools */
+    constructor(tools) {
+        this.tools = tools;
+        this.world = tools.world;
 
         this.normalColor      = new THREE.Color(0.4, 0.4, 0.4);
-        this.highlightedColor = new THREE.Color(0.7, 0.8, 0.7);
+        this.highlightedColor = new THREE.Color(0.5, 0.6, 0.5);
+        this.pressedColor     = new THREE.Color(1.0, 0.6, 0.5);
+        this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
         this.tempV3           = new THREE.Vector3();
 
         // Menu Container
         this.menu = new THREE.Group(); this.menuItems = [];
-        for (let i = 0; i < 10; i++) {
+        console.log(tools.tools);
+        for (let i = 0; i < tools.tools.length; i++) {
+            console.log(tools.tools[i].descriptor.name);
             let menuItem = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 20),
-                                          new THREE.MeshPhongMaterial({ color: 0x999999, transparent: true, opacity: 0.5 }));
+                                          new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5 }));
             menuItem.name = "Menu Item #"+i;
-            menuItem.rotation.y = - Math.PI / 4;
-            menuItem.position.x = i * 50;
             menuItem.receiveShadow = false;
             menuItem.castShadow = false;
+
+            let menuItemIcon = new THREE.Mesh(new THREE.PlaneBufferGeometry(20, 20),
+                new THREE.MeshBasicMaterial(
+                    { color: 0x999999, alphaTest: 0.5, map: tools.tools[i].descriptor.icon }));
+            menuItemIcon.name = "Menu Item Icon #"+i;
+            menuItemIcon.receiveShadow = false;
+            menuItemIcon.castShadow = false;
+            menuItem.icon = menuItemIcon;
+            menuItem.add(menuItemIcon);
+
             this.menuItems.push(menuItem);
             this.menu.add(menuItem);
         }
@@ -51,13 +64,28 @@ class Menu {
         for (let i = 0; i < this.menuItems.length; i++){
             // Hover highlight the menu spheres
             if (intersects.length > 0 && intersects[0].object === this.menuItems[i]) {
-                this.menuItems[i].material.color.lerp(this.highlightedColor, 0.1);
+                if (ray.justActivated) {
+
+                    // Activate the tool associated with this ID
+                    this.tools.tools[i].state = 0;
+
+                    this.menuItems[i].material.color.copy(this.pressedColor);
+
+
+                } else if (ray.active) {
+                    this.menuItems[i].material.color.lerp(this.heldColor, 0.1);
+                } else {
+                    this.menuItems[i].material.color.lerp(this.highlightedColor, 0.1);
+                }
             } else {
                 this.menuItems[i].material.color.lerp(this.normalColor, 0.1);
             }
 
             // Lerp the Spheres to their Target Slot's position
             this.menuItems[i].position.lerp(this.slots[i].getWorldPosition(this.tempV3), 0.05);
+
+            // Make the Icon Face the Camera
+            this.menuItems[i].icon.lookAt(this.world.camera.getWorldPosition(this.tempV3))
         }
 
         ray.alreadyActivated = ray.alreadyActivated || (intersects.length > 0);

@@ -1,11 +1,10 @@
 import { World } from './World.js';
 import { Input } from './Input/Input.js';
-import { Menu } from './Menu.js';
+import { Tools } from './Tools/Tools.js';
 
 /**
  * This is the visualization entrypoint for LeapShape;
- * all visualization and interactivity are managed through here.
- */
+ * all visualization and interactivity are managed through here. */
 class LeapShapeRenderer {
     
     constructor() {
@@ -16,17 +15,15 @@ class LeapShapeRenderer {
         this.input = new Input(this.world);
 
         // Create the menu system, which is populated from the List of Tools
-        this.menu = new Menu(this.world);
+        this.tools = new Tools(this.world);
     }
 
     update() {
         // Update the Input Abstraction
         this.input.update();
 
-        // Update the menus first, deactivating the ray if it hits
-        this.menu.update(this.input.ray);
-
-        // Parse CAD Messages in the Queue
+        // Update the Tool and Menu State Machines
+        this.tools.update(this.input.ray);
 
         // Render the World
         this.world.update(this.input.ray);

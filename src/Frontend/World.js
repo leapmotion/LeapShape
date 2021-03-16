@@ -74,7 +74,7 @@ class World {
     update(ray) {
         this.controls.enabled = !ray.alreadyActivated;
         this.controls.update();
-        this.renderer.render( this.scene, this.camera );
+        this.renderer.render(this.scene, this.camera);
     }
 
     /** **INTERNAL**: This function recalculates the viewport 
