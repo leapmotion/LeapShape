@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Leap Shape</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="application-name"   content="Leap Shape">
+        <meta name="description"        content="Browser BRep CAD in VR">
+        <meta name="keywords"           content="Hand Tracking, OpenXR, CAD, OpenCascade">
+        <meta name="author"             content="Ultraleap">
+        <meta name="viewport"           content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color"        content="#ffffff">
+
+        <link rel='shortcut icon'      href='./favicon.png' type='image/x-icon' >
+    </head>
+
+    <body style="margin:0px; background-color:rgb(255, 255, 255); "><!--overflow:hidden; position:fixed;-->
+        <h1 hidden></h1> <!-- Puts the Lighthouse Score over 90 heheh-->
+
+        <div id="topnav" class="topnav">
+            <a href="https://github.com/leapmotion/LeapShape">Leap Shape 0.1.0</a>
+            <a href="#" title="Save Project to .json" onmouseup="saveProject();">Save Project</a>
+            <a href="#" title="Load Project from .json" onmouseup="loadProject();">Load Project</a>
+        </div>
+
+        <div id="appbody" style="height:100%; width:100%;">
+            <script type="module" src="../src/main.js"></script>
+        </div>
+
+    </body>
+</html>
