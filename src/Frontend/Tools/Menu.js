@@ -1,5 +1,6 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import { World } from '../World.js';
+import { InteractionRay } from '../Input/Input.js';
 
 /** The menu system for selecting tools and configuring behavior. */
 class Menu {
@@ -55,23 +56,19 @@ class Menu {
     }
 
     /** Update the menu motion and interactive state 
-     * @param {THREE.Ray} ray The Current Input Ray */
+     * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Check to see if the interaction ray intersects one of these items
-        this.world.raycaster.set(ray.origin, ray.direction);
+        this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.menu, true);
 
         for (let i = 0; i < this.menuItems.length; i++){
             // Hover highlight the menu spheres
             if (intersects.length > 0 && intersects[0].object === this.menuItems[i]) {
-                if (ray.justActivated) {
-
+                if (ray.justDeactivated) {
                     // Activate the tool associated with this ID
-                    this.tools.tools[i].state = 0;
-
+                    this.tools.tools[i].activate();
                     this.menuItems[i].material.color.copy(this.pressedColor);
-
-
                 } else if (ray.active) {
                     this.menuItems[i].material.color.lerp(this.heldColor, 0.1);
                 } else {

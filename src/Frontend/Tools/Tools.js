@@ -14,16 +14,21 @@ class Tools {
         // Create the menu system, which will 
         // be populated from the List of Tools
         this.menu = new Menu(this);
+
+        this.activeTool = null;
     }
 
     /** Update the Tool and Menu State Machines
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
         // Check the menus for interactions first
+        // Activate Tools from here
         this.menu.update(ray);
 
-        for (let i = 0; i < this.tools.length; i++){
-            this.tools[i].update(ray);
+        if (this.activeTool) {
+            this.activeTool.update(ray);
+        } else {
+            // Update the selection tool?
         }
 
     }
