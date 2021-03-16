@@ -8,7 +8,7 @@ class LeapShape {
     
     constructor() {
         this.renderer = new LeapShapeRenderer();
-        this.engine = new LeapShapeEngine();
+        this.engine   = new LeapShapeEngine  ();
     }
 
 }

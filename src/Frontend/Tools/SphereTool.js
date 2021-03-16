@@ -20,7 +20,6 @@ class SphereTool {
             name: "Sphere Tool",
             icon: this.icon
         }
-
     }
 
     /** Update the SphereTool's State Machine
