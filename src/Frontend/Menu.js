@@ -45,6 +45,7 @@ class Menu {
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
         // Check to see if the interaction ray intersects one of these items
+        this.world.raycaster.set(ray.origin, ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.menu, true);
 
         for (let i = 0; i < this.menuItems.length; i++){
