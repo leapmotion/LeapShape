@@ -6,7 +6,7 @@ class LeapShapeEngine {
     /** Initializes the CAD Worker Thread and Callback System */
     constructor() {
         // Initialize the OpenCascade Worker Thread
-        this.worker = new Worker('../src/Backend/mainWorker.js', { type: "module" });
+        this.worker = new Worker(new URL( './Backend/mainWorker.js', import.meta.url ), { type: "module" });
 
         // Ping Pong Messages Back and Forth based on their registration in messageHandlers
         this.messageHandlers = {};
