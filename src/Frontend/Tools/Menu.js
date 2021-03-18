@@ -28,7 +28,7 @@ class Menu {
             menuItem.receiveShadow = false;
             menuItem.castShadow = false;
 
-            let menuItemIcon = new THREE.Mesh(new THREE.PlaneBufferGeometry(20, 20),
+            let menuItemIcon = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25),
                 new THREE.MeshBasicMaterial(
                     { color: 0x999999, alphaTest: 0.5, map: tools.tools[i].descriptor.icon }));
             menuItemIcon.name = "Menu Item Icon #"+i;

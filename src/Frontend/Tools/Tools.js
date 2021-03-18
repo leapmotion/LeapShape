@@ -17,19 +17,20 @@ class Tools {
             new SphereTool(this)
         ];
 
-        // Create the menu system, which will 
-        // be populated from the List of Tools
-        this.menu = new Menu(this);
-
         this.activeTool = null;
     }
 
     /** Update the Tool and Menu State Machines
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
-        // Check the menus for interactions first
-        // Activate Tools from here
-        this.menu.update(ray);
+        if (this.menu) {
+            // Let the user/menus set the activeTool
+            this.menu.update(ray);
+        } else if(this.engine.started) {
+            // Create the menu system, which will 
+            // be populated from the List of Tools
+            this.menu = new Menu(this);
+        }
 
         if (this.activeTool) {
             this.activeTool.update(ray);
