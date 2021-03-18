@@ -11,7 +11,7 @@
 		"name": "Ultraleap"
 	},
 	"scripts": {
-		"build": "./node_modules/.bin/esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --sourcemap --format=esm --outdir=./build --external:fs --external:path --loader:.wasm=file"
+		"build": "./node_modules/.bin/esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --minify --sourcemap --format=esm --outdir=./build --external:fs --external:path --loader:.wasm=file"
 	},
 	"license": "Apache V2",
 	"bundleDependencies": false,
