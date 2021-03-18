@@ -45,7 +45,7 @@ class SphereTool {
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshPhongMaterial({ wireframe: false }));
+                                                    new THREE.MeshPhongMaterial({ wireframe: true }));
                 this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
                 this.point.copy(intersects[0].point);
