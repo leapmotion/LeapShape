@@ -83,10 +83,10 @@ class SphereTool {
     }
 
     activate() {
-        this.state = 0;
         if (this.tools.activeTool) {
             this.tools.activeTool.deactivate();
         }
+        this.state = 0;
         this.tools.activeTool = this;
     }
 
