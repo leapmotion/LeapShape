@@ -1,4 +1,4 @@
-//import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
+import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
 import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
 import { OpenCascadeMesher } from './OpenCascadeMesher.js';
 
