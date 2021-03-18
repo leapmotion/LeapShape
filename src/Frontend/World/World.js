@@ -2,6 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import Stats from      '../../../node_modules/three/examples/jsm/libs/stats.module.js';
 import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
+import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
@@ -47,9 +48,11 @@ class World {
         // renderer
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setAnimationLoop( updateFunction );
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
+        this.container.appendChild(VRButton.createButton(this.renderer));
+        this.renderer.xr.enabled = true;
+        this.renderer.setAnimationLoop( updateFunction );
         
         // orbit controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
