@@ -73,7 +73,12 @@ class SphereTool {
 
     createSphereGeometry(sphereMesh, createSphereArgs) {
         this.engine.execute("Sphere #" + this.numSpheres, this.createSphere, createSphereArgs,
-            (geometry) => { sphereMesh.scale.set(1, 1, 1); sphereMesh.geometry = geometry; });
+            (geometry) => {
+                if (geometry) {
+                    sphereMesh.scale.set(1, 1, 1);
+                    sphereMesh.geometry = geometry;
+                }
+            });
     }
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
