@@ -14,15 +14,15 @@
 		"build": "./node_modules/.bin/esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --minify --sourcemap --format=esm --outdir=./build --external:fs --external:path --loader:.wasm=file --define:ESBUILD=true"
 	},
 	"license": "Apache V2",
-	"bundleDependencies": false,
+	"bundledDependencies": false,
 	"dependencies": {
-		"esbuild": "^0.9.2",
 		"leapjs": "github:leapmotion/leapjs#patch-es6",
 		"opencascade.js": "github:zalo/opencascade.js",
 		"potpack": "^1.0.1",
 		"three": "^0.126.1"
 	},
 	"devDependencies": {
-		"@types/three": "^0.126.1"
+		"@types/three": "^0.126.1",
+		"esbuild": "^0.9.2"
 	}
 }
