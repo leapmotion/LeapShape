@@ -21,7 +21,7 @@ class SphereTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../textures/noun_Sphere.png' );
+        this.icon = this.loader.load ('./textures/noun_Sphere.png' );
         this.descriptor = {
             name: "Sphere Tool",
             icon: this.icon
