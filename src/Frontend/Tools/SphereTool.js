@@ -45,6 +45,7 @@ class SphereTool {
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
                                                     new THREE.MeshPhongMaterial({ wireframe: true }));
+                this.currentSphere.name = "Sphere #" + this.numSpheres;
                 this.currentSphere.position.copy(intersects[0].point);
                 this.world.scene.add(this.currentSphere);
 
@@ -71,7 +72,7 @@ class SphereTool {
     }
 
     createSphereGeometry(sphereMesh, createSphereArgs) {
-        this.engine.execute("Sphere " + this.numSpheres, this.createSphere, createSphereArgs,
+        this.engine.execute("Sphere #" + this.numSpheres, this.createSphere, createSphereArgs,
             (geometry) => { sphereMesh.scale.set(1, 1, 1); sphereMesh.geometry = geometry; });
     }
 
@@ -83,10 +84,10 @@ class SphereTool {
     }
 
     activate() {
-        this.state = 0;
         if (this.tools.activeTool) {
             this.tools.activeTool.deactivate();
         }
+        this.state = 0;
         this.tools.activeTool = this;
     }
 

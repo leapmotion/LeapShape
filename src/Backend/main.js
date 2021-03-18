@@ -7,6 +7,8 @@ import ConvertGeometry from './GeometryConverter.js';
 class LeapShapeEngine {
     /** Initializes the CAD Worker Thread and Callback System */
     constructor() {
+        this.started = false;
+
         // Initialize the OpenCascade Worker Thread
         this.worker = new Worker(new URL( './Backend/mainWorker.js', import.meta.url ), { type: "module" });
 
@@ -18,7 +20,7 @@ class LeapShapeEngine {
                 if (response) { this.worker.postMessage({ "type": e.data.type, payload: response }) };
             }
         }
-        this.registerCallback("startupCallback", () => { console.log("Worker Started!"); });
+        this.registerCallback("startupCallback", () => { console.log("Worker Started!"); this.started = true; });
 
         // Handle Receiving Execution Results from the Engine
         this.registerCallback("execute", (payload) => {
