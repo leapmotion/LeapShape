@@ -1,11 +1,17 @@
+import { LeapShapeEngine } from '../../Backend/main.js';
 import { Menu } from './Menu.js';
+import { World } from '../World/World.js';
 import { SphereTool } from './SphereTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
     
-    constructor(world) {
+    /** Initialize the Main-Thread App Context
+     * @param {World} world
+     * @param {LeapShapeEngine} engine */
+    constructor(world, engine) {
         this.world = world;
+        this.engine = engine;
 
         this.tools = [
             new SphereTool(this)

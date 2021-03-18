@@ -6,6 +6,8 @@ import { OpenCascadeMesher } from './OpenCascadeMesher.js';
 class LeapShapeEngineWorker {
     
     constructor() {
+        this.shapes = {};
+
         // Initialize the WebAssembly Module
         new opencascade({
             locateFile(path) {
@@ -21,18 +23,31 @@ class LeapShapeEngineWorker {
             // Ping Pong Messages Back and Forth based on their registration in messageHandlers
             this.messageHandlers = {};
             onmessage = (e) => {
-                let response = this.messageHandlers[e.data.type](e.data.payload);
-                if (response) { postMessage({ "type": e.data.type, payload: response }); };
+                if (e.data.type in this.messageHandlers) {
+                    let response = this.messageHandlers[e.data.type](e.data.payload);
+                    if (response) { postMessage({ "type": e.data.type, payload: response }); };
+                }
             }
           
             // Send a message back to the main thread saying everything is a-ok...
             postMessage({ type: "startupCallback" });
+            this.messageHandlers["execute"] = this.execute.bind(this);
 
-            this.mesher = new OpenCascadeMesher();
-            this.mesher.shapeToMesh(null );
+            // Set up a persistent Meshing System
+            this.mesher = new OpenCascadeMesher(this.oc);
         });
+    }
+
+    /** Executes a CAD operation from the Main Thread 
+     * @param {{name: string, shapeFunction: function, shapeArguments: number[], meshDataCallback: function}} payload */
+    execute(payload) {
+        let op = new Function("return function " + payload.shapeFunction)().bind(this);
+        let shape = op(...payload.shapeArguments);
+        this.shapes[payload.name] = shape;
+        let meshData = this.mesher.shapeToMesh(shape, 1, {}, {});
+        return { name: payload.name, payload: meshData };
     }
 }
 
-//export { LeapShapeEngine };
-new LeapShapeEngineWorker();
+// Initialize the worker as the top-level entrypoint in this scope
+var worker = new LeapShapeEngineWorker();

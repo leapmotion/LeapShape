@@ -1,7 +1,7 @@
-import * as THREE from '../../node_modules/three/build/three.module.js';
-import Stats from      '../../node_modules/three/examples/jsm/libs/stats.module.js';
-import { OrbitControls } from '../../node_modules/three/examples/jsm/controls/OrbitControls.js';
-import { FBXLoader } from '../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
+import * as THREE from '../../../node_modules/three/build/three.module.js';
+import Stats from      '../../../node_modules/three/examples/jsm/libs/stats.module.js';
+import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
+import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {

@@ -1,4 +1,5 @@
-import { World } from './World.js';
+import { LeapShapeEngine } from '../Backend/main.js';
+import { World } from './World/World.js';
 import { Input } from './Input/Input.js';
 import { Tools } from './Tools/Tools.js';
 
@@ -7,7 +8,12 @@ import { Tools } from './Tools/Tools.js';
  * all visualization and interactivity are managed through here. */
 class LeapShapeRenderer {
     
-    constructor() {
+    /** Initialize the Main-Thread App Context
+     * @param {LeapShapeEngine} engine */
+    constructor(engine) {
+        // Store a reference to the CAD Engine
+        this.engine = engine;
+
         // Create the world and set its update loop
         this.world = new World(this.update.bind(this));
 
@@ -15,7 +21,7 @@ class LeapShapeRenderer {
         this.input = new Input(this.world);
 
         // Create the menu system, which is populated from the List of Tools
-        this.tools = new Tools(this.world);
+        this.tools = new Tools(this.world, engine);
     }
 
     update() {

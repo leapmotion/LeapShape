@@ -1,5 +1,5 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import { World } from '../World.js';
+import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
 
 /** This is the standard mouse (and touchscreen?) input. */
