@@ -70,7 +70,7 @@ class OpenCascadeMesher {
             this.ForEachFace(shape, (faceIndex, myFace) => {
                 let aLocation = new this.oc.TopLoc_Location();
                 let myT = this.oc.BRep_Tool.prototype.Triangulation(myFace, aLocation);
-                if (myT.IsNull()) { console.error("Encountered Null Face!"); argCache = {}; return; }
+                if (myT.IsNull()) { /*console.error("Encountered Null Face!");*/ return null; }
     
                 let this_face = {
                     vertex_coord: [],

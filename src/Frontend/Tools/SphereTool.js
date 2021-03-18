@@ -44,7 +44,7 @@ class SphereTool {
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshPhongMaterial());
+                                                    new THREE.MeshPhongMaterial({ wireframe: true }));
                 this.currentSphere.position.copy(intersects[0].point);
                 this.world.scene.add(this.currentSphere);
 
@@ -56,16 +56,12 @@ class SphereTool {
             let intersects = this.world.raycaster.intersectObject(this.hitObject);
             if (intersects.length > 0) {
                 this.distance = intersects[0].point.sub(this.currentSphere.position).length();
-                this.currentSphere.scale.x = this.distance;
-                this.currentSphere.scale.y = this.distance;
-                this.currentSphere.scale.z = this.distance;
+                this.createSphereGeometry(this.currentSphere, [0, 0, 0, this.distance]);
             }
 
-            // When let go, deactivate and Add to Undo!
+            // When let go, deactivate and add to Undo!
             if (!ray.active) {
-                this.createSphereGeometry(this.currentSphere, [0,0,0,this.distance]);
                 this.numSpheres += 1;
-
                 this.currentSphere = null;
                 this.deactivate();
             }
@@ -83,6 +79,7 @@ class SphereTool {
     createSphere(x, y, z, radius) {
         let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
         return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
+        //return new this.oc.BRepPrimAPI_MakeCone(radius, radius*0.5, radius).Shape();
     }
 
     activate() {
