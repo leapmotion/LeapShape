@@ -1,4 +1,5 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
+import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.js';
 import { Menu } from './Menu.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
@@ -9,9 +10,13 @@ class SphereTool {
     /** Create the SphereTool
      * @param {Tools} tools */
     constructor(tools) {
-        this.tools = tools;
-        this.world = tools.world;
+        this.tools  = tools;
+        this.world  = this.tools.world;
+        this.engine = this.tools.engine;
+        this.oc = oc; this.shapes = {};
+
         this.state = -1; // -1 is Deactivated
+        this.numSpheres = 0;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -57,12 +62,26 @@ class SphereTool {
 
             // When let go, deactivate and Add to Undo!
             if (!ray.active) {
+                this.createSphereGeometry(this.currentSphere);
+                this.numSpheres += 1;
+
                 this.currentSphere = null;
                 this.deactivate();
             }
         }
 
         ray.alreadyActivated = true;
+    }
+
+    createSphereGeometry(sphereMesh) {
+        this.engine.execute("Sphere " + this.numSpheres, this.createSphere,
+            (geometry) => { sphereMesh.geometry = geometry; });
+    }
+
+    /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
+    createSphere() {
+        let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(0, 0, 0), this.oc.gp.prototype.DZ());
+        return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, 1.0).Shape();
     }
 
     activate() {

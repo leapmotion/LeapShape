@@ -1,5 +1,5 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import { World } from '../World.js';
+import { World } from '../World/World.js';
 import { InteractionRay } from '../Input/Input.js';
 
 /** The menu system for selecting tools and configuring behavior. */
