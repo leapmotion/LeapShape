@@ -17,6 +17,7 @@ class SphereTool {
 
         this.state = -1; // -1 is Deactivated
         this.numSpheres = 0;
+        this.distance = 1;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -54,15 +55,15 @@ class SphereTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.hitObject);
             if (intersects.length > 0) {
-                let distance = intersects[0].point.sub(this.currentSphere.position).length();
-                this.currentSphere.scale.x = distance;
-                this.currentSphere.scale.y = distance;
-                this.currentSphere.scale.z = distance;
+                this.distance = intersects[0].point.sub(this.currentSphere.position).length();
+                this.currentSphere.scale.x = this.distance;
+                this.currentSphere.scale.y = this.distance;
+                this.currentSphere.scale.z = this.distance;
             }
 
             // When let go, deactivate and Add to Undo!
             if (!ray.active) {
-                this.createSphereGeometry(this.currentSphere);
+                this.createSphereGeometry(this.currentSphere, [0,0,0,this.distance]);
                 this.numSpheres += 1;
 
                 this.currentSphere = null;
@@ -73,15 +74,15 @@ class SphereTool {
         ray.alreadyActivated = true;
     }
 
-    createSphereGeometry(sphereMesh) {
-        this.engine.execute("Sphere " + this.numSpheres, this.createSphere,
-            (geometry) => { sphereMesh.geometry = geometry; });
+    createSphereGeometry(sphereMesh, createSphereArgs) {
+        this.engine.execute("Sphere " + this.numSpheres, this.createSphere, createSphereArgs,
+            (geometry) => { sphereMesh.scale.set(1, 1, 1); sphereMesh.geometry = geometry; });
     }
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
-    createSphere() {
-        let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(0, 0, 0), this.oc.gp.prototype.DZ());
-        return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, 1.0).Shape();
+    createSphere(x, y, z, radius) {
+        let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
+        return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
     }
 
     activate() {

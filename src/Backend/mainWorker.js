@@ -38,12 +38,12 @@ class LeapShapeEngineWorker {
     }
 
     /** Executes a CAD operation from the Main Thread 
-     * @param {{name: string, shapeFunction: function, meshDataCallback: function}} payload */
+     * @param {{name: string, shapeFunction: function, shapeArguments: number[], meshDataCallback: function}} payload */
     execute(payload) {
         let op = new Function("return function " + payload.shapeFunction)().bind(this);
-        let shape = op();
+        let shape = op(...payload.shapeArguments);
         this.shapes[payload.name] = shape;
-        let meshData = this.mesher.shapeToMesh(shape, 0.1, {}, {});
+        let meshData = this.mesher.shapeToMesh(shape, 1, {}, {});
         return { name: payload.name, payload: meshData };
     }
 }

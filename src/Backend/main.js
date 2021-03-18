@@ -35,14 +35,19 @@ class LeapShapeEngine {
     registerCallback(name, callback) { this.messageHandlers[name] = callback; }
 
     /** Registers a callback from the Worker Thread 
-     * @param {string}   name             Unique Identifier for this Callback
-     * @param {function} shapeOperation   Function that creates the TopoDS_Shape to mesh
-     * @param {function} meshDataCallback A callback containing the mesh data for this shape */
-    execute(name, shapeOperation, meshDataCallback) {
+     * @param {string}   name               Unique Identifier for this Callback
+     * @param {function} shapeOperation     Function that creates the TopoDS_Shape to mesh
+     * @param {number[]} operationArguments Arguments to the shape operation function
+     * @param {function} meshDataCallback   A callback containing the mesh data for this shape */
+    execute(name, shapeOperation, operationArguments, meshDataCallback) {
         if (this.workerWorking) { return; } // Ignore requests while the worker is busy
         this.workerWorking = true;
         this.executeHandlers[name] = meshDataCallback;
-        this.worker.postMessage({ "type": "execute", payload: {name: name, shapeFunction: shapeOperation.toString() } });
+        this.worker.postMessage({ "type": "execute", payload: {
+            name: name,
+            shapeFunction: shapeOperation.toString(),
+            shapeArguments: operationArguments
+        }});
     }
 }
 

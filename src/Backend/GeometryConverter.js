@@ -21,15 +21,13 @@ export default function ConvertGeometry(meshData) {
         vInd += face.vertex_coord.length / 3;
     });
 
-    function disposeArray() { this.array = null; }
-
     // Compile the connected vertices and faces into a geometry object
     let geometry = new THREE.BufferGeometry();
     geometry.setIndex(triangles);
-    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ).onUpload( disposeArray ) );
-    geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
-    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute(colors, 3).onUpload(disposeArray));
-    geometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ).onUpload( disposeArray ) );
+    geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
+    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
     geometry.computeBoundingSphere();
     return geometry;
 }
