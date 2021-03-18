@@ -20,8 +20,8 @@ class SphereTool {
         this.distance = 1;
 
         // Create Metadata for the Menu System
-        this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('./textures/noun_Sphere.png' );
+        this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin('');
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/noun_Sphere.png' : '../../../textures/noun_Sphere.png');
         this.descriptor = {
             name: "Sphere Tool",
             icon: this.icon
@@ -73,7 +73,12 @@ class SphereTool {
 
     createSphereGeometry(sphereMesh, createSphereArgs) {
         this.engine.execute("Sphere #" + this.numSpheres, this.createSphere, createSphereArgs,
-            (geometry) => { sphereMesh.scale.set(1, 1, 1); sphereMesh.geometry = geometry; });
+            (geometry) => {
+                if (geometry) {
+                    sphereMesh.scale.set(1, 1, 1);
+                    sphereMesh.geometry = geometry;
+                }
+            });
     }
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */

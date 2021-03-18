@@ -1,5 +1,5 @@
+import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
 import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
-import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm"
 import { OpenCascadeMesher } from './OpenCascadeMesher.js';
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
@@ -12,7 +12,7 @@ class LeapShapeEngineWorker {
         new opencascade({
             locateFile(path) {
                 if (path.endsWith('.wasm')) {
-                    return "."+url;
+                    return (typeof ESBUILD !== 'undefined') ? "."+url : "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
                 }
                 return path;
             }
