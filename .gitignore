@@ -74,3 +74,6 @@ typings/
 
 # FuseBox cache
 .fusebox/
+
+# Temporary files when seding esbuild incompatibilities
+.tmp
