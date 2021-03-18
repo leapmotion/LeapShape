@@ -18,6 +18,7 @@ class SphereTool {
         this.state = -1; // -1 is Deactivated
         this.numSpheres = 0;
         this.distance = 1;
+        this.point = new THREE.Vector3();
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -44,9 +45,10 @@ class SphereTool {
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshPhongMaterial({ wireframe: true }));
+                                                    new THREE.MeshPhongMaterial({ wireframe: false }));
+                this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
-                this.currentSphere.position.copy(intersects[0].point);
+                this.point.copy(intersects[0].point);
                 this.world.scene.add(this.currentSphere);
 
                 this.state += 1;
@@ -56,8 +58,8 @@ class SphereTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.hitObject);
             if (intersects.length > 0) {
-                this.distance = intersects[0].point.sub(this.currentSphere.position).length();
-                this.createSphereGeometry(this.currentSphere, [0, 0, 0, this.distance]);
+                this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
+                this.createSphereGeometry(this.currentSphere, [this.point.x, this.point.y, this.point.z, this.distance]);
             }
 
             // When let go, deactivate and add to Undo!
@@ -86,7 +88,11 @@ class SphereTool {
         if (radius > 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
             return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
-            //return new this.oc.BRepPrimAPI_MakeCone(radius, radius * 0.5, radius).Shape();
+            //let cone = new this.oc.BRepPrimAPI_MakeCone(radius, radius * 0.5, radius).Shape();
+            //let transformation = new this.oc.gp_Trsf();
+            //transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+            //let translation = new this.oc.TopLoc_Location(transformation);
+            //return new this.oc.TopoDS_Shape(cone.Moved(translation));
         }
     }
 
