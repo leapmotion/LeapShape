@@ -78,9 +78,11 @@ class SphereTool {
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius) {
-        let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
-        return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
-        //return new this.oc.BRepPrimAPI_MakeCone(radius, radius*0.5, radius).Shape();
+        if (radius > 0) {
+            let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
+            return new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
+            //return new this.oc.BRepPrimAPI_MakeCone(radius, radius * 0.5, radius).Shape();
+        }
     }
 
     activate() {
