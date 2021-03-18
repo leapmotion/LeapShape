@@ -55,6 +55,7 @@ class OpenCascadeMesher {
      * @param {oc.TopoDS_Shape} shape OpenCascade Shape
      * @param {number} maxDeviation */
     shapeToMesh(shape, maxDeviation, fullShapeEdgeHashes, fullShapeFaceHashes) {
+        if (!shape) { return; }
         let facelist = [], edgeList = [];
         try {
             shape = new this.oc.TopoDS_Shape(shape);
