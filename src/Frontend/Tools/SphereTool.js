@@ -73,10 +73,12 @@ class SphereTool {
         ray.alreadyActivated = true;
     }
 
+    /** @param {THREE.Mesh} sphereMesh */
     createSphereGeometry(sphereMesh, createSphereArgs) {
         this.engine.execute("Sphere #" + this.numSpheres, this.createSphere, createSphereArgs,
             (geometry) => {
                 if (geometry) {
+                    sphereMesh.geometry.dispose();
                     sphereMesh.scale.set(1, 1, 1);
                     sphereMesh.geometry = geometry;
                 }
