@@ -268,6 +268,7 @@ class OpenCascadeMesher {
                 err.message = "INTERNAL OPENCASCADE ERROR DURING GENERATE: " + err.message;
                 throw err;
             }, 0);
+            return null;
         }
     
         return [facelist, edgeList];
