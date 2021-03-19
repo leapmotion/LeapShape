@@ -16,6 +16,11 @@ class LeapHandInput {
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(
             new THREE.Euler(Math.PI / 2, 0, 0)
         );
+        this.handParent = new THREE.Group();
+        this.handParent.quaternion.setFromEuler(
+            new THREE.Euler(Math.PI / 2, 0, Math.PI)
+        );
+        this.world.camera.add(this.handParent);
     }
 
     /** Updates visuals and regenerates the input ray */
@@ -36,6 +41,7 @@ class LeapHandInput {
     createHand(hand) {
         let  boneMeshes = [];
         let jointMeshes = [];
+
         console.log(hand);
         hand.fingers.forEach((finger) => {
             let boneMeshesFinger = [];
@@ -47,7 +53,7 @@ class LeapHandInput {
                 );
             
                 boneMesh.material.color.setHex(0xffffff);
-                this.world.scene.add(boneMesh);
+                this.handParent.add(boneMesh);
                 boneMeshesFinger.push(boneMesh);
             });
         
@@ -57,7 +63,7 @@ class LeapHandInput {
                     new THREE.MeshPhongMaterial()
                 );
                 jointMesh.material.color.setHex(0x0088ce);
-                this.world.scene.add(jointMesh);
+                this.handParent.add(jointMesh);
                 jointMeshesFinger.push(jointMesh);
             }
 
