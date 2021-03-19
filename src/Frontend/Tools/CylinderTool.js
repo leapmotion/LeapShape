@@ -45,20 +45,21 @@ class CylinderTool {
                 // Record the hit object and plane...
                 this.hitObject = intersects[0].object;
 
+                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
+
                 // Spawn the Cylinder
-                this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 10, 10),
+                this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1),
                                                       new THREE.MeshPhongMaterial({ wireframe: false }));
                 this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;
-                //this.currentCylinder.position.copy(intersects[0].point);
+                this.currentCylinder.position.copy(intersects[0].point);
+                this.currentCylinder.quaternion.copy(new THREE.Quaternion()
+                    .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
                 this.point.copy(intersects[0].point);
                 this.world.scene.add(this.currentCylinder);
                 this.rayPlane.position.copy(intersects[0].point);
                 this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
-                if (this.hitObject.name.includes("#")) {
-                    this.hitObject.parent.remove(this.hitObject);
-                }
 
                 this.state += 1;
             }
@@ -68,12 +69,9 @@ class CylinderTool {
             let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
                 this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
-                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
-                //console.log("nx: " + worldNormal.x + ", ny: " + worldNormal.y + ", nz: " + worldNormal.z);
-                this.createCylinderGeometry(this.currentCylinder,
-                    [this.point.x, this.point.y, this.point.z,
-                        this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
-                        this.distance, 1, this.hitObject.name]);
+                this.currentCylinder.scale.x = this.distance;
+                this.currentCylinder.scale.y = 1;
+                this.currentCylinder.scale.z = this.distance;
             }
 
             // When let go, deactivate and add to Undo!
@@ -87,14 +85,17 @@ class CylinderTool {
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
             this.height = pointOnSegment.sub(this.point).dot(this.worldNormal);
-
-            this.createCylinderGeometry(this.currentCylinder,
-                [this.point.x, this.point.y, this.point.z,
-                    this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
-                    this.distance, this.height, this.hitObject.name]);
+            this.currentCylinder.position.copy(this.worldNormal.clone()
+                .multiplyScalar(this.height / 2.0).add(this.point));
+            this.currentCylinder.scale.y = this.height;
 
             // When let go, deactivate and add to Undo!
             if (ray.active) {
+                this.createCylinderGeometry(this.currentCylinder,
+                    [this.point.x, this.point.y, this.point.z,
+                        this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
+                        this.distance, this.height, this.hitObject.name]);
+
                 this.numCylinders += 1;
                 this.currentCylinder = null;
                 this.deactivate();
@@ -109,9 +110,15 @@ class CylinderTool {
         this.engine.execute("Cylinder #" + this.numCylinders, this.createCylinder, createCylinderArgs,
             (geometry) => {
                 if (geometry) {
+                    if (this.hitObject.name.includes("#")) {
+                        this.hitObject.parent.remove(this.hitObject);
+                        this.hitObject = null;
+                    }
+
                     cylinderMesh.geometry.dispose();
                     cylinderMesh.position.set(0, 0, 0);
                     cylinderMesh.scale.set(1, 1, 1);
+                    cylinderMesh.quaternion.set(0, 0, 0, 1);
                     cylinderMesh.geometry = geometry;
                 }
             });
