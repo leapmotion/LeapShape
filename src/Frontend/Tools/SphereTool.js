@@ -19,6 +19,8 @@ class SphereTool {
         this.numSpheres = 0;
         this.distance = 1;
         this.point = new THREE.Vector3();
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+                                       new THREE.MeshBasicMaterial());
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin('');
@@ -51,13 +53,15 @@ class SphereTool {
                 this.currentSphere.position.copy(intersects[0].point);
                 this.point.copy(intersects[0].point);
                 this.world.scene.add(this.currentSphere);
+                this.rayPlane.position.copy(intersects[0].point);
+                this.rayPlane.lookAt(intersects[0].face.normal.clone().add(this.rayPlane.position));
 
                 this.state += 1;
             }
         } else if(this.state === 1) {
             // While holding, resize the Sphere
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
-            let intersects = this.world.raycaster.intersectObject(this.hitObject);
+            let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
                 this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
                 this.currentSphere.scale.x = this.distance;
@@ -67,7 +71,8 @@ class SphereTool {
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
-                this.createSphereGeometry(this.currentSphere, [this.point.x, this.point.y, this.point.z, this.distance, this.hitObject.name]);
+                this.createSphereGeometry(this.currentSphere,
+                    [this.point.x, this.point.y, this.point.z, this.distance, this.hitObject.name]);
                 this.numSpheres += 1;
                 this.currentSphere = null;
                 this.deactivate();
