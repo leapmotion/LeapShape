@@ -56,6 +56,9 @@ class CylinderTool {
                 this.rayPlane.position.copy(intersects[0].point);
                 this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
+                if (this.hitObject.name.includes("#")) {
+                    this.hitObject.parent.remove(this.hitObject);
+                }
 
                 this.state += 1;
             }
@@ -70,7 +73,7 @@ class CylinderTool {
                 this.createCylinderGeometry(this.currentCylinder,
                     [this.point.x, this.point.y, this.point.z,
                         this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
-                        this.distance, 10, this.hitObject.name]);
+                        this.distance, 1, this.hitObject.name]);
             }
 
             // When let go, deactivate and add to Undo!
@@ -79,13 +82,11 @@ class CylinderTool {
             }
         } else if(this.state === 2) {
             // Resize the Cylinder's Height until reclick
-            //this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
-            let upperSegment = this.worldNormal.clone().multiplyScalar(1000.0) .add(this.point);
+            let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
             this.height = pointOnSegment.sub(this.point).dot(this.worldNormal);
-            console.log(this.height);
 
             this.createCylinderGeometry(this.currentCylinder,
                 [this.point.x, this.point.y, this.point.z,
@@ -112,39 +113,45 @@ class CylinderTool {
                     cylinderMesh.position.set(0, 0, 0);
                     cylinderMesh.scale.set(1, 1, 1);
                     cylinderMesh.geometry = geometry;
-
-                    //if (this.hitObject.name.includes("#")) {
-                    //    this.hitObject.parent.remove(this.hitObject);
-                    //}
                 }
             });
     }
 
     /** Create a Cylinder in OpenCascade; to be executed on the Worker Thread */
     createCylinder(x, y, z, nx, ny, nz, radius, height, hitObjectName) {
-        if (radius > 0) {
-            //let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
-            //let shape = new this.oc.BRepPrimAPI_MakeCylinder(spherePlane, radius).Shape();
-            //let cone = new this.oc.BRepPrimAPI_MakeCone(radius, radius * 0.5, radius).Shape();
-            //let transformation = new this.oc.gp_Trsf();
-            //transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
-            //let translation = new this.oc.TopLoc_Location(transformation);
-            //let shape = ew this.oc.TopoDS_Shape(cone.Moved(translation));
-            //console.log("nx: " + nx + ", ny: " + ny + ", nz: " + nz);
-            let centered = false;
+        if (radius > 0 && height != 0) {
+            let centered = false; let hitAnObject = hitObjectName in this.shapes;
+
+            // Change the Cylinder Extension direction based on the sign of the height
+            nx *= Math.sign(height); ny *= Math.sign(height); nz *= Math.sign(height);
+
+            // Ugly hack to account for the difference between the raycast point and implicit point
+            // The true solution would be to raycast inside of the OpenCascade Kernel against the implicit BReps.
+            if (hitAnObject) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
+
+            // Construct the Cylinder Shape
             let cylinderPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, centered ? z-height / 2 : z), new this.oc.gp_Dir(nx, ny, nz));
             let shape = new this.oc.BRepPrimAPI_MakeCylinder(cylinderPlane, radius, Math.abs(height)).Shape();
-            return shape;
 
-            /*if (hitObjectName in this.shapes) {
+            // If we hit an object, let's CSG this Cylinder to it
+            if (hitAnObject && height > 0) {
+                // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
-                let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceCut.SetFuzzyValue(0.1);
-                differenceCut.Build();
-                return differenceCut.Shape();
+                let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
+                unionOp.SetFuzzyValue(0.001);
+                unionOp.Build();
+                return unionOp.Shape();
+            } else if (hitAnObject && height < 0) {
+                // The Height is Negative, let's Subtract
+                let hitObject = this.shapes[hitObjectName];
+                let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
+                differenceOp.SetFuzzyValue(0.001);
+                differenceOp.Build();
+                return differenceOp.Shape();
             } else {
+                // Otherwise, let's create a new object
                 return shape;
-            }*/
+            }
         }
     }
 
