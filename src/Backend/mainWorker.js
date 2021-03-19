@@ -6,7 +6,7 @@ class LeapShapeEngineWorker {
     
     constructor() {
         this.shapes = {};
-        this.resolution = 1;
+        this.resolution = 0.75;
 
         // Initialize the WebAssembly Module
         new opencascade({

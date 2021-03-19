@@ -47,8 +47,8 @@ class SphereTool {
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshPhongMaterial({ wireframe: false }));
-                this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
+                                                    new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
+                this.currentSphere.material.color.setRGB(0.0, 1.0, 1.0);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
                 this.currentSphere.position.copy(intersects[0].point);
                 this.point.copy(intersects[0].point);
@@ -88,14 +88,17 @@ class SphereTool {
         this.engine.execute("Sphere #" + this.numSpheres, this.createSphere, createSphereArgs,
             (geometry) => {
                 if (geometry) {
+                    if (this.hitObject.name.includes("#")) {
+                        this.hitObject.parent.remove(this.hitObject);
+                        this.hitObject = null;
+                    }
+
                     sphereMesh.geometry.dispose();
                     sphereMesh.position.set(0, 0, 0);
                     sphereMesh.scale.set(1, 1, 1);
                     sphereMesh.geometry = geometry;
-
-                    if (this.hitObject.name.includes("#")) {
-                        this.hitObject.parent.remove(this.hitObject);
-                    }
+                    sphereMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
+                    sphereMesh.material.color.setRGB(0.5, 0.5, 0.5);
                 }
             });
     }
@@ -105,16 +108,11 @@ class SphereTool {
         if (radius > 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
             let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
-            //let cone = new this.oc.BRepPrimAPI_MakeCone(radius, radius * 0.5, radius).Shape();
-            //let transformation = new this.oc.gp_Trsf();
-            //transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
-            //let translation = new this.oc.TopLoc_Location(transformation);
-            //let shape = ew this.oc.TopoDS_Shape(cone.Moved(translation));
 
             if (hitObjectName in this.shapes) {
                 let hitObject = this.shapes[hitObjectName];
                 let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                //differenceCut.SetFuzzyValue(0.1);
+                differenceCut.SetFuzzyValue(0.001);
                 differenceCut.Build();
                 return differenceCut.Shape();
             } else {

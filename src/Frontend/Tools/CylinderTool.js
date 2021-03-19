@@ -49,8 +49,8 @@ class CylinderTool {
 
                 // Spawn the Cylinder
                 this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1),
-                                                      new THREE.MeshPhongMaterial({ wireframe: false }));
-                this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
+                                                      new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
+                this.currentCylinder.material.color.setRGB(0.0, 1.0, 1.0);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;
                 this.currentCylinder.position.copy(intersects[0].point);
                 this.currentCylinder.quaternion.copy(new THREE.Quaternion()
@@ -120,6 +120,8 @@ class CylinderTool {
                     cylinderMesh.scale.set(1, 1, 1);
                     cylinderMesh.quaternion.set(0, 0, 0, 1);
                     cylinderMesh.geometry = geometry;
+                    cylinderMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
+                    cylinderMesh.material.color.setRGB(0.5, 0.5, 0.5);
                 }
             });
     }

@@ -21,7 +21,6 @@ class Menu {
         this.menu = new THREE.Group(); this.menuItems = [];
         console.log(tools.tools);
         for (let i = 0; i < tools.tools.length; i++) {
-            console.log(tools.tools[i].descriptor.name);
             let menuItem = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 20),
                                           new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5 }));
             menuItem.name = "Menu Item #"+i;
