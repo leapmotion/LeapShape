@@ -54,7 +54,8 @@ class SphereTool {
                 this.point.copy(intersects[0].point);
                 this.world.scene.add(this.currentSphere);
                 this.rayPlane.position.copy(intersects[0].point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().add(this.rayPlane.position));
+                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.updateMatrixWorld(true);
 
                 this.state += 1;
             }
@@ -113,7 +114,7 @@ class SphereTool {
             if (hitObjectName in this.shapes) {
                 let hitObject = this.shapes[hitObjectName];
                 let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceCut.SetFuzzyValue(0.1);
+                //differenceCut.SetFuzzyValue(0.1);
                 differenceCut.Build();
                 return differenceCut.Shape();
             } else {

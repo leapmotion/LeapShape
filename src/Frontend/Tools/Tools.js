@@ -1,7 +1,9 @@
 import { LeapShapeEngine } from '../../Backend/main.js';
 import { Menu } from './Menu.js';
 import { World } from '../World/World.js';
+
 import { SphereTool } from './SphereTool.js';
+import { CylinderTool } from './CylinderTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
@@ -14,7 +16,8 @@ class Tools {
         this.engine = engine;
 
         this.tools = [
-            new SphereTool(this)
+            new SphereTool(this),
+            new CylinderTool(this)
         ];
 
         this.activeTool = null;
