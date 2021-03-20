@@ -55,7 +55,7 @@ class OpenCascadeMesher {
      * @param {oc.TopoDS_Shape} shape OpenCascade Shape
      * @param {number} maxDeviation */
     shapeToMesh(shape, maxDeviation, fullShapeEdgeHashes, fullShapeFaceHashes) {
-        if (!shape) { return; }
+        if (!shape || shape.IsNull()) { console.error("Shape is null or undefined!"); return null; }
         let facelist = [], edgeList = [];
         try {
             shape = new this.oc.TopoDS_Shape(shape);
@@ -71,7 +71,7 @@ class OpenCascadeMesher {
             this.ForEachFace(shape, (faceIndex, myFace) => {
                 let aLocation = new this.oc.TopLoc_Location();
                 let myT = this.oc.BRep_Tool.prototype.Triangulation(myFace, aLocation);
-                if (myT.IsNull()) { /*console.error("Encountered Null Face!");*/ return null; }
+                if (myT.IsNull()) { console.error("Encountered Null Face!"); return null; }
     
                 let this_face = {
                     vertex_coord: [],
@@ -264,6 +264,7 @@ class OpenCascadeMesher {
             });
     
         } catch (err) {
+            console.error("INTERNAL OPENCASCADE ERROR DURING GENERATE");
             setTimeout(() => {
                 err.message = "INTERNAL OPENCASCADE ERROR DURING GENERATE: " + err.message;
                 throw err;

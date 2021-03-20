@@ -7,6 +7,7 @@ class LeapShapeEngineWorker {
     
     constructor() {
         this.shapes = {};
+        this.resolution = 0.75;
 
         // Initialize the WebAssembly Module
         new opencascade({
@@ -43,8 +44,8 @@ class LeapShapeEngineWorker {
     execute(payload) {
         let op = new Function("return function " + payload.shapeFunction)().bind(this);
         let shape = op(...payload.shapeArguments);
-        this.shapes[payload.name] = shape;
-        let meshData = this.mesher.shapeToMesh(shape, 1, {}, {});
+        if (shape && !shape.IsNull()) { this.shapes[payload.name] = shape; } else { console.error("Shape is null"); console.error(shape); }
+        let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
         return { name: payload.name, payload: meshData };
     }
 }
