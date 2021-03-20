@@ -4,6 +4,7 @@ import { World } from '../World/World.js';
 
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
+import { BoxTool } from './BoxTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
@@ -17,7 +18,8 @@ class Tools {
 
         this.tools = [
             new SphereTool(this),
-            new CylinderTool(this)
+            new CylinderTool(this),
+            new BoxTool(this)
         ];
 
         this.activeTool = null;

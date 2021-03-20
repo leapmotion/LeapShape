@@ -3,7 +3,7 @@ import * as THREE from '../../node_modules/three/build/three.module.js';
 /** This function converts the output of the OpenCascade 
  * Mesh Data Callback to three.js BufferGeometry */
 export default function ConvertGeometry(meshData) {
-    if (!meshData) { return null; }
+    if (!meshData) { console.error("Mesher returned false..."); return null; }
     // Accumulate data across faces into a single array
     let vertices = [], triangles = [], normals = [], colors = [], uvs = [], vInd = 0, globalFaceIndex = 0;
     meshData[0].forEach((face) => {

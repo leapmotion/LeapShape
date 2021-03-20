@@ -1,10 +1,9 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.js';
-import { Menu } from './Menu.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 
-/** This class controls all of the Tool and Menu State Machines */
+/** This class controls all of the SphereTool behavior */
 class SphereTool {
 
     /** Create the SphereTool
@@ -47,8 +46,9 @@ class SphereTool {
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
-                this.currentSphere.material.color.setRGB(0.0, 1.0, 1.0);
+                                                    new THREE.MeshPhongMaterial({ wireframe: false }));//new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
+                this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
+                this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
                 this.currentSphere.position.copy(intersects[0].point);
                 this.point.copy(intersects[0].point);

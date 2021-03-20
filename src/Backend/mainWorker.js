@@ -43,7 +43,7 @@ class LeapShapeEngineWorker {
     execute(payload) {
         let op = new Function("return function " + payload.shapeFunction)().bind(this);
         let shape = op(...payload.shapeArguments);
-        this.shapes[payload.name] = shape;
+        if (shape && !shape.IsNull()) { this.shapes[payload.name] = shape; } else { console.error("Shape is null"); console.error(shape); }
         let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
         return { name: payload.name, payload: meshData };
     }
