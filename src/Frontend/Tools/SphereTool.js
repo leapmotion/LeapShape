@@ -41,8 +41,16 @@ class SphereTool {
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
             if (ray.active && intersects.length > 0) {
+                this.hit = intersects[0];
+                // Shoot through the floor if necessary
+                for (let i = 1; i < intersects.length; i++){
+                    if (intersects[i].object.name.includes("#")) {
+                        this.hit = intersects[i]; break;
+                    }
+                }
+                
                 // Record the hit object and plane...
-                this.hitObject = intersects[0].object;
+                this.hitObject = this.hit.object;
 
                 // Spawn the Sphere
                 this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
@@ -50,11 +58,11 @@ class SphereTool {
                 this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
-                this.currentSphere.position.copy(intersects[0].point);
-                this.point.copy(intersects[0].point);
+                this.currentSphere.position.copy(this.hit.point);
+                this.point.copy(this.hit.point);
                 this.world.scene.add(this.currentSphere);
-                this.rayPlane.position.copy(intersects[0].point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.position.copy(this.hit.point);
+                this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 this.state += 1;
