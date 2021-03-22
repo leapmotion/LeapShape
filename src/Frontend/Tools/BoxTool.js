@@ -78,17 +78,19 @@ class BoxTool {
                 this.lengthAxis = new THREE.Vector3(0, 1, 0).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.length));
                 this.heightAxis = new THREE.Vector3(0, 0, 1).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
 
-                this.width  = Math.abs(this.width );
-                this.length = Math.abs(this.length);
+                this.tangentAxis = new THREE.Vector3(); 
 
-                this.currentBox.scale.x = this.width;
-                this.currentBox.scale.y = this.height;
-                this.currentBox.scale.z = this.length;
+                //this.width  = Math.abs(this.width );
+                //this.length = Math.abs(this.length);
+
+                this.currentBox.scale.x = Math.abs(this.width );
+                this.currentBox.scale.y = Math.abs(this.height);
+                this.currentBox.scale.z = Math.abs(this.length);
 
                 this.currentBox.position.copy(this.point);
-                this.currentBox.position.add (this.widthAxis .clone().multiplyScalar(this.width  / 2.0));
-                this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(this.height / 2.0));
-                this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(this.length / 2.0));
+                this.currentBox.position.add (this.widthAxis .clone().multiplyScalar(Math.abs(this.width ) / 2.0));
+                this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
+                this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
             }
 
             // When let go, deactivate and add to Undo!
@@ -103,26 +105,44 @@ class BoxTool {
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
             this.height = pointOnSegment.sub(this.point).dot(this.worldNormal);
 
-            this.heightAxis = new THREE.Vector3(0, 0, 1).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
-            //this.height = Math.abs(this.height); // This is absolute value'd later...
+            this.heightAxis = new THREE.Vector3(0, 0, 1)
+                .transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
 
-            this.currentBox.scale.x = this.width;
-            this.currentBox.scale.y = this.height;
-            this.currentBox.scale.z = this.length;
+            this.currentBox.scale.x = Math.abs(this.width );
+            this.currentBox.scale.y = Math.abs(this.height);
+            this.currentBox.scale.z = Math.abs(this.length);
 
             this.currentBox.position.copy(this.point);
-            this.currentBox.position.add (this.widthAxis .clone().multiplyScalar(this.width  / 2.0));
+            this.currentBox.position.add (this.widthAxis .clone().multiplyScalar(Math.abs(this.width ) / 2.0));
             this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
-            this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(this.length / 2.0));
-
+            this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
 
             // When let go, deactivate and add to Undo!
             if (ray.active) {
+                // This fangles the coordinate space so the box is always drawn in the (+,+,+) Octant
+                if (this.height > 0) {
+                    if (Math.sign(this.width) != Math.sign(this.length)) {
+                        this.tangentAxis.copy(this.lengthAxis);
+                        this.flip = false;
+                    } else {
+                        this.tangentAxis.copy(this.widthAxis);
+                        this.flip = true;
+                    }
+                } else {
+                    if (Math.sign(this.width) != Math.sign(this.length)) {
+                        this.tangentAxis.copy(this.widthAxis);
+                        this.flip = true;
+                    } else {
+                        this.tangentAxis.copy(this.lengthAxis);
+                        this.flip = false;
+                    }
+                }
+
                 this.createBoxGeometry(this.currentBox,
                     [this.point.x, this.point.y, this.point.z,
                         this.heightAxis.x, this.heightAxis.y, this.heightAxis.z,
-                        this.lengthAxis.x, this.lengthAxis.y, this.lengthAxis.z,
-                        this.width, this.height, this.length, this.hitObject.name]);
+                        this.tangentAxis.x, this.tangentAxis.y, this.tangentAxis.z,
+                        this.flip?this.length:this.width, this.height, this.flip?this.width:this.length, this.hitObject.name]);
 
                 this.numBoxs += 1;
                 this.currentBox = null;
@@ -164,7 +184,7 @@ class BoxTool {
 
             // Construct the Box Shape
             let boxPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), new this.oc.gp_Dir(nx, ny, nz), new this.oc.gp_Dir(vx, vy, vz));
-            let shape = new this.oc.BRepPrimAPI_MakeBox(boxPlane, length, width, Math.abs(height)).Shape();
+            let shape = new this.oc.BRepPrimAPI_MakeBox(boxPlane, Math.abs(length), Math.abs(width), Math.abs(height)).Shape();
 
             if (!shape || shape.IsNull()) { console.error("BRepPrimAPI_MakeBox did not like its arguments!"); }
 
@@ -173,14 +193,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                //unionOp.SetFuzzyValue(0.001);
+                unionOp.SetFuzzyValue(0.0001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                //differenceOp.SetFuzzyValue(0.001);
+                differenceOp.SetFuzzyValue(0.0001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }

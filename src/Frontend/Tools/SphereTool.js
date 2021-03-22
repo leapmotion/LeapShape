@@ -131,12 +131,12 @@ class SphereTool {
                 let hitObject = this.shapes[hitObjectName];
                 if (radius > 0) {
                     let union = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                    //union.SetFuzzyValue(0.001);
+                    union.SetFuzzyValue(0.0001);
                     union.Build();
                     return union.Shape();
                 } else {
                     let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                    //differenceCut.SetFuzzyValue(0.001);
+                    differenceCut.SetFuzzyValue(0.0001);
                     differenceCut.Build();
                     return differenceCut.Shape();
                 }
