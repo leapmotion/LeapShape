@@ -120,23 +120,9 @@ class BoxTool {
             // When let go, deactivate and add to Undo!
             if (ray.active) {
                 // This fangles the coordinate space so the box is always drawn in the (+,+,+) Octant
-                if (this.height > 0) {
-                    if (Math.sign(this.width) != Math.sign(this.length)) {
-                        this.tangentAxis.copy(this.lengthAxis);
-                        this.flip = false;
-                    } else {
-                        this.tangentAxis.copy(this.widthAxis);
-                        this.flip = true;
-                    }
-                } else {
-                    if (Math.sign(this.width) != Math.sign(this.length)) {
-                        this.tangentAxis.copy(this.widthAxis);
-                        this.flip = true;
-                    } else {
-                        this.tangentAxis.copy(this.lengthAxis);
-                        this.flip = false;
-                    }
-                }
+                let sameSign = Math.sign(this.width) != Math.sign(this.length);
+                this.flip = this.height > 0 ? !sameSign : sameSign;
+                this.tangentAxis.copy(this.flip ? this.widthAxis : this.lengthAxis);
 
                 this.createBoxGeometry(this.currentBox,
                     [this.point.x, this.point.y, this.point.z,
