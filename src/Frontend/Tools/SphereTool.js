@@ -18,6 +18,7 @@ class SphereTool {
         this.numSpheres = 0;
         this.distance = 1;
         this.point = new THREE.Vector3();
+        this.cameraRelativeMovement = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
 
@@ -72,10 +73,16 @@ class SphereTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
-                this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
+                // Get camera-space position to determine union or subtraction
+                this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
+                this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
+
+                this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length()) ;
                 this.currentSphere.scale.x = this.distance;
                 this.currentSphere.scale.y = this.distance;
                 this.currentSphere.scale.z = this.distance;
+                this.distance *= Math.sign(this.cameraRelativeMovement.x);
+                this.currentSphere.material.emissive.setRGB(0, 0.25, this.distance > 0 ? 0.0 : 0.25);
             }
 
             // When let go, deactivate and add to Undo!
@@ -107,25 +114,34 @@ class SphereTool {
                     sphereMesh.geometry = geometry;
                     sphereMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     sphereMesh.material.color.setRGB(0.5, 0.5, 0.5);
+                } else {
+                    // Operation Failed, remove preview
+                    sphereMesh.parent.remove(sphereMesh);
                 }
             });
     }
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius, hitObjectName) {
-        if (radius > 0) {
+        if (radius != 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
-            let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, radius).Shape();
+            let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, Math.abs(radius)).Shape();
 
             if (hitObjectName in this.shapes) {
                 let hitObject = this.shapes[hitObjectName];
-                let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceCut.SetFuzzyValue(0.001);
-                differenceCut.Build();
-                return differenceCut.Shape();
-            } else {
-                return shape;
+                if (radius > 0) {
+                    let union = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
+                    //union.SetFuzzyValue(0.001);
+                    union.Build();
+                    return union.Shape();
+                } else {
+                    let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
+                    //differenceCut.SetFuzzyValue(0.001);
+                    differenceCut.Build();
+                    return differenceCut.Shape();
+                }
             }
+            return shape;
         }
     }
 

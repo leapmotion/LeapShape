@@ -151,7 +151,7 @@ class BoxTool {
                     boxMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     boxMesh.material.color.setRGB(0.5, 0.5, 0.5);
                 } else {
-                    console.log("Got Null??");
+                    // Operation Failed, remove preview
                     boxMesh.parent.remove(boxMesh);
                 }
             });
@@ -173,14 +173,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.001);
+                //unionOp.SetFuzzyValue(0.001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.001);
+                //differenceOp.SetFuzzyValue(0.001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }
