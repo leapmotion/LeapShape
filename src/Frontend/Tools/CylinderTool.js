@@ -41,10 +41,18 @@ class CylinderTool {
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
             if (ray.active && intersects.length > 0) {
+                this.hit = intersects[0];
+                // Shoot through the floor if necessary
+                for (let i = 0; i < intersects.length; i++){
+                    if (intersects[i].object.name.includes("#")) {
+                        this.hit = intersects[i]; break;
+                    }
+                }
+                
                 // Record the hit object and plane...
-                this.hitObject = intersects[0].object;
+                this.hitObject = this.hit.object;
 
-                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
+                this.worldNormal = this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld );
 
                 // Spawn the Cylinder
                 this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1),
@@ -52,13 +60,13 @@ class CylinderTool {
                 this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;
-                this.currentCylinder.position.copy(intersects[0].point);
+                this.currentCylinder.position.copy(this.hit.point);
                 this.currentCylinder.quaternion.copy(new THREE.Quaternion()
                     .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                this.point.copy(intersects[0].point);
+                this.point.copy(this.hit.point);
                 this.world.scene.add(this.currentCylinder);
-                this.rayPlane.position.copy(intersects[0].point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.position.copy(this.hit.point);
+                this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 this.state += 1;

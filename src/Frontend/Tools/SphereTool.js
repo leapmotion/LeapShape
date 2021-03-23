@@ -44,7 +44,7 @@ class SphereTool {
             if (ray.active && intersects.length > 0) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
-                for (let i = 1; i < intersects.length; i++){
+                for (let i = 0; i < intersects.length; i++){
                     if (intersects[i].object.name.includes("#")) {
                         this.hit = intersects[i]; break;
                     }

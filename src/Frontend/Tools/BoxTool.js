@@ -44,14 +44,24 @@ class BoxTool {
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
             if (ray.active && intersects.length > 0) {
+                this.hit = intersects[0];
+                // Shoot through the floor if necessary
+                for (let i = 0; i < intersects.length; i++){
+                    if (intersects[i].object.name.includes("#")) {
+                        this.hit = intersects[i]; break;
+                    }
+                }
+
                 // Record the hit object and plane...
-                this.hitObject = intersects[0].object;
-                this.point.copy(intersects[0].point);
-                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
+                this.hitObject = this.hit.object;
+                this.point.copy(this.hit.point);
+                this.worldNormal = this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld);
 
                 // Position an Invisible Plane to Raycast against for resizing operations
                 this.rayPlane.position.copy(this.point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.lookAt(this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
