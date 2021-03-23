@@ -26,7 +26,7 @@ class BoxTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/noun_maximize.png' );
+        this.icon = this.loader.load ('../../../textures/Box.png' );
         this.descriptor = {
             name: "Box Tool",
             icon: this.icon
@@ -121,6 +121,10 @@ class BoxTool {
             this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
             this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
 
+            this.currentBox.material.emissive.setRGB(
+                this.height > 0 ? 0.0  : 0.25,
+                this.height > 0 ? 0.25 : 0.0 , 0.0);
+
             // When let go, deactivate and add to Undo!
             if (ray.active) {
                 // This fangles the coordinate space so the box is always drawn in the (+,+,+) Octant
@@ -183,14 +187,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.0001);
+                unionOp.SetFuzzyValue(0.00001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.0001);
+                differenceOp.SetFuzzyValue(0.00001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }

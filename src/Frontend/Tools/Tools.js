@@ -17,9 +17,9 @@ class Tools {
         this.engine = engine;
 
         this.tools = [
+            new BoxTool(this),
             new SphereTool(this),
-            new CylinderTool(this),
-            new BoxTool(this)
+            new CylinderTool(this)
         ];
 
         this.activeTool = null;

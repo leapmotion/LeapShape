@@ -20,8 +20,11 @@ class MouseInput {
      * @param {MouseEvent} event */
     _onContainerMouse( event ) {
         event.preventDefault();
-        this.mouse.x =  ( event.offsetX / event.srcElement.width  ) * 2 - 1;
-        this.mouse.y = -( event.offsetY / event.srcElement.height ) * 2 + 1;
+        let rect = event.target.getBoundingClientRect();
+        //this.mouse.x = ( ( (event.pageX - rect.x) / event.target.width  ) * 2 - 1) / this.world.renderer.getPixelRatio();
+        //this.mouse.y = (-( (event.pageY - rect.y) / event.target.height ) * 2 + 1) / this.world.renderer.getPixelRatio();
+        this.mouse.x =   ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
+        this.mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;        
         this.mouse.buttons = event.buttons;
     }
 
