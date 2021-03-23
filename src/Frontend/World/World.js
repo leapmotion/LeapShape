@@ -3,6 +3,7 @@ import Stats from      '../../../node_modules/three/examples/jsm/libs/stats.modu
 import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
 import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
+import { History } from "./History.js";
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
@@ -63,6 +64,7 @@ class World {
         this.controls.target.set( 0, 100, 0 );
         this.controls.update();
         window.addEventListener('resize', this._onWindowResize.bind(this), false);
+        window.addEventListener('orientationchange', this._onWindowResize.bind(this), false);
         this._onWindowResize();
         
         // raycaster
@@ -71,6 +73,8 @@ class World {
         // stats
         //this.stats = new Stats();
         //this.container.appendChild(this.stats.dom);
+
+        this.history = new History(this);
     }
 
     /** Update the camera and render the scene 
