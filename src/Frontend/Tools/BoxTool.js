@@ -26,7 +26,7 @@ class BoxTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/noun_maximize.png' );
+        this.icon = this.loader.load ('../../../textures/Box.png' );
         this.descriptor = {
             name: "Box Tool",
             icon: this.icon
@@ -44,14 +44,24 @@ class BoxTool {
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
             if (ray.active && intersects.length > 0) {
+                this.hit = intersects[0];
+                // Shoot through the floor if necessary
+                for (let i = 0; i < intersects.length; i++){
+                    if (intersects[i].object.name.includes("#")) {
+                        this.hit = intersects[i]; break;
+                    }
+                }
+
                 // Record the hit object and plane...
-                this.hitObject = intersects[0].object;
-                this.point.copy(intersects[0].point);
-                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
+                this.hitObject = this.hit.object;
+                this.point.copy(this.hit.point);
+                this.worldNormal = this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld);
 
                 // Position an Invisible Plane to Raycast against for resizing operations
                 this.rayPlane.position.copy(this.point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.lookAt(this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
@@ -110,6 +120,10 @@ class BoxTool {
             this.currentBox.position.add (this.widthAxis .clone().multiplyScalar(Math.abs(this.width ) / 2.0));
             this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
             this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
+
+            this.currentBox.material.emissive.setRGB(
+                this.height > 0 ? 0.0  : 0.25,
+                this.height > 0 ? 0.25 : 0.0 , 0.0);
 
             // When let go, deactivate and add to Undo!
             if (ray.active) {
@@ -173,14 +187,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.0001);
+                unionOp.SetFuzzyValue(0.00001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.0001);
+                differenceOp.SetFuzzyValue(0.00001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }

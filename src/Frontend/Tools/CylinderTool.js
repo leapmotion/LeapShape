@@ -23,7 +23,7 @@ class CylinderTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/noun_Pencil.png' );
+        this.icon = this.loader.load ('../../../textures/Cylinder.png' );
         this.descriptor = {
             name: "Cylinder Tool",
             icon: this.icon
@@ -41,10 +41,18 @@ class CylinderTool {
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
             if (ray.active && intersects.length > 0) {
+                this.hit = intersects[0];
+                // Shoot through the floor if necessary
+                for (let i = 0; i < intersects.length; i++){
+                    if (intersects[i].object.name.includes("#")) {
+                        this.hit = intersects[i]; break;
+                    }
+                }
+                
                 // Record the hit object and plane...
-                this.hitObject = intersects[0].object;
+                this.hitObject = this.hit.object;
 
-                this.worldNormal = intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld );
+                this.worldNormal = this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld );
 
                 // Spawn the Cylinder
                 this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1),
@@ -52,13 +60,13 @@ class CylinderTool {
                 this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;
-                this.currentCylinder.position.copy(intersects[0].point);
+                this.currentCylinder.position.copy(this.hit.point);
                 this.currentCylinder.quaternion.copy(new THREE.Quaternion()
                     .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                this.point.copy(intersects[0].point);
+                this.point.copy(this.hit.point);
                 this.world.scene.add(this.currentCylinder);
-                this.rayPlane.position.copy(intersects[0].point);
-                this.rayPlane.lookAt(intersects[0].face.normal.clone().transformDirection( intersects[0].object.matrixWorld ).add(this.rayPlane.position));
+                this.rayPlane.position.copy(this.hit.point);
+                this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 this.state += 1;
@@ -88,6 +96,9 @@ class CylinderTool {
             this.currentCylinder.position.copy(this.worldNormal.clone()
                 .multiplyScalar(this.height / 2.0).add(this.point));
             this.currentCylinder.scale.y = this.height;
+            this.currentCylinder.material.emissive.setRGB(
+                this.height > 0 ? 0.0  : 0.25,
+                this.height > 0 ? 0.25 : 0.0 , 0.0);
 
             // When let go, deactivate and add to Undo!
             if (ray.active) {
@@ -150,14 +161,14 @@ class CylinderTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.0001);
+                unionOp.SetFuzzyValue(0.00001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.0001);
+                differenceOp.SetFuzzyValue(0.00001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             } else {

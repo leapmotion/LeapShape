@@ -56,7 +56,7 @@ class OpenCascadeMesher {
      * @param {number} maxDeviation */
     shapeToMesh(shape, maxDeviation, fullShapeEdgeHashes, fullShapeFaceHashes) {
         if (!shape || shape.IsNull()) { console.error("Shape is null or undefined!"); return null; }
-        let facelist = [], edgeList = [];
+        let facelist = [], edgeList = []; let corrupt = false;
         try {
             shape = new this.oc.TopoDS_Shape(shape);
     
@@ -71,7 +71,7 @@ class OpenCascadeMesher {
             this.ForEachFace(shape, (faceIndex, myFace) => {
                 let aLocation = new this.oc.TopLoc_Location();
                 let myT = this.oc.BRep_Tool.prototype.Triangulation(myFace, aLocation);
-                if (myT.IsNull()) { console.error("Encountered Null Face!"); return null; }
+                if (myT.IsNull()) { console.error("Encountered Null Face!"); corrupt = true; }
     
                 let this_face = {
                     vertex_coord: [],
@@ -206,7 +206,8 @@ class OpenCascadeMesher {
                 });
                 triangulations.push(myT);
             });
-    
+            if (corrupt) { return null; }
+
             // Scale each face's UVs to Worldspace and pack them into a 0-1 Atlas with potpack
             let padding = 2;
             for (let f = 0; f < uv_boxes.length; f++) { uv_boxes[f].w += padding; uv_boxes[f].h += padding; }

@@ -24,7 +24,7 @@ class SphereTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin('');
-        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/noun_Sphere.png' : '../../../textures/noun_Sphere.png');
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Sphere.png' : '../../../textures/Sphere.png');
         this.descriptor = {
             name: "Sphere Tool",
             icon: this.icon
@@ -44,7 +44,7 @@ class SphereTool {
             if (ray.active && intersects.length > 0) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
-                for (let i = 1; i < intersects.length; i++){
+                for (let i = 0; i < intersects.length; i++){
                     if (intersects[i].object.name.includes("#")) {
                         this.hit = intersects[i]; break;
                     }
@@ -82,7 +82,9 @@ class SphereTool {
                 this.currentSphere.scale.y = this.distance;
                 this.currentSphere.scale.z = this.distance;
                 this.distance *= Math.sign(this.cameraRelativeMovement.x);
-                this.currentSphere.material.emissive.setRGB(0, 0.25, this.distance > 0 ? 0.0 : 0.25);
+                this.currentSphere.material.emissive.setRGB(
+                    this.distance > 0 ? 0.0  : 0.25,
+                    this.distance > 0 ? 0.25 : 0.0 , 0.0);
             }
 
             // When let go, deactivate and add to Undo!
@@ -131,12 +133,12 @@ class SphereTool {
                 let hitObject = this.shapes[hitObjectName];
                 if (radius > 0) {
                     let union = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                    union.SetFuzzyValue(0.0001);
+                    union.SetFuzzyValue(0.00001);
                     union.Build();
                     return union.Shape();
                 } else {
                     let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                    differenceCut.SetFuzzyValue(0.0001);
+                    differenceCut.SetFuzzyValue(0.00001);
                     differenceCut.Build();
                     return differenceCut.Shape();
                 }
