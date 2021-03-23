@@ -2,6 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
+import { createDitherDepthMaterial } from './ToolUtils.js';
 
 /** This class controls all of the SphereTool behavior */
 class SphereTool {
@@ -54,8 +55,8 @@ class SphereTool {
                 this.hitObject = this.hit.object;
 
                 // Spawn the Sphere
-                this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10),
-                                                    new THREE.MeshPhongMaterial({ wireframe: false }));//new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
+                let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
+                this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), curMaterial);
                 this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;

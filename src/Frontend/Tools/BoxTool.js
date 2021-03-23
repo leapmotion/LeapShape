@@ -2,6 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
+import { createDitherDepthMaterial } from './ToolUtils.js';
 
 /** This class controls all of the BoxTool behavior */
 class BoxTool {
@@ -65,8 +66,8 @@ class BoxTool {
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
-                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1),
-                                                 new THREE.MeshPhongMaterial({ wireframe: false }));
+                let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
+                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), curMaterial);
                 this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentBox.name = "Box #" + this.numBoxs;
