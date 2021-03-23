@@ -18,6 +18,13 @@ class FileIO {
         window.saveShapesOBJ = this.saveShapesOBJ.bind(this);
         window.saveShapesSTL = this.saveShapesSTL.bind(this);
         window.saveSceneGLTF = this.saveSceneGLTF.bind(this);
+
+        window.addEventListener("keydown", event => {
+            if (event.isComposing || event.keyCode === 229) { return; }
+            if (event.ctrlKey || event.metaKey) {
+                if (event.key == "s") { event.preventDefault(); this.saveShapesOBJ();  }
+            }
+        });
     }
 
     async getNewFileHandle(desc, mime, ext, open = false) {
