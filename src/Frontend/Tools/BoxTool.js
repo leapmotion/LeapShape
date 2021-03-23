@@ -18,8 +18,11 @@ class BoxTool {
         this.numBoxs = 0;
         this.distance = 1;
         this.point = new THREE.Vector3();
+        this.tangentAxis = new THREE.Vector3(); 
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
+        this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
+        this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -53,13 +56,11 @@ class BoxTool {
 
                 // Spawn the Box
                 this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1),
-                                                 new THREE.MeshPhongMaterial({ wireframe: false }));//new THREE.MeshBasicMaterial({ depthTest: false, wireframe: true }));
+                                                 new THREE.MeshPhongMaterial({ wireframe: false }));
                 this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentBox.name = "Box #" + this.numBoxs;
                 this.currentBox.position.copy(this.point);
-                this.currentBox.quaternion.copy(new THREE.Quaternion()
-                    .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
                 this.world.scene.add(this.currentBox);
 
                 this.state += 1;
@@ -78,11 +79,7 @@ class BoxTool {
                 this.lengthAxis = new THREE.Vector3(0, 1, 0).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.length));
                 this.heightAxis = new THREE.Vector3(0, 0, 1).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
 
-                this.tangentAxis = new THREE.Vector3(); 
-
-                //this.width  = Math.abs(this.width );
-                //this.length = Math.abs(this.length);
-
+                this.alignXandYUnitVectors(this.currentBox.quaternion, this.widthAxis, this.lengthAxis);
                 this.currentBox.scale.x = Math.abs(this.width );
                 this.currentBox.scale.y = Math.abs(this.height);
                 this.currentBox.scale.z = Math.abs(this.length);
@@ -94,16 +91,13 @@ class BoxTool {
             }
 
             // When let go, deactivate and add to Undo!
-            if (!ray.active) {
-                this.state += 1;
-            }
+            if (!ray.active) { this.state += 1; }
         } else if(this.state === 2) {
             // Resize the Box's Height until reclick
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
-            let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
-            let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
-            this.height = pointOnSegment.sub(this.point).dot(this.worldNormal);
+            ray.ray.distanceSqToSegment(lowerSegment, upperSegment, null, this.vec);
+            this.height = this.vec.sub(this.point).dot(this.worldNormal);
 
             this.heightAxis = new THREE.Vector3(0, 0, 1)
                 .transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
@@ -195,6 +189,18 @@ class BoxTool {
         } else {
             console.error("createBox got a Zero Dimension!");
         }
+    }
+
+    /** Sets a quaternion to align to two directions
+     * @param {THREE.Quaternion} quat
+     * @param {THREE.Vector3} xDir
+     * @param {THREE.Vector3} yDir */
+    alignXandYUnitVectors(quat, xDir, yDir) {
+        this.vec.set(1, 0, 0);
+        quat.setFromUnitVectors(this.vec, xDir);
+        this.vec.set(0, 0, 1).applyQuaternion(quat);
+        this.quat1.setFromUnitVectors(this.vec, yDir);
+        return quat.premultiply(this.quat1);
     }
 
     activate() {
