@@ -36,7 +36,7 @@ class World {
 
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000),
-                                   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
+                                   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false, opacity: 0 }));
         this.mesh.rotation.x = - Math.PI / 2;
         this.mesh.receiveShadow = true;
         this.scene.add( this.mesh );

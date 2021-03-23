@@ -1,5 +1,6 @@
 import { LeapShapeEngine } from '../Backend/main.js';
 import { World } from './World/World.js';
+import { FileIO } from './World/FileIO.js';
 import { Input } from './Input/Input.js';
 import { Tools } from './Tools/Tools.js';
 
@@ -16,6 +17,9 @@ class LeapShapeRenderer {
 
         // Create the world and set its update loop
         this.world = new World(this.update.bind(this));
+
+        // Handles Saving and Loading Assets
+        this.fileIO = new FileIO(this.world, engine);
 
         // Create the input abstraction for Mice, Hands, and Controllers
         this.input = new Input(this.world);

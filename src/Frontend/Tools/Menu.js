@@ -23,14 +23,14 @@ class Menu {
         for (let i = 0; i < tools.tools.length; i++) {
             let menuItem = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 20),
                                           new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5 }));
-            menuItem.name = "Menu Item #"+i;
+            menuItem.name = "Menu Item - "+i;
             menuItem.receiveShadow = false;
             menuItem.castShadow = false;
 
             let menuItemIcon = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25),
                 new THREE.MeshBasicMaterial(
                     { color: 0x999999, alphaTest: 0.5, map: tools.tools[i].descriptor.icon }));
-            menuItemIcon.name = "Menu Item Icon #"+i;
+            menuItemIcon.name = "Menu Item Icon - "+i;
             menuItemIcon.receiveShadow = false;
             menuItemIcon.castShadow = false;
             menuItem.icon = menuItemIcon;
