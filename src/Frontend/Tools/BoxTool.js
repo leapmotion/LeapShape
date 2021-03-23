@@ -26,7 +26,7 @@ class BoxTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Box.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Box.png' : '../../../textures/Box.png');
         this.descriptor = {
             name: "Box Tool",
             icon: this.icon
