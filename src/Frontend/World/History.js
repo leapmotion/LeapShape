@@ -14,93 +14,137 @@ class History {
         // Store a reference to the World
         this.world = world;
 
-        this.shapeObjects = [];
-        this.undoObjects  = [];
-        this.redoObjects  = [];
+        this.shapeObjects = new THREE.Group();
+        this.undoObjects  = new THREE.Group();
+        this.redoObjects  = new THREE.Group();
         this.removeCmd = "Remove-";
+
+        this.world.scene.add(this.shapeObjects);
+
+        // Handle Keyboard events
+        window.addEventListener("keydown", event => {
+            if (event.isComposing || event.keyCode === 229) { return; }
+            if (event.ctrlKey || event.metaKey) {
+                if (event.key == "z") { this.Undo(); }
+                if (event.key == "y") { this.Redo(); }
+            }
+        });
     }
 
-    Undo() { if (undoObjects.length > 0) { this.processDoCommand( shapeObjects, undoObjects, redoObjects); } }
-    Redo() { if (redoObjects.length > 0) { this.processDoCommand( shapeObjects, redoObjects, undoObjects); } }
+    Undo() { if (this.undoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.undoObjects, this.redoObjects); } }
+    Redo() { if (this.redoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.redoObjects, this.undoObjects); } }
 
-    // Dequeue a do element, and queue its reverse into the ...reverse queue
+    /** Dequeue a do element, and queue its reverse into the ...reverse queue
+     * @param {THREE.Object3D} drawingLayer 
+     * @param {THREE.Object3D} commandLayer
+     * @param {THREE.Object3D} reverseLayer */ 
     processDoCommand(drawingLayer, commandLayer, reverseLayer) {
-        let command = commandLayer[commandLayer.length - 1];
+        let command = commandLayer.children[commandLayer.children.length - 1];
         if (command) {
             // If this item's name starts with the removeCmd...
-            if (command.name.startsWith(removeCmd)) {
+            if (command.name.startsWith(this.removeCmd)) {
                 // Find this item and "delete" it...
-                let condemnedName = command.name.substring(removeCmd.length);
+                let condemnedName = command.name.substring(this.removeCmd.length);
                 let condemnedStroke = null;
-                for (let i = 0; i < drawingLayer.length; i++){
-                    if (drawingLayer[i].name == condemnedName) { condemnedStroke = drawingLayer[i]; }
+                for (let i = 0; i < drawingLayer.children.length; i++){
+                    if (drawingLayer.children[i].name == condemnedName) { condemnedStroke = drawingLayer.children[i]; }
                 }
                 if (condemnedStroke) {
-                    condemnedStroke.parent.remove(condemnedStroke);
-                    reverseLayer.push(condemnedStroke);
+                    //condemnedStroke.parent.remove(condemnedStroke);
+                    reverseLayer.add(condemnedStroke);
                 } else {
                     console.error("Undo/Redo History is corrupt; " +
                         "couldn't find " + condemnedName + " to delete it...");
                 }
-                commandLayer.length = commandLayer.length - 1;
+                //commandLayer.length = commandLayer.length - 1;
+                commandLayer.remove(command);
             } else {
                 // Check and see if this item already exists
                 let strokeToReplace = null; let i = 0;
-                for (i = 0; i < drawingLayer.length; i++){
-                    if (drawingLayer[i].name == command.name) { strokeToReplace = drawingLayer[i]; }
+                for (i = 0; i < drawingLayer.children.length; i++){
+                    if (drawingLayer.children[i].name == command.name) { strokeToReplace = drawingLayer.children[i]; }
                 }
                 if (strokeToReplace) {
                     // If it *does* exist, just replace it
                     let parent = strokeToReplace.parent;
-                    strokeToReplace.parent.remove(strokeToReplace);
-                    reverseLayer.push(strokeToReplace);
+                    //strokeToReplace.parent.remove(strokeToReplace);
+                    reverseLayer.add(strokeToReplace);
   
                     // Use 'replaceWith' to preserve layer order!
                     parent.add(command);
-                    drawingLayer[i] = command;
+                    //drawingLayer.children[i] = command;
                 } else {
                     // If it does not exist, create it
-                    this.world.scene.add(command);
-                    drawingLayer.push(command);
+                    //this.world.scene.add(command);
+                    drawingLayer.add(command);
   
-                    let removeCommand = { name: removeCmd + command.name };
-                    reverseLayer.push(removeCommand);
+                    let removeCommand = new THREE.Group();
+                    removeCommand.name = this.removeCmd + command.name;
+                    reverseLayer.add(removeCommand);
                 }
             }
         }
     }
 
-    /** Store this item's current state in the Undo Queue */
-    createItemStateForUndo(item) {
-        // If an object doesn't have a good name, give it one :)
-        if (!item.name.Contains("#")) {
-            item.name = "#-" + item.GetHashCode();
+    /** Store this item's current state in the Undo Queue 
+     * @param {Object3D} item Object to add into the scene
+     * @param {toReplace} toReplace Object to replace with item 
+    */
+    addToUndo(item, toReplace) {
+        if (toReplace) {
+            this.undoObjects.add(toReplace);
+            item.name = toReplace.name;
+        }else{
+            let removeCommand = new THREE.Group();
+            removeCommand.name = this.removeCmd + item.name;
+            this.undoObjects.add(removeCommand);
         }
-        this.undoObjects.push({ name: this.removeCmd + item.name });
+
+        this.shapeObjects.add(item);
+
+        console.log("Shape Objects: ", this.shapeObjects.children);
+        console.log("Undo Objects:  ", this. undoObjects.children);
+        console.log("Redo Objects:  ", this. redoObjects.children);
 
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
     }
 
-    /** Store this item's current state in the Redo Queue */
-    saveItemStateForUndo(item) {
+    /** Store this item's current state in the Undo Queue */
+    createItemStateForUndo(item) {
         // If an object doesn't have a good name, give it one :)
-        if (!item.name.Contains("#")) {
-            item.name = "#-" + item.GetHashCode();
+        if (!item.name.includes("#")) {
+            item.name = "#-" + item.id;
         }
-        this.undoObjectParent.push(item);
+        let removeCommand = new THREE.Group();
+        removeCommand.name = this.removeCmd + item.name;
+        this.undoObjects.add(removeCommand);
+
+        this.shapeObjects.add(item);
 
         // Clear the redo "history" (it's technically invalid now...)
-        ClearRedoHistory();
+        this.ClearRedoHistory();
+    }
+
+    /** Store this item's current state in the Undo Queue */
+    saveItemStateForUndo(item) {
+        // If an object doesn't have a good name, give it one :)
+        if (!item.name.includes("#")) {
+            item.name = "#-" + item.id;
+        }
+        this.undoObjects.add(item);
+
+        // Clear the redo "history" (it's technically invalid now...)
+        this.ClearRedoHistory();
     }
 
     /** Clear the Redo Queue */
-    ClearRedoHistory() { this.redoObjects = []; }
+    ClearRedoHistory() { this.redoObjects.clear(); }
     /** Clear the Undo Queue */
-    ClearUndoHistory() { this.undoObjects = []; }
+    ClearUndoHistory() { this.undoObjects.clear(); }
     /** Undo all actions up to this point (can be redone individually) */
     ClearAll() {
-      for (let i = 0; i < undoObjects.length; i++) { Undo(); }
+      for (let i = 0; i < this.undoObjects.length; i++) { Undo(); }
     }
 
 }

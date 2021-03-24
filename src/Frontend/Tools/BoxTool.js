@@ -137,7 +137,7 @@ class BoxTool {
                     [this.point.x, this.point.y, this.point.z,
                         this.heightAxis.x, this.heightAxis.y, this.heightAxis.z,
                         this.tangentAxis.x, this.tangentAxis.y, this.tangentAxis.z,
-                        this.flip?this.length:this.width, this.height, this.flip?this.width:this.length, this.hitObject.name]);
+                        this.flip?this.length:this.width, this.height, this.flip?this.width:this.length, this.hitObject.shapeName]);
 
                 this.numBoxs += 1;
                 this.currentBox = null;
@@ -150,14 +150,10 @@ class BoxTool {
 
     /** @param {THREE.Mesh} boxMesh */
     createBoxGeometry(boxMesh, createBoxArgs) {
-        this.engine.execute("Box #" + this.numBoxs, this.createBox, createBoxArgs,
+        let shapeName = "Box #" + this.numBoxs;
+        this.engine.execute(shapeName, this.createBox, createBoxArgs,
             (geometry) => {
                 if (geometry) {
-                    if (this.hitObject.name.includes("#")) {
-                        this.hitObject.parent.remove(this.hitObject);
-                        this.hitObject = null;
-                    }
-
                     boxMesh.geometry.dispose();
                     boxMesh.position.set(0, 0, 0);
                     boxMesh.scale.set(1, 1, 1);
@@ -165,6 +161,14 @@ class BoxTool {
                     boxMesh.geometry = geometry;
                     boxMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     boxMesh.material.color.setRGB(0.5, 0.5, 0.5);
+                    boxMesh.shapeName = shapeName;
+
+                    if (this.hitObject.name.includes("#")) {
+                        this.world.history.addToUndo(boxMesh, this.hitObject);
+                        this.hitObject = null;
+                    } else {
+                        this.world.history.addToUndo(boxMesh);
+                    }
                 } else {
                     // Operation Failed, remove preview
                     boxMesh.parent.remove(boxMesh);

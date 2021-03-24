@@ -106,7 +106,7 @@ class CylinderTool {
                 this.createCylinderGeometry(this.currentCylinder,
                     [this.point.x, this.point.y, this.point.z,
                         this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
-                        this.distance, this.height, this.hitObject.name]);
+                        this.distance, this.height, this.hitObject.shapeName]);
 
                 this.numCylinders += 1;
                 this.currentCylinder = null;
@@ -119,14 +119,10 @@ class CylinderTool {
 
     /** @param {THREE.Mesh} cylinderMesh */
     createCylinderGeometry(cylinderMesh, createCylinderArgs) {
-        this.engine.execute("Cylinder #" + this.numCylinders, this.createCylinder, createCylinderArgs,
+        let shapeName = "Cylinder #" + this.numCylinders;
+        this.engine.execute(shapeName, this.createCylinder, createCylinderArgs,
             (geometry) => {
                 if (geometry) {
-                    if (this.hitObject.name.includes("#")) {
-                        this.hitObject.parent.remove(this.hitObject);
-                        this.hitObject = null;
-                    }
-
                     cylinderMesh.geometry.dispose();
                     cylinderMesh.position.set(0, 0, 0);
                     cylinderMesh.scale.set(1, 1, 1);
@@ -134,6 +130,14 @@ class CylinderTool {
                     cylinderMesh.geometry = geometry;
                     cylinderMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     cylinderMesh.material.color.setRGB(0.5, 0.5, 0.5);
+                    cylinderMesh.shapeName = shapeName;
+
+                    if (this.hitObject.name.includes("#")) {
+                        this.world.history.addToUndo(cylinderMesh, this.hitObject);
+                        this.hitObject = null;
+                    } else {
+                        this.world.history.addToUndo(cylinderMesh);
+                    }
                 } else {
                     // Operation Failed, remove preview
                     cylinderMesh.parent.remove(cylinderMesh);
