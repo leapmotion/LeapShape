@@ -101,10 +101,13 @@ class BoxTool {
                 this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
             }
 
-            // When let go, deactivate and add to Undo!
+            // When let go, advance to waiting for the next drag
             if (!ray.active) { this.state += 1; }
-        } else if(this.state === 2) {
-            // Resize the Box's Height until reclick
+        } else if (this.state === 2) {
+            // When dragging begins again, advance to the next state
+            if (ray.active) { this.state += 1; }
+        } else if(this.state === 3) {
+            // Resize the Height while dragging
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
             ray.ray.distanceSqToSegment(lowerSegment, upperSegment, null, this.vec);
@@ -127,7 +130,7 @@ class BoxTool {
                 this.height > 0 ? 0.25 : 0.0 , 0.0);
 
             // When let go, deactivate and add to Undo!
-            if (ray.active) {
+            if (!ray.active) {
                 // This fangles the coordinate space so the box is always drawn in the (+,+,+) Octant
                 let sameSign = Math.sign(this.width) != Math.sign(this.length);
                 this.flip = this.height > 0 ? !sameSign : sameSign;

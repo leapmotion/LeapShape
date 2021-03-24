@@ -13,6 +13,9 @@ class MouseInput {
         this.world.container.addEventListener( 'mousemove', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'mousedown', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'mouseup'  , this._onContainerMouse.bind(this) );
+        this.world.container.addEventListener( 'touchstart', this._onContainerTouch.bind(this) );
+        this.world.container.addEventListener( 'touchmove' , this._onContainerTouch.bind(this) );
+        this.world.container.addEventListener( 'touchend'  , this._onContainerTouchEnd.bind(this) );
         this.prevButton = 0;
     }
 
@@ -21,11 +24,24 @@ class MouseInput {
     _onContainerMouse( event ) {
         event.preventDefault();
         let rect = event.target.getBoundingClientRect();
-        //this.mouse.x = ( ( (event.pageX - rect.x) / event.target.width  ) * 2 - 1) / this.world.renderer.getPixelRatio();
-        //this.mouse.y = (-( (event.pageY - rect.y) / event.target.height ) * 2 + 1) / this.world.renderer.getPixelRatio();
         this.mouse.x =   ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
-        this.mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;        
+        this.mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
         this.mouse.buttons = event.buttons;
+    }
+
+    /** Triggered whenever a touch starts or moves over the application
+     * @param {TouchEvent} event */
+    _onContainerTouch( event ) {
+        event.preventDefault();
+        let rect = event.target.getBoundingClientRect();
+        this.mouse.x =   ( ( event.changedTouches[0].clientX - rect.left ) / rect.width ) * 2 - 1;
+        this.mouse.y = - ( ( event.changedTouches[0].clientY - rect.top ) / rect.height ) * 2 + 1;
+        this.mouse.buttons = 1;
+    }
+    /** Triggered whenever a touch ends over the application
+     * @param {TouchEvent} event */
+    _onContainerTouchEnd( event ) {
+        this.mouse.buttons = 0;
     }
 
     update() {
