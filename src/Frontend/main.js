@@ -3,6 +3,7 @@ import { World } from './World/World.js';
 import { FileIO } from './World/FileIO.js';
 import { Input } from './Input/Input.js';
 import { Tools } from './Tools/Tools.js';
+import { Debug } from './Debug/Debug.js';
 
 /**
  * This is the visualization entrypoint for LeapShape;
@@ -26,6 +27,8 @@ class LeapShapeRenderer {
 
         // Create the menu system, which is populated from the List of Tools
         this.tools = new Tools(this.world, engine);
+
+        this.debug = new Debug(); // Print Errors to screen for iOS Debugging
     }
 
     update() {
