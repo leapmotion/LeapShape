@@ -8,7 +8,8 @@ import { World } from '../World/World.js';
 export function createDitherDepthMaterial(world, inputMaterial) {
     // Inject some spicy stochastic depth logic into this object's material
     let safari = /(Safari)/g.test(navigator.userAgent) && ! /(Chrome)/g.test(navigator.userAgent);
-    let hasFragDepth = world.renderer.capabilities.isWebGL2 || (world.renderer.extensions.has('EXT_frag_depth') && !safari);
+    let hasFragDepth = (world.renderer.capabilities.isWebGL2 || (world.renderer.extensions.has('EXT_frag_depth'))) && !safari;
+    if (!hasFragDepth) { return inputMaterial; }
     let stochasticDepthMaterial = inputMaterial.clone();
     stochasticDepthMaterial.uniforms = {};
     stochasticDepthMaterial.extensions = { fragDepth: hasFragDepth }; // set to use fragment depth values
