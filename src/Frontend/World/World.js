@@ -59,7 +59,7 @@ class World {
         // orbit controls
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
+        this.controls.dampingFactor = 0.10;
         this.controls.screenSpacePanning = true;
         this.controls.target.set( 0, 100, 0 );
         this.controls.update();

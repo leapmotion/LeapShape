@@ -69,16 +69,16 @@ class Menu {
                     this.tools.tools[i].activate();
                     this.menuItems[i].material.color.copy(this.pressedColor);
                 } else if (ray.active) {
-                    this.menuItems[i].material.color.lerp(this.heldColor, 0.1);
+                    this.menuItems[i].material.color.lerp(this.heldColor, 0.15);
                 } else {
-                    this.menuItems[i].material.color.lerp(this.highlightedColor, 0.1);
+                    this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
                 }
             } else {
-                this.menuItems[i].material.color.lerp(this.normalColor, 0.1);
+                this.menuItems[i].material.color.lerp(this.normalColor, 0.15);
             }
 
             // Lerp the Spheres to their Target Slot's position
-            this.menuItems[i].position.lerp(this.slots[i].getWorldPosition(this.tempV3), 0.05);
+            this.menuItems[i].position.lerp(this.slots[i].getWorldPosition(this.tempV3), 0.1);
 
             // Make the Icon Face the Camera
             this.menuItems[i].icon.lookAt(this.world.camera.getWorldPosition(this.tempV3))

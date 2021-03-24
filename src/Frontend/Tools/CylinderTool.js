@@ -83,12 +83,13 @@ class CylinderTool {
                 this.currentCylinder.scale.z = this.distance;
             }
 
-            // When let go, deactivate and add to Undo!
-            if (!ray.active) {
-                this.state += 1;
-            }
-        } else if(this.state === 2) {
-            // Resize the Cylinder's Height until reclick
+            // When let go, advance to waiting for the next drag
+            if (!ray.active) { this.state += 1; }
+        } else if (this.state === 2) {
+            // When dragging begins again, advance to the next state
+            if (ray.active) { this.state += 1; }
+        } else if(this.state === 3) {
+            // Resize the Height while dragging
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
@@ -102,7 +103,7 @@ class CylinderTool {
                 this.height > 0 ? 0.25 : 0.0 , 0.0);
 
             // When let go, deactivate and add to Undo!
-            if (ray.active) {
+            if (!ray.active) {
                 this.createCylinderGeometry(this.currentCylinder,
                     [this.point.x, this.point.y, this.point.z,
                         this.worldNormal.x, this.worldNormal.y, this.worldNormal.z,
