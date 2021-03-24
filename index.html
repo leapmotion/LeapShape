@@ -11,13 +11,50 @@
         <meta name="theme-color"        content="#ffffff">
 
         <link rel='shortcut icon'      href='./favicon.png' type='image/x-icon' >
+        <style>
+            /* Button CSS from https://codepen.io/daneden/full/rcFJE by Daniel Eden */
+            @import url(https://fonts.googleapis.com/css?family=Lato:700italic,400,400italic,700);
+            html {
+                font: 100%/1.5 Lato, Helvetica Neue, Helvetica, Arial, sans-serif;
+                -webkit-font-smoothing: antialiased;
+                background-image: linear-gradient(#c5c7cb,  #f8f9fa);
+                min-height: 100%;
+            }
+
+            a {
+                font-size: .825em;
+                text-decoration: none;
+                font-weight: 700;
+                padding: .35em 1em;
+                background-color: #eaeef1;
+                background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.1));
+                border-radius: 3px;
+                color: rgba(0, 32, 32, 0.575);
+                text-shadow: 0 1px 1px rgba(255,255,255,.7);
+                box-shadow: 0 0 0 1px rgba(0,0,0,.2), 0 1px 2px rgba(0,0,0,.2), inset 0 1px 2px rgba(255,255,255,.7);
+            }
+
+            a:hover, a.hover {
+                background-color: #fff;
+            }
+
+            a:active, a.active {
+                background-color: #d0d3d6;
+                background-image: linear-gradient(rgba(0,0,0,.1), rgba(0,0,0,0));
+                box-shadow: inset 0 0 2px rgba(0,0,0,.2), inset 0 2px 5px rgba(0,0,0,.2), 0 1px rgba(255,255,255,.2);
+            }
+
+            .topnav {
+                padding: 5px;
+            }
+        </style>
     </head>
 
     <body style="margin:0px; background-color:rgb(255, 255, 255); "><!--overflow:hidden; position:fixed;-->
         <h1 hidden></h1> <!-- Puts the Lighthouse Score over 90 heheh-->
 
         <div id="topnav" class="topnav">
-            <a href="https://github.com/leapmotion/LeapShape">Leap Shape 0.1.0</a>
+            <a href="https://github.com/leapmotion/LeapShape" target="_blank">Leap Shape 0.1.0</a>
             <a href="#" title="Export to .obj" onmouseup="window.saveShapesOBJ();">Export to .obj</a>
             <a href="#" title="Export to .stl" onmouseup="window.saveShapesSTL();">Export to .stl</a>
             <a href="#" title="Export to .gltf" onmouseup="window.saveSceneGLTF();">Export to .gltf</a>
