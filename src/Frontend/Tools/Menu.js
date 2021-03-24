@@ -19,7 +19,6 @@ class Menu {
 
         // Menu Container
         this.menu = new THREE.Group(); this.menuItems = [];
-        console.log(tools.tools);
         for (let i = 0; i < tools.tools.length; i++) {
             let menuItem = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 20),
                                           new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5, depthTest:false }));

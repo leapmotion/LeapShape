@@ -87,9 +87,8 @@ class History {
     }
 
     /** Store this item's current state in the Undo Queue 
-     * @param {Object3D} item Object to add into the scene
-     * @param {toReplace} toReplace Object to replace with item 
-    */
+     * @param {THREE.Object3D} item Object to add into the scene
+     * @param {THREE.Object3D} toReplace Object to replace with item */
     addToUndo(item, toReplace) {
         if (toReplace) {
             this.undoObjects.add(toReplace);
@@ -101,38 +100,6 @@ class History {
         }
 
         this.shapeObjects.add(item);
-
-        console.log("Shape Objects: ", this.shapeObjects.children);
-        console.log("Undo Objects:  ", this. undoObjects.children);
-        console.log("Redo Objects:  ", this. redoObjects.children);
-
-        // Clear the redo "history" (it's technically invalid now...)
-        this.ClearRedoHistory();
-    }
-
-    /** Store this item's current state in the Undo Queue */
-    createItemStateForUndo(item) {
-        // If an object doesn't have a good name, give it one :)
-        if (!item.name.includes("#")) {
-            item.name = "#-" + item.id;
-        }
-        let removeCommand = new THREE.Group();
-        removeCommand.name = this.removeCmd + item.name;
-        this.undoObjects.add(removeCommand);
-
-        this.shapeObjects.add(item);
-
-        // Clear the redo "history" (it's technically invalid now...)
-        this.ClearRedoHistory();
-    }
-
-    /** Store this item's current state in the Undo Queue */
-    saveItemStateForUndo(item) {
-        // If an object doesn't have a good name, give it one :)
-        if (!item.name.includes("#")) {
-            item.name = "#-" + item.id;
-        }
-        this.undoObjects.add(item);
 
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
