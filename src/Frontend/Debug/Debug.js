@@ -9,7 +9,9 @@ class Debug {
         }
         console.error = this.fakeError.bind(this);
 
-        console.error("Mobile Debugging Enabled");
+        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        this.mobile = /(Android|iPad|iPhone|iPod)/g.test( navigator.userAgent ) || this.safari;
+        if (this.mobile) { console.error("Mobile Debugging Enabled"); }
     }
 
     fakeError(...args) {
