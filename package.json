@@ -10,7 +10,7 @@
 	"author": {
 		"name": "Ultraleap"
 	},
-	"license": "Apache V2",
+	"license": "Apache-2.0",
 	"bundledDependencies": false,
 	"dependencies": {
 		"leapjs": "github:leapmotion/leapjs#patch-es6",
