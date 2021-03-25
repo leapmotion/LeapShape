@@ -69,6 +69,7 @@ class CylinderTool {
                 this.rayPlane.position.copy(this.hit.point);
                 this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
+                ray.alreadyActivated = true;
 
                 this.state += 1;
             }
@@ -82,12 +83,20 @@ class CylinderTool {
                 this.currentCylinder.scale.y = 1;
                 this.currentCylinder.scale.z = this.distance;
             }
+            ray.alreadyActivated = true;
 
             // When let go, advance to waiting for the next drag
             if (!ray.active) { this.state += 1; }
         } else if (this.state === 2) {
             // When dragging begins again, advance to the next state
-            if (ray.active) { this.state += 1; }
+            if (ray.justActivated) {
+                this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
+                let intersects = this.world.raycaster.intersectObject(this.currentCylinder);
+                if (intersects.length > 0) {
+                    ray.alreadyActivated = true;
+                    this.state += 1;
+                }
+            }
         } else if(this.state === 3) {
             // Resize the Height while dragging
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
@@ -101,6 +110,7 @@ class CylinderTool {
             this.currentCylinder.material.emissive.setRGB(
                 this.height > 0 ? 0.0  : 0.25,
                 this.height > 0 ? 0.25 : 0.0 , 0.0);
+            ray.alreadyActivated = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
@@ -114,8 +124,6 @@ class CylinderTool {
                 this.deactivate();
             }
         }
-
-        ray.alreadyActivated = true;
     }
 
     /** @param {THREE.Mesh} cylinderMesh */
@@ -195,7 +203,7 @@ class CylinderTool {
     deactivate() {
         this.state = -1;
         this.tools.activeTool = null;
-        if (this.currentCylinder) {
+        if (this.currentCylinder && this.currentCylinder.parent) {
             this.currentCylinder.parent.remove(this.currentCylinder);
         }
     }

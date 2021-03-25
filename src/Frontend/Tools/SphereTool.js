@@ -2,7 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial } from './ToolUtils.js';
+import { createDitherDepthMaterial, snapToGrid } from './ToolUtils.js';
 
 /** This class controls all of the SphereTool behavior */
 class SphereTool {
@@ -53,6 +53,7 @@ class SphereTool {
                 
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
+                this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
 
                 // Spawn the Sphere
                 let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
@@ -60,14 +61,15 @@ class SphereTool {
                 this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
-                this.currentSphere.position.copy(this.hit.point);
-                this.point.copy(this.hit.point);
+                this.currentSphere.position.copy(this.snappedHitPoint);
+                this.point.copy(this.snappedHitPoint);
                 this.world.scene.add(this.currentSphere);
-                this.rayPlane.position.copy(this.hit.point);
+                this.rayPlane.position.copy(this.snappedHitPoint);
                 this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 this.state += 1;
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Sphere
@@ -78,7 +80,9 @@ class SphereTool {
                 this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
                 this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
 
-                this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length()) ;
+                this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
+                if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
+
                 this.currentSphere.scale.x = this.distance;
                 this.currentSphere.scale.y = this.distance;
                 this.currentSphere.scale.z = this.distance;
@@ -87,6 +91,7 @@ class SphereTool {
                     this.distance > 0 ? 0.0  : 0.25,
                     this.distance > 0 ? 0.25 : 0.0 , 0.0);
             }
+            ray.alreadyActivated = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
@@ -97,8 +102,6 @@ class SphereTool {
                 this.deactivate();
             }
         }
-
-        ray.alreadyActivated = true;
     }
 
     /** @param {THREE.Mesh} sphereMesh */
@@ -163,7 +166,7 @@ class SphereTool {
     deactivate() {
         this.state = -1;
         this.tools.activeTool = null;
-        if (this.currentSphere) {
+        if (this.currentSphere && this.currentSphere.parent) {
             this.currentSphere.parent.remove(this.currentSphere);
         }
     }

@@ -44,7 +44,7 @@ class World {
         this.grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
         this.grid.material.transparent = true;
-        this.grid.position.y = -1;
+        this.grid.position.y = -0.1;
         this.scene.add(this.grid);
         
         // renderer
@@ -81,7 +81,7 @@ class World {
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
         this.controls.enabled = !ray.alreadyActivated;
-        this.controls.update();
+        if (this.controls.enabled) { this.controls.update(); }
         this.renderer.render(this.scene, this.camera);
     }
 
