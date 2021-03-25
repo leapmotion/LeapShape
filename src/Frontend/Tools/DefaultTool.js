@@ -104,7 +104,6 @@ class DefaultTool {
             }
 
             // Record the hit object and plane...
-            console.log(this.hit.object);
             if (this.hit.object.name.includes("#")) {
                 this.hitObject = this.hit.object;
                 this.point.copy(this.hit.point);
