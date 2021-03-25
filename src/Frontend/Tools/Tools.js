@@ -2,6 +2,7 @@ import { LeapShapeEngine } from '../../Backend/main.js';
 import { Menu } from './Menu.js';
 import { World } from '../World/World.js';
 
+import { DefaultTool } from './DefaultTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
 import { BoxTool } from './BoxTool.js';
@@ -13,16 +14,17 @@ class Tools {
      * @param {World} world
      * @param {LeapShapeEngine} engine */
     constructor(world, engine) {
-        this.world = world;
-        this.engine = engine;
+        this.world = world; this.engine = engine;
 
         this.tools = [
-            new BoxTool(this),
-            new SphereTool(this),
+            new DefaultTool (this),
+            new BoxTool     (this),
+            new SphereTool  (this),
             new CylinderTool(this)
         ];
 
         this.activeTool = null;
+        this.gridPitch = 5.0;
     }
 
     /** Update the Tool and Menu State Machines
@@ -37,11 +39,10 @@ class Tools {
             this.menu = new Menu(this);
         }
 
-        if (this.activeTool) {
-            this.activeTool.update(ray);
-        } else {
-            // Update the selection tool?
+        if (!this.activeTool) {
+            this.tools[0].activate();
         }
+        this.activeTool.update(ray);
 
     }
 

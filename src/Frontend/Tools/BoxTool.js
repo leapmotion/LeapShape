@@ -15,9 +15,9 @@ class BoxTool {
         this.engine = this.tools.engine;
         this.oc = oc; this.shapes = {};
 
-        this.state = -1; // -1 is Deactivated
-        this.numBoxs = 0;
-        this.distance = 1;
+        this.state    = -1; // -1 is Deactivated
+        this.numBoxs  =  0;
+        this.distance =  1;
         this.point = new THREE.Vector3();
         this.tangentAxis = new THREE.Vector3(); 
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
@@ -75,6 +75,7 @@ class BoxTool {
                 this.world.scene.add(this.currentBox);
 
                 this.state += 1;
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Box
@@ -100,12 +101,21 @@ class BoxTool {
                 this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
                 this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
             }
+            ray.alreadyActivated = true;
 
             // When let go, advance to waiting for the next drag
             if (!ray.active) { this.state += 1; }
         } else if (this.state === 2) {
             // When dragging begins again, advance to the next state
-            if (ray.active) { this.state += 1; }
+            
+            if (ray.justActivated) {
+                this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
+                let intersects = this.world.raycaster.intersectObject(this.currentBox);
+                if (intersects.length > 0) {
+                    ray.alreadyActivated = true;
+                    this.state += 1;
+                }
+            }
         } else if(this.state === 3) {
             // Resize the Height while dragging
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
@@ -127,7 +137,9 @@ class BoxTool {
 
             this.currentBox.material.emissive.setRGB(
                 this.height > 0 ? 0.0  : 0.25,
-                this.height > 0 ? 0.25 : 0.0 , 0.0);
+                this.height > 0 ? 0.25 : 0.0, 0.0);
+
+            ray.alreadyActivated = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
@@ -147,8 +159,6 @@ class BoxTool {
                 this.deactivate();
             }
         }
-
-        ray.alreadyActivated = true;
     }
 
     /** @param {THREE.Mesh} boxMesh */
@@ -236,7 +246,7 @@ class BoxTool {
     deactivate() {
         this.state = -1;
         this.tools.activeTool = null;
-        if (this.currentBox) {
+        if (this.currentBox && this.currentBox.parent) {
             this.currentBox.parent.remove(this.currentBox);
         }
     }

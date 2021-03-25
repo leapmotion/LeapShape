@@ -3,8 +3,7 @@ import { World } from '../World/World.js';
 
 /** Creates a modified material that dithers when occluded.  Useful for CSG Previews.
  * @param {World} world
- * @param {THREE.Material} inputMaterial
- */
+ * @param {THREE.Material} inputMaterial */
 export function createDitherDepthMaterial(world, inputMaterial) {
     // Inject some spicy stochastic depth logic into this object's material
     let safari = /(Safari)/g.test(navigator.userAgent) && ! /(Chrome)/g.test(navigator.userAgent);
@@ -41,4 +40,17 @@ export function createDitherDepthMaterial(world, inputMaterial) {
         stochasticDepthMaterial.userData.shader = shader;
     };
     return stochasticDepthMaterial;
+}
+
+/** Snaps this Vector3 to the global grid of gridPitch cell size
+ * @param {THREE.Vector3} vecToSnap The vector to snap
+ * @param {number} gridPitch The grid size to snap to*/
+export function snapToGrid(vecToSnap, gridPitch) {
+    if (gridPitch > 0) {
+        vecToSnap.set(
+            Math.round(vecToSnap.x / gridPitch) * gridPitch,
+            Math.round(vecToSnap.y / gridPitch) * gridPitch,
+            Math.round(vecToSnap.z / gridPitch) * gridPitch);
+    }
+    return vecToSnap;
 }
