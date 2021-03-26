@@ -151,6 +151,7 @@ class CylinderTool {
                     // Operation Failed, remove preview
                     cylinderMesh.parent.remove(cylinderMesh);
                 }
+                this.world.dirty = true;
             });
     }
 

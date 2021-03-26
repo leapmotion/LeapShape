@@ -80,15 +80,29 @@ class World {
         //this.stats = new Stats();
         //this.container.appendChild(this.stats.dom);
 
+        // Contains both the Undo History, and the set of active shapes
         this.history = new History(this);
+
+        // Record browser metadata for power saving features...
+        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
+        this.lastTimeInteractedWith = performance.now();
+        this.dirty = false;
     }
 
     /** Update the camera and render the scene 
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
-        this.controls.enabled = !ray.alreadyActivated;
-        if (this.controls.enabled) { this.controls.update(); }
-        this.renderer.render(this.scene, this.camera);
+        // Conserve Power, don't rerender unless the view is dirty
+        if (!this.mobile || ray.active || this.dirty) {
+            this.lastTimeInteractedWith = performance.now();
+            this.dirty = false;
+        }
+        if (performance.now() - this.lastTimeInteractedWith < 2000) {
+            this.controls.enabled = !ray.alreadyActivated;
+            if (this.controls.enabled) { this.controls.update(); }
+            this.renderer.render(this.scene, this.camera);
+        }
     }
 
     /** **INTERNAL**: This function recalculates the viewport 

@@ -124,6 +124,7 @@ class DefaultTool {
                     this.clearSelection(originalMesh);
                     this.toggleSelection(movedMesh);
                 }
+                this.world.dirty = true;
             });
     }
 

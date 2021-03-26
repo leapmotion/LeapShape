@@ -186,6 +186,7 @@ class BoxTool {
                     // Operation Failed, remove preview
                     boxMesh.parent.remove(boxMesh);
                 }
+                this.world.dirty = true;
             });
     }
 

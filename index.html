@@ -7,8 +7,9 @@
         <meta name="description"        content="Browser BRep CAD in VR">
         <meta name="keywords"           content="Hand Tracking, OpenXR, CAD, OpenCascade">
         <meta name="author"             content="Ultraleap">
-        <meta name="viewport"           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no, shrink-to-fit=no">
+        <meta name="viewport"           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=0, shrink-to-fit=0">
         <meta name="theme-color"        content="#ffffff">
+        <!--<meta http-equiv="refresh" content="5; URL=javascript:window.open('http://google.com','_blank');">-->
 
         <link rel='shortcut icon'      href='./favicon.png' type='image/x-icon' >
         <style>
@@ -57,10 +58,8 @@
         <h1 hidden></h1> <!-- Puts the Lighthouse Score over 90 heheh-->
         <div id="topnav" class="topnav">
             <a href="https://github.com/leapmotion/LeapShape" target="_blank">Leap Shape 0.1.0</a>
-            <a href="#" title="Export to .obj"  onmouseup="window.saveShapesOBJ();">Export to .obj</a>
-            <a href="#" title="Export to .stl"  onmouseup="window.saveShapesSTL();">Export to .stl</a>
-            <a href="#" title="Export to .gltf" onmouseup="window.saveSceneGLTF();">Export to .gltf</a>
-            <!--<a href="#" title="Load Project from .json" onmouseup="loadProject();">Load Project</a> -->
+            <!-- The rest of these are populated by src/Frontend/World/FileIO.js -->
+            <a id="ar-preview" rel="ar" href=""><img></a>
         </div>
 
         <div id="info" style="position:absolute; top:50px;"></div>

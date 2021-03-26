@@ -120,6 +120,12 @@ class History {
 
         this.shapeObjects.add(item);
 
+        //HACK FOR USDZ EXPORT
+        item.material.roughnessMap = null;
+        item.material.metalnessMap = null;
+        item.material.roughness = 1.0;
+        item.material.metalness = 0.0;
+
         this.curState += 1;
         window.history.pushState(this.curState, null, null);
 

@@ -37,6 +37,7 @@ class Tools {
             // Create the menu system, which will 
             // be populated from the List of Tools
             this.menu = new Menu(this);
+            this.world.dirty = true; // Update the rendered view
         }
 
         if (!this.activeTool) {
