@@ -36,11 +36,34 @@ class DefaultTool {
         }
 
         this.gizmo = new TransformControls(this.world.camera, this.world.container);
-        this.gizmo.addEventListener('dragging-changed', (event) => { this.draggingGizmo = event.value; });
+        this.gizmo.addEventListener('dragging-changed', (event) => {
+            this.draggingGizmo = event.value;
+            if (this.draggingGizmo) {
+                // Record Current Matrix
+                this.startPos = this.gizmoTransform.position.clone();
+            } else {
+                // Get the Delta between Recorded and Current Transformations
+                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos);
+
+                // Convert the Quaternion to Axis-Angle
+                let q = this.gizmoTransform.quaternion;
+                this.axis = new THREE.Vector3(
+                     q.x / Math.sqrt(1 - q.w * q.w),
+                    -q.z / Math.sqrt(1 - q.w * q.w),
+                     q.y / Math.sqrt(1 - q.w * q.w));
+                this.angle = 2.0 * Math.acos(q.w) * 57.2958;
+
+                // Move the object via that matrix
+                this.moveShapeGeometry(this.selected[0],
+                    [this.selected[0].shapeName,
+                        this.deltaPos.x, this.deltaPos.y, this.deltaPos.z,
+                        this.axis.x, this.axis.y, this.axis.z, this.angle,
+                        this.gizmoTransform.scale.x]);
+            }
+        });
         this.gizmoTransform = new THREE.Group();
         this.world.scene.add( this.gizmoTransform );
         this.gizmo.attach( this.gizmoTransform );
-        //this.world.scene.add(this.gizmo);
         this.draggingGizmo = false;
         this.gizmo.visible = false;
         this.gizmo.enabled = this.gizmo.visible;
@@ -58,11 +81,11 @@ class DefaultTool {
                     if (this.raycastObject(ray)) {
                         // Hit an Object, toggle its selection state
                         this.toggleSelection(this.hitObject);
-                    } else {
-                        // Hit Nothing, clear the selection
-                        this.clearSelection();
-                        this.hitObject = null;
-                    }
+                    }// else {
+                     //   // Hit Nothing, clear the selection
+                     //   this.clearSelection();
+                     //   this.hitObject = null;
+                     //}
                 }
                 this.state = 1;
             }
@@ -79,6 +102,43 @@ class DefaultTool {
         ray.alreadyActivated = this.hitObject !== null || this.draggingGizmo || ray.alreadyActivated;
     }
 
+    /** Ask OpenCascade to Move the Shape on this Mesh
+     * @param {THREE.Mesh} originalMesh */
+    moveShapeGeometry(originalMesh, moveShapeArgs) {
+        let shapeName = "Transformed " + originalMesh.shapeName;
+        this.engine.execute(shapeName, this.moveShape, moveShapeArgs,
+            (geometry) => {
+                originalMesh.position  .set(0, 0, 0);
+                originalMesh.scale     .set(1, 1, 1);
+                originalMesh.quaternion.set(0, 0, 0, 1);
+
+                if (geometry) {
+                    let movedMesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
+                    movedMesh.material.color.set(0.5, 0.5, 0.5);
+                    movedMesh.position  .set(0, 0, 0);
+                    movedMesh.scale     .set(1, 1, 1);
+                    movedMesh.quaternion.set(0, 0, 0, 1);
+                    movedMesh.shapeName = shapeName;
+
+                    this.world.history.addToUndo(movedMesh, originalMesh);
+                    this.clearSelection(originalMesh);
+                    this.toggleSelection(movedMesh);
+                }
+            });
+    }
+
+    /** Create a moved shape in OpenCascade; to be executed on the Worker Thread */
+    moveShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
+        let transformation = new this.oc.gp_Trsf();
+        transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+        transformation.SetRotation(
+            new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
+                new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
+        transformation.SetScaleFactor(scale);
+        return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
+            new this.oc.TopLoc_Location(transformation)));
+    }
+
     updateGizmoVisibility() {
         // Both need to be set to make it inactive
         let gizmoActive = this.selected.length > 0;
@@ -89,6 +149,20 @@ class DefaultTool {
         }
         this.gizmo.visible = gizmoActive;
         this.gizmo.enabled = this.gizmo.visible;
+    }
+
+    positionTransformGizmo() {
+        this.selectionBoundingBox = new THREE.Box3();
+        for (let i = 0; i < this.selected.length; i++){
+            if (i == 0) {
+                this.selectionBoundingBox.setFromObject(this.selected[i]);
+            } else {
+                this.selectionBoundingBox.expandByObject(this.selected[i]);
+            }
+        }
+        this.selectionBoundingBox.getCenter(this.gizmoTransform.position);
+        this.gizmoTransform.quaternion.set(0.0, 0.0, 0.0, 1.0);
+        this.gizmoTransform.scale.set(1.0, 1.0, 1.0);
     }
 
     raycastObject(ray) {
@@ -125,6 +199,7 @@ class DefaultTool {
             obj.material.emissive.setRGB(0.0, 0.25, 0.25);
             this.selected.push(obj);
         }
+        this.positionTransformGizmo();
     }
 
     clearSelection(obj) {
@@ -142,6 +217,7 @@ class DefaultTool {
             // Both need to be set to make it inactive
             this.updateGizmoVisibility();
         }
+        this.positionTransformGizmo();
     }
 
     activate() {

@@ -30,5 +30,6 @@ export default function ConvertGeometry(meshData) {
     geometry.setAttribute( 'color', new THREE.Float32BufferAttribute(colors, 3));
     geometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
     geometry.computeBoundingSphere();
+    geometry.computeBoundingBox();
     return geometry;
 }
