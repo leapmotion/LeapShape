@@ -50,7 +50,7 @@ class World {
         this.grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
         this.grid.material.transparent = true;
-        this.grid.position.y = -0.1;
+        this.grid.position.y = -0.5;
         this.scene.add(this.grid);
         
         // renderer
