@@ -58,8 +58,14 @@ class World {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
-        this.container.appendChild(VRButton.createButton(this.renderer));
-        this.renderer.xr.enabled = true;
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+                if (supported) {
+                    this.container.appendChild(VRButton.createButton(this.renderer));
+                    this.renderer.xr.enabled = true;
+                }
+            });
+        }
         this.renderer.setAnimationLoop( updateFunction );
         
         // orbit controls
