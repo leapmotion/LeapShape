@@ -1,5 +1,7 @@
-import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
-import { OpenCascadeMesher } from './OpenCascadeMesher.js';
+//import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
+//import { OpenCascadeMesher } from './OpenCascadeMesher.js';
+// No Modules in Workers in Safari or Firefox...
+importScripts('../../node_modules/opencascade.js/dist/opencascade.wasm.js', './OpenCascadeMesher.js');
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
 class LeapShapeEngineWorker {
@@ -46,7 +48,8 @@ class LeapShapeEngineWorker {
     /** Executes a CAD operation from the Main Thread 
      * @param {{name: string, shapeFunction: function, shapeArguments: number[], meshDataCallback: function}} payload */
     execute(payload) {
-        let op = new Function("return function " + payload.shapeFunction)().bind(this);
+        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        let op = new Function("return " + (this.safari ? "" : "function ") + payload.shapeFunction)().bind(this);
         let shape = null;
         try {
             shape = op(...payload.shapeArguments);
