@@ -26,9 +26,9 @@ class FileIO {
         this.createNavLink("Export to .stl" , this.saveShapesSTL );
         this.createNavLink("Export to .GLTF", this.saveShapesGLTF);
 
-        //if (this.mobile && this.safari) {
+        if (this.mobile && this.safari) {
             this.arLink = this.createNavLink("AR Preview", this.launchARiOS);
-        //}
+        }
 
         window.addEventListener("keydown", event => {
             if (event.isComposing || event.keyCode === 229) { return; }
@@ -58,7 +58,7 @@ class FileIO {
      * @param {string} desc Friendly File Picker Type */
     async writeFile(contents, ext, mime, desc) {
         // Use new api's if you've got 'em (Chrome Desktop)
-        if (false){//window.showSaveFilePicker) {
+        if (window.showSaveFilePicker) {
             let options = { types: [{ description: desc, accept: { [mime]: ['.' + ext], } }] };
             let fileHandle = await window.showSaveFilePicker(options);
             let writable   = await fileHandle.createWritable();
@@ -104,10 +104,20 @@ class FileIO {
     }
 
     async launchARiOS() {
+        // Scale to 1/1000th for iOS Quick Look
+        this.world.history.shapeObjects.scale.set(0.001, 0.001, 0.001);
+        this.world.history.shapeObjects.updateWorldMatrix(true, true);
+
         this.usdzExporter = new USDZExporter();
         let usdz = await this.usdzExporter.parse(this.world.history.shapeObjects);
         let usdzURL = URL.createObjectURL(new Blob([usdz], { type: "model/vnd.usdz+zip" }));
-        let link = document.getElementById("ar-preview"); link.href = usdzURL; link.click();
+        this.arLink.setAttribute('rel', 'ar');
+        this.arLink.appendChild(document.createElement('img'));
+        this.arLink.href = usdzURL;
+
+        // Scale back to 1:1 for Editing
+        this.world.history.shapeObjects.scale.set(1.0, 1.0, 1.0);
+        this.world.history.shapeObjects.updateWorldMatrix(true, true);
     }
 }
 
