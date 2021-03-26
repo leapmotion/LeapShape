@@ -4,12 +4,18 @@ import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls
 import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
 import { History } from "./History.js";
+import { LeapShapeRenderer } from "../main.js";
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
 
-    /** Create the basic world and scenery */
-    constructor(updateFunction) {
+    /** Create the basic world and scenery 
+     * @param {LeapShapeRenderer} parent The Parent LeapShape Renderer
+     * @param {function} updateFunction */
+    constructor(parent, updateFunction) {
+        // Sneaky Leaky Reference for flow inversion...
+        this.parent = parent;
+
         // app container div
         this.container = document.getElementById('appbody');
         document.body.appendChild(this.container);

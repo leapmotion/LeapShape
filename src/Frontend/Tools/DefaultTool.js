@@ -114,7 +114,7 @@ class DefaultTool {
 
                 if (geometry) {
                     let movedMesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
-                    movedMesh.material.color.set(0.5, 0.5, 0.5);
+                    movedMesh.material.color.setRGB(0.5, 0.5, 0.5);
                     movedMesh.position  .set(0, 0, 0);
                     movedMesh.scale     .set(1, 1, 1);
                     movedMesh.quaternion.set(0, 0, 0, 1);
@@ -131,10 +131,10 @@ class DefaultTool {
     moveShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
         let transformation = new this.oc.gp_Trsf();
         transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
-        transformation.SetRotation(
-            new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
-                new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
-        transformation.SetScaleFactor(scale);
+        //transformation.SetRotation(
+        //    new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
+        //        new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
+        //transformation.SetScaleFactor(scale);
         return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
             new this.oc.TopLoc_Location(transformation)));
     }
