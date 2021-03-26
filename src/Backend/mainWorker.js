@@ -33,6 +33,11 @@ class LeapShapeEngineWorker {
             postMessage({ type: "startupCallback" });
             this.messageHandlers["execute"] = this.execute.bind(this);
 
+            // Capture Errors
+            self.addEventListener('error', (event) => { this.postError(event); });
+            self.realConsoleError = console.error;
+            console.error = this.fakeConsoleError.bind(this);
+
             // Set up a persistent Meshing System
             this.mesher = new OpenCascadeMesher(this.oc);
         });
@@ -52,7 +57,23 @@ class LeapShapeEngineWorker {
         } catch (e) {
             return { name: payload.name, payload: null };
         }
+    }
 
+    /** Posts an error message back to the main thread
+     * @param {ErrorEvent} event */
+    postError(event) {
+        let path = event.filename.split("/");
+        postMessage({
+            "type": "error", payload:
+                (path[path.length - 1] + ":" + event.lineno + " - " + event.message)
+        });
+    }
+
+    fakeConsoleError(...args) {
+        if (args.length > 0) {
+            postMessage({ "type": "error", payload: args[0] });
+        }
+        self.realConsoleError.apply(console, arguments);
     }
 }
 

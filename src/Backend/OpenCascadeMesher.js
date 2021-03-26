@@ -267,7 +267,6 @@ class OpenCascadeMesher {
         } catch (err) {
             console.error("INTERNAL OPENCASCADE ERROR DURING GENERATE");
             setTimeout(() => {
-                err.message = "INTERNAL OPENCASCADE ERROR DURING GENERATE: " + err.message;
                 throw err;
             }, 0);
             return null;
