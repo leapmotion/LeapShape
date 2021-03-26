@@ -1,8 +1,8 @@
 import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
-//import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
-//import { OpenCascadeMesher } from './OpenCascadeMesher.js';
-// No Modules in Workers in Safari or Firefox...
-importScripts('../../node_modules/opencascade.js/dist/opencascade.wasm.js', './OpenCascadeMesher.js');
+import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import { OpenCascadeMesher } from './OpenCascadeMesher.js';
+// No Modules in Workers in Safari or Firefox... but we pretend for ESBuild.  Leave the below line:
+//importScripts('../../node_modules/opencascade.js/dist/opencascade.wasm.js', './OpenCascadeMesher.js');
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
 class LeapShapeEngineWorker {
