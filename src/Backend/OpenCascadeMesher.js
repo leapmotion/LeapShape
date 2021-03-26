@@ -1,5 +1,6 @@
-import oc from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
-import potpack from '../../node_modules/potpack/index.mjs';
+//import oc from '../../node_modules/opencascade.js/dist/opencascade.wasm.js';
+//import potpack from '../../node_modules/potpack/index.mjs';
+importScripts('../../node_modules/potpack/index.js');
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
 class OpenCascadeMesher {
@@ -276,4 +277,4 @@ class OpenCascadeMesher {
     }
 }
 
-export { OpenCascadeMesher };
+//export { OpenCascadeMesher };
