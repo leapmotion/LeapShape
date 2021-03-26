@@ -39,6 +39,9 @@ class History {
      * @param {THREE.Object3D} commandLayer
      * @param {THREE.Object3D} reverseLayer */ 
     processDoCommand(drawingLayer, commandLayer, reverseLayer) {
+        // Deactivate the current tool since we're messing up their state
+        this.world.parent.tools.activeTool.deactivate();
+
         let command = commandLayer.children[commandLayer.children.length - 1];
         if (command) {
             // If this item's name starts with the removeCmd...

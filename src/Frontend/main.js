@@ -17,7 +17,7 @@ class LeapShapeRenderer {
         this.engine = engine;
 
         // Create the world and set its update loop
-        this.world = new World(this.update.bind(this));
+        this.world = new World(this, this.update.bind(this));
 
         // Handles Saving and Loading Assets
         this.fileIO = new FileIO(this.world, engine);
