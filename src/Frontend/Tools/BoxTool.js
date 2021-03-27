@@ -48,7 +48,7 @@ class BoxTool {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
-                    if (intersects[i].object.name.includes("#")) {
+                    if (intersects[i].object.name.includes("#") || this.hit.face !== null) {
                         this.hit = intersects[i]; break;
                     }
                 }

@@ -24,7 +24,7 @@ class Tools {
         ];
 
         this.activeTool = null;
-        this.gridPitch = 5.0;
+        this.gridPitch = 0.0;
     }
 
     /** Update the Tool and Menu State Machines

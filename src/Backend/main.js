@@ -27,9 +27,13 @@ class LeapShapeEngine {
         this.registerCallback("startupCallback", () => { console.log("Worker Started!"); this.started = true; });
 
         // Handle Receiving Execution Results from the Engine
+        this.executionQueue = [];
         this.registerCallback("execute", (payload) => {
             this.workerWorking = false; // Free the worker up to take more requests
             this.executeHandlers[payload.name](ConvertGeometry(payload.payload));
+
+            // Dequeue 
+            if (this.executionQueue.length > 0) { this.execute(...this.executionQueue.pop());}
         });
 
         this.workerWorking = false;
@@ -46,7 +50,9 @@ class LeapShapeEngine {
      * @param {number[]} operationArguments Arguments to the shape operation function
      * @param {function} meshDataCallback   A callback containing the mesh data for this shape */
     execute(name, shapeOperation, operationArguments, meshDataCallback) {
-        if (this.workerWorking) { return; } // Ignore requests while the worker is busy
+        // Queue Requests if the worker is busy
+        if (this.workerWorking) { this.executionQueue.push(arguments); return; }
+
         this.workerWorking = true;
         this.executeHandlers[name] = meshDataCallback;
         this.worker.postMessage({ "type": "execute", payload: {
