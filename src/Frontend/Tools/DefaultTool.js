@@ -29,7 +29,7 @@ class DefaultTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Cursor.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Cursor.png' : '../../../textures/Cursor.png');
         this.descriptor = {
             name: "Default Tool",
             icon: this.icon
