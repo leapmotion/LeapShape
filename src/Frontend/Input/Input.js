@@ -16,7 +16,8 @@ class InteractionRay {
         this.ray = ray;
         this.active = false;
         this.justActivated = false;
-        this.ray.justDeactivated = false;
+        this.justDeactivated = false;
+        this.activeMS = 0;
     }
 }
 

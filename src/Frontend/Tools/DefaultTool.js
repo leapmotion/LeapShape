@@ -75,31 +75,25 @@ class DefaultTool {
         if (ray.alreadyActivated || this.state === -1) {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
-            // Tool is currently in Selection Mode
-            if (ray.active) {
-                if (!this.draggingGizmo) {
-                    if (this.raycastObject(ray)) {
-                        // Hit an Object, toggle its selection state
-                        this.toggleSelection(this.hitObject);
-                    }// else {
-                     //   // Hit Nothing, clear the selection
-                     //   this.clearSelection();
-                     //   this.hitObject = null;
-                     //}
-                }
-                this.state = 1;
-            }
-        } else if(this.state === 1) {
-            // Wait for the ray to be active and pointing at a drawable surface
+            // Tool is currently in Selection Mode, trigger on release
+            if (ray.active) { this.state = 1; }
+        } else if (this.state === 1) {
+            this.world.dirty = true;
+            // Upon release, check if we tapped
             if (!ray.active) {
+                if (!this.draggingGizmo && ray.activeMS < 200) {
+                    // Toggle an object's selection state
+                    if (this.raycastObject(ray)) {
+                        this.toggleSelection(this.hitObject);
+                    }
+                }
                 this.state = 0;
-                this.hitObject = null;
             }
         }
 
         this.updateGizmoVisibility();
 
-        ray.alreadyActivated = this.hitObject !== null || this.draggingGizmo || ray.alreadyActivated;
+        ray.alreadyActivated = this.draggingGizmo || ray.alreadyActivated;
     }
 
     /** Ask OpenCascade to Move the Shape on this Mesh
@@ -169,7 +163,7 @@ class DefaultTool {
     raycastObject(ray) {
         this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.world.history.shapeObjects, true);//
-        if (ray.active && intersects.length > 0) {
+        if (intersects.length > 0) {
             this.hit = intersects[0];
             // Shoot through the floor if necessary
             for (let i = 0; i < intersects.length; i++) {
