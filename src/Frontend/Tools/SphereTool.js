@@ -46,7 +46,7 @@ class SphereTool {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
-                    if (intersects[i].object.name.includes("#")) {
+                    if (intersects[i].object.name.includes("#") || this.hit.face !== null) {
                         this.hit = intersects[i]; break;
                     }
                 }
@@ -134,6 +134,7 @@ class SphereTool {
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius, hitObjectName) {
+        if (radius === 0) { radius = 1.0; }
         if (radius != 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
             let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, Math.abs(radius)).Shape();

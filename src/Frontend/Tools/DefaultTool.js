@@ -26,6 +26,7 @@ class DefaultTool {
                                        new THREE.MeshBasicMaterial());
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
+        this.startPos = new THREE.Vector3();
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -40,7 +41,7 @@ class DefaultTool {
             this.draggingGizmo = event.value;
             if (this.draggingGizmo) {
                 // Record Current Matrix
-                this.startPos = this.gizmoTransform.position.clone();
+                this.startPos.copy(this.gizmoTransform.position);
             } else {
                 // Get the Delta between Recorded and Current Transformations
                 this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos);
@@ -54,11 +55,13 @@ class DefaultTool {
                 this.angle = 2.0 * Math.acos(q.w) * 57.2958;
 
                 // Move the object via that matrix
-                this.moveShapeGeometry(this.selected[0],
-                    [this.selected[0].shapeName,
-                        this.deltaPos.x, this.deltaPos.y, this.deltaPos.z,
-                        this.axis.x, this.axis.y, this.axis.z, this.angle,
-                        this.gizmoTransform.scale.x]);
+                for (let i = 0; i < this.selected.length; i++) {
+                    this.moveShapeGeometry(this.selected[i],
+                        [this.selected[i].shapeName,
+                            this.deltaPos.x, this.deltaPos.y, this.deltaPos.z,
+                            this.axis.x, this.axis.y, this.axis.z, this.angle,
+                            this.gizmoTransform.scale.x]);
+                }
             }
         });
         this.gizmoTransform = new THREE.Group();
@@ -75,10 +78,20 @@ class DefaultTool {
         if (ray.alreadyActivated || this.state === -1) {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
-            // Tool is currently in Selection Mode, trigger on release
-            if (ray.active) { this.state = 1; }
+            // Tool is currently in Selection Mode
+            if (ray.active) {
+                this.state = 1;
+            }
         } else if (this.state === 1) {
             this.world.dirty = true;
+            if (this.draggingGizmo) {
+                for (let i = 0; i < this.selected.length; i++) {
+                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos));
+                    this.selected[i].quaternion.copy(this.gizmoTransform.quaternion);
+                    this.selected[i].scale.copy(this.gizmoTransform.scale);
+                }
+            }
+
             // Upon release, check if we tapped
             if (!ray.active) {
                 if (!this.draggingGizmo && ray.activeMS < 200) {
@@ -165,12 +178,6 @@ class DefaultTool {
         let intersects = this.world.raycaster.intersectObject(this.world.history.shapeObjects, true);//
         if (intersects.length > 0) {
             this.hit = intersects[0];
-            // Shoot through the floor if necessary
-            for (let i = 0; i < intersects.length; i++) {
-                if (intersects[i].object.name.includes("#")) {
-                    this.hit = intersects[i]; break;
-                }
-            }
 
             // Record the hit object and plane...
             if (this.hit.object.name.includes("#")) {
