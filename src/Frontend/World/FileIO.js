@@ -22,12 +22,12 @@ class FileIO {
         this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
 
         // Create Export Buttons
-        this.createNavLink("Export to .obj" , this.saveShapesOBJ );
-        this.createNavLink("Export to .stl" , this.saveShapesSTL );
         this.createNavLink("Export to .GLTF", this.saveShapesGLTF);
-
         if (this.mobile && this.safari) {
             this.arLink = this.createNavLink("AR Preview", this.launchARiOS);
+        } else {
+            this.createNavLink("Export to .obj" , this.saveShapesOBJ );
+            this.createNavLink("Export to .stl" , this.saveShapesSTL );
         }
 
         window.addEventListener("keydown", event => {

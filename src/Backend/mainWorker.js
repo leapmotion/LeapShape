@@ -48,7 +48,7 @@ class LeapShapeEngineWorker {
     /** Executes a CAD operation from the Main Thread 
      * @param {{name: string, shapeFunction: function, shapeArguments: number[], meshDataCallback: function}} payload */
     execute(payload) {
-        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        this.safari = /(Safari|iPhone)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
         let op = new Function("return " + (this.safari ? "" : "function ") + payload.shapeFunction)().bind(this);
         let shape = null;
         try {

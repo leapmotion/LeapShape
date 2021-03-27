@@ -102,12 +102,12 @@ class World {
         // Conserve Power, don't rerender unless the view is dirty
         if (!this.mobile || ray.active || this.dirty) {
             this.lastTimeInteractedWith = performance.now();
-            this.dirty = false;
         }
         if (performance.now() - this.lastTimeInteractedWith < 2000) {
             this.controls.enabled = !ray.alreadyActivated;
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);
+            this.dirty = false;
         }
     }
 
@@ -117,8 +117,10 @@ class World {
         let rect = this.container.getBoundingClientRect();
         let width = rect.width, height = window.innerHeight - rect.y;
         this.camera.aspect = width / height;
+        console.log(this.camera.aspect);
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize( width, height );
+        this.renderer.setSize(width, height);
+        this.dirty = false;
     }
 
 }
