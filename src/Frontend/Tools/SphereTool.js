@@ -128,6 +128,7 @@ class SphereTool {
                     // Operation Failed, remove preview
                     sphereMesh.parent.remove(sphereMesh);
                 }
+                this.world.dirty = true;
             });
     }
 

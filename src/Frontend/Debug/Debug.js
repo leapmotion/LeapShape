@@ -28,7 +28,7 @@ class Debug {
     fakeError(...args) {
         if (args.length > 0) {
             let errorNode = window.document.createElement("div");
-            errorNode.innerHTML = args[0].fontcolor("red");
+            errorNode.innerHTML = JSON.stringify(args[0]).fontcolor("red");
             window.document.getElementById("info").appendChild(errorNode);
         }
         window.realConsoleError.apply(console, arguments);

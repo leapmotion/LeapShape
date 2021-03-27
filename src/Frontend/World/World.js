@@ -50,7 +50,7 @@ class World {
         this.grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
         this.grid.material.transparent = true;
-        this.grid.position.y = -0.1;
+        this.grid.position.y = -0.5;
         this.scene.add(this.grid);
         
         // renderer
@@ -58,8 +58,14 @@ class World {
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
-        this.container.appendChild(VRButton.createButton(this.renderer));
-        this.renderer.xr.enabled = true;
+        if (navigator.xr) {
+            navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+                if (supported) {
+                    this.container.appendChild(VRButton.createButton(this.renderer));
+                    this.renderer.xr.enabled = true;
+                }
+            });
+        }
         this.renderer.setAnimationLoop( updateFunction );
         
         // orbit controls
@@ -80,15 +86,29 @@ class World {
         //this.stats = new Stats();
         //this.container.appendChild(this.stats.dom);
 
+        // Contains both the Undo History, and the set of active shapes
         this.history = new History(this);
+
+        // Record browser metadata for power saving features...
+        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
+        this.lastTimeInteractedWith = performance.now();
+        this.dirty = false;
     }
 
     /** Update the camera and render the scene 
      * @param {THREE.Ray} ray The Current Input Ray */
     update(ray) {
-        this.controls.enabled = !ray.alreadyActivated;
-        if (this.controls.enabled) { this.controls.update(); }
-        this.renderer.render(this.scene, this.camera);
+        // Conserve Power, don't rerender unless the view is dirty
+        if (!this.mobile || ray.active || this.dirty) {
+            this.lastTimeInteractedWith = performance.now();
+        }
+        if (performance.now() - this.lastTimeInteractedWith < 2000) {
+            this.controls.enabled = !ray.alreadyActivated;
+            if (this.controls.enabled) { this.controls.update(); }
+            this.renderer.render(this.scene, this.camera);
+            this.dirty = false;
+        }
     }
 
     /** **INTERNAL**: This function recalculates the viewport 
@@ -97,8 +117,10 @@ class World {
         let rect = this.container.getBoundingClientRect();
         let width = rect.width, height = window.innerHeight - rect.y;
         this.camera.aspect = width / height;
+        console.log(this.camera.aspect);
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize( width, height );
+        this.renderer.setSize(width, height);
+        this.dirty = false;
     }
 
 }

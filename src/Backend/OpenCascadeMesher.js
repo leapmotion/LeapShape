@@ -80,7 +80,8 @@ class OpenCascadeMesher {
                     normal_coord: [],
                     tri_indexes: [],
                     number_of_triangles: 0,
-                    face_index: fullShapeFaceHashes[myFace.HashCode(100000000)]
+                    face_index: fullShapeFaceHashes[myFace.HashCode(100000000)],
+                    is_planar: false
                 };
     
                 let pc = new this.oc.Poly_Connect(myT);
@@ -116,7 +117,8 @@ class OpenCascadeMesher {
                     }
     
                     // Compute the Arclengths of the Isoparametric Curves of the face
-                    let surface = this.oc.BRep_Tool.prototype.Surface(myFace).get();
+                    let surfaceHandle = this.oc.BRep_Tool.prototype.Surface(myFace);
+                    let surface = surfaceHandle.get();
                     let UIso_Handle = surface.UIso(UMin + ((UMax - UMin) * 0.5));
                     let VIso_Handle = surface.VIso(VMin + ((VMax - VMin) * 0.5));
                     let UAdaptor = new this.oc.GeomAdaptor_Curve(VIso_Handle);
@@ -139,6 +141,10 @@ class OpenCascadeMesher {
                         this_face.uv_coord[(i * 2) + 0] = x;
                         this_face.uv_coord[(i * 2) + 1] = y;
                     }
+
+                    let planarChecker = new this.oc.GeomLib_IsPlanarSurface(surfaceHandle);
+                    this_face.is_planar = planarChecker.IsPlanar();
+                    this.oc._free(planarChecker);
                 }
     
                 // Write normal buffer

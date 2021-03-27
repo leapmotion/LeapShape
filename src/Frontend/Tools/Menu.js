@@ -56,6 +56,12 @@ class Menu {
     /** Update the menu motion and interactive state 
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
+        // Update the slot positions based on the camera's aspect
+        for (let i = 0; i < 10; i++) {
+            let xOffset = (-100 * this.world.camera.aspect);
+            this.slots[i].position.x = (i * 50) + xOffset;
+        }
+
         // Check to see if the interaction ray intersects one of these items
         this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.menu, true);

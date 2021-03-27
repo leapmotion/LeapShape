@@ -19,6 +19,9 @@ class History {
         this.redoObjects  = new THREE.Group();
         this.removeCmd = "Remove-";
 
+        this.curState = 0;
+        window.history.pushState(this.curState, null, null);
+
         this.world.scene.add(this.shapeObjects);
 
         // Handle Keyboard events
@@ -29,10 +32,24 @@ class History {
                 if (event.key == "y") { this.Redo(); }
             }
         });
+
+        // Handle Browser Back/Forth Events
+        window.onpopstate = (event) => {
+            // Check to see if this state comes from the past or future
+            while (typeof event.state === "number" && event.state < this.curState && (this.undoObjects.children.length > 0)) {
+                this.InternalUndo();
+            }
+            while (typeof event.state === "number" && event.state > this.curState && (this.redoObjects.children.length > 0)) {
+                this.InternalRedo();
+            }
+            this.world.dirty = true;
+        };
     }
 
-    Undo() { if (this.undoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.undoObjects, this.redoObjects); } }
-    Redo() { if (this.redoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.redoObjects, this.undoObjects); } }
+    Undo() { if((this.undoObjects.children.length > 0)) { history.go(-1); } }
+    Redo() { if((this.redoObjects.children.length > 0)) { history.go( 1); } }
+    InternalUndo() { if (this.undoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.undoObjects, this.redoObjects); this.curState -= 1; } }
+    InternalRedo() { if (this.redoObjects.children.length > 0) { this.processDoCommand( this.shapeObjects, this.redoObjects, this.undoObjects); this.curState += 1; } }
 
     /** Dequeue a do element, and queue its reverse into the ...reverse queue
      * @param {THREE.Object3D} drawingLayer 
@@ -40,7 +57,7 @@ class History {
      * @param {THREE.Object3D} reverseLayer */ 
     processDoCommand(drawingLayer, commandLayer, reverseLayer) {
         // Deactivate the current tool since we're messing up their state
-        this.world.parent.tools.activeTool.deactivate();
+        if (this.world.parent.tools.activeTool) { this.world.parent.tools.activeTool.deactivate(); }
 
         let command = commandLayer.children[commandLayer.children.length - 1];
         if (command) {
@@ -104,6 +121,15 @@ class History {
 
         this.shapeObjects.add(item);
 
+        //HACK FOR USDZ EXPORT
+        item.material.roughnessMap = null;
+        item.material.metalnessMap = null;
+        item.material.roughness = 1.0;
+        item.material.metalness = 0.0;
+
+        this.curState += 1;
+        window.history.pushState(this.curState, null, null);
+
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
     }
@@ -114,7 +140,7 @@ class History {
     ClearUndoHistory() { this.undoObjects.clear(); }
     /** Undo all actions up to this point (can be redone individually) */
     ClearAll() {
-      for (let i = 0; i < this.undoObjects.length; i++) { Undo(); }
+      for (let i = 0; i < this.undoObjects.length; i++) { this.Undo(); }
     }
 
 }
