@@ -42,6 +42,7 @@ class History {
             while (typeof event.state === "number" && event.state > this.curState && (this.redoObjects.children.length > 0)) {
                 this.InternalRedo();
             }
+            this.world.dirty = true;
         };
     }
 

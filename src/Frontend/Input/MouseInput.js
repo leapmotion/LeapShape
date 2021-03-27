@@ -26,6 +26,7 @@ class MouseInput {
         this.mouse.x =   ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
         this.mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
         this.mouse.buttons = event.buttons;
+        this.world.dirty = true;
     }
 
     update() {
