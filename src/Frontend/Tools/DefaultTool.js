@@ -43,9 +43,6 @@ class DefaultTool {
                 // Record Current Matrix
                 this.startPos.copy(this.gizmoTransform.position);
             } else {
-                // Get the Delta between Recorded and Current Transformations
-                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos);
-
                 // Convert the Quaternion to Axis-Angle
                 let q = this.gizmoTransform.quaternion;
                 this.axis = new THREE.Vector3(
@@ -53,6 +50,12 @@ class DefaultTool {
                      q.y / Math.sqrt(1 - q.w * q.w),
                      q.z / Math.sqrt(1 - q.w * q.w));
                 this.angle = 2.0 * Math.acos(q.w) * 57.2958;
+
+                // Compensate position for rotation
+                let rotDis = this.startPos.clone().applyQuaternion(q).sub(this.startPos);
+
+                // Get the Delta between Recorded and Current Transformations
+                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis);
 
                 // Move the object via that matrix
                 for (let i = 0; i < this.selected.length; i++) {
@@ -71,6 +74,7 @@ class DefaultTool {
         this.gizmo.visible = false;
         this.gizmo.enabled = this.gizmo.visible;
 
+        // Add Keyboard shortcuts for switching between modes
         window.addEventListener( 'keydown', ( event ) => {
             switch ( event.key ) {
                 case "w": this.gizmo.setMode( "translate" ); break;
@@ -94,7 +98,8 @@ class DefaultTool {
             this.world.dirty = true;
             if (this.draggingGizmo) {
                 for (let i = 0; i < this.selected.length; i++) {
-                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos));
+                    let rotDis = this.startPos.clone().applyQuaternion(this.gizmoTransform.quaternion).sub(this.startPos);
+                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis));
                     this.selected[i].quaternion.copy(this.gizmoTransform.quaternion);
                     this.selected[i].scale.copy(this.gizmoTransform.scale);
                 }
@@ -145,16 +150,26 @@ class DefaultTool {
 
     /** Create a moved shape in OpenCascade; to be executed on the Worker Thread */
     moveShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
-        let transformation = new this.oc.gp_Trsf();
-        transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+        // Use three transforms until SetValues comes in...
+        let translation = new this.oc.gp_Trsf(),
+            rotation = new this.oc.gp_Trsf(),
+            scaling = new this.oc.gp_Trsf();
+        
+        // Set Transformations
+        translation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+
         if (degrees !== 0) {
-            transformation.SetRotation(
+             rotation.SetRotation(
                 new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
                     new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
         }
-        transformation.SetScaleFactor(scale);
+        if (scale !== 1) { scaling.SetScaleFactor(scale); }
+
+        // Multiply together
+        scaling.Multiply(rotation); translation.Multiply(scaling);
+
         return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
-            new this.oc.TopLoc_Location(transformation)));
+            new this.oc.TopLoc_Location(translation)));
     }
 
     updateGizmoVisibility() {
