@@ -117,7 +117,6 @@ class World {
         let rect = this.container.getBoundingClientRect();
         let width = rect.width, height = window.innerHeight - rect.y;
         this.camera.aspect = width / height;
-        console.log(this.camera.aspect);
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
         this.dirty = false;

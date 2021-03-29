@@ -50,8 +50,8 @@ class DefaultTool {
                 let q = this.gizmoTransform.quaternion;
                 this.axis = new THREE.Vector3(
                      q.x / Math.sqrt(1 - q.w * q.w),
-                    -q.z / Math.sqrt(1 - q.w * q.w),
-                     q.y / Math.sqrt(1 - q.w * q.w));
+                     q.y / Math.sqrt(1 - q.w * q.w),
+                     q.z / Math.sqrt(1 - q.w * q.w));
                 this.angle = 2.0 * Math.acos(q.w) * 57.2958;
 
                 // Move the object via that matrix
@@ -70,6 +70,14 @@ class DefaultTool {
         this.draggingGizmo = false;
         this.gizmo.visible = false;
         this.gizmo.enabled = this.gizmo.visible;
+
+        window.addEventListener( 'keydown', ( event ) => {
+            switch ( event.key ) {
+                case "w": this.gizmo.setMode( "translate" ); break;
+                case "e": this.gizmo.setMode( "rotate"    ); break;
+                case "r": this.gizmo.setMode( "scale"     ); break;
+            }
+        } );
     }
 
     /** Update the DefaultTool's State Machine
@@ -139,10 +147,12 @@ class DefaultTool {
     moveShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
         let transformation = new this.oc.gp_Trsf();
         transformation.SetTranslation(new this.oc.gp_Vec(x, y, z));
-        //transformation.SetRotation(
-        //    new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
-        //        new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
-        //transformation.SetScaleFactor(scale);
+        if (degrees !== 0) {
+            transformation.SetRotation(
+                new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
+                    new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
+        }
+        transformation.SetScaleFactor(scale);
         return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
             new this.oc.TopLoc_Location(transformation)));
     }
