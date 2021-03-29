@@ -36,6 +36,7 @@ class DefaultTool {
             icon: this.icon
         }
 
+        // Initialize Transform Gizmo (which allows for the movement of objects around the scene)
         this.gizmo = new TransformControls(this.world.camera, this.world.container);
         this.gizmo.addEventListener('dragging-changed', (event) => {
             this.draggingGizmo = event.value;
@@ -127,7 +128,7 @@ class DefaultTool {
     moveShapeGeometry(originalMesh, moveShapeArgs) {
         let shapeName = "Transformed " + originalMesh.shapeName;
         this.engine.execute(shapeName, this.moveShape, moveShapeArgs,
-            (geometry) => {
+            (geometry, faceMetadata) => {
                 originalMesh.position  .set(0, 0, 0);
                 originalMesh.scale     .set(1, 1, 1);
                 originalMesh.quaternion.set(0, 0, 0, 1);
@@ -139,6 +140,7 @@ class DefaultTool {
                     movedMesh.scale     .set(1, 1, 1);
                     movedMesh.quaternion.set(0, 0, 0, 1);
                     movedMesh.shapeName = shapeName;
+                    movedMesh.faceMetadata = faceMetadata;
 
                     this.world.history.addToUndo(movedMesh, originalMesh);
                     this.clearSelection(originalMesh);

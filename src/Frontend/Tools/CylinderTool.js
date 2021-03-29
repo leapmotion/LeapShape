@@ -130,7 +130,7 @@ class CylinderTool {
     createCylinderGeometry(cylinderMesh, createCylinderArgs) {
         let shapeName = "Cylinder #" + this.numCylinders;
         this.engine.execute(shapeName, this.createCylinder, createCylinderArgs,
-            (geometry) => {
+            (geometry, faceMetadata) => {
                 if (geometry) {
                     cylinderMesh.geometry.dispose();
                     cylinderMesh.position.set(0, 0, 0);
@@ -140,6 +140,7 @@ class CylinderTool {
                     cylinderMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     cylinderMesh.material.color.setRGB(0.5, 0.5, 0.5);
                     cylinderMesh.shapeName = shapeName;
+                    cylinderMesh.faceMetadata = faceMetadata;
 
                     if (this.hitObject.name.includes("#")) {
                         this.world.history.addToUndo(cylinderMesh, this.hitObject);

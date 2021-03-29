@@ -108,7 +108,7 @@ class SphereTool {
     createSphereGeometry(sphereMesh, createSphereArgs) {
         let shapeName = "Sphere #" + this.numSpheres;
         this.engine.execute(shapeName, this.createSphere, createSphereArgs,
-            (geometry) => {
+            (geometry, faceMetadata) => {
                 if (geometry) {
                     sphereMesh.geometry.dispose();
                     sphereMesh.position.set(0, 0, 0);
@@ -117,6 +117,7 @@ class SphereTool {
                     sphereMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     sphereMesh.material.color.setRGB(0.5, 0.5, 0.5);
                     sphereMesh.shapeName = shapeName;
+                    sphereMesh.faceMetadata = faceMetadata;
 
                     if (this.hitObject.name.includes("#")) {
                         this.world.history.addToUndo(sphereMesh, this.hitObject);

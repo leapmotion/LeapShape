@@ -165,7 +165,7 @@ class BoxTool {
     createBoxGeometry(boxMesh, createBoxArgs) {
         let shapeName = "Box #" + this.numBoxs;
         this.engine.execute(shapeName, this.createBox, createBoxArgs,
-            (geometry) => {
+            (geometry, faceMetadata) => {
                 if (geometry) {
                     boxMesh.geometry.dispose();
                     boxMesh.position.set(0, 0, 0);
@@ -175,6 +175,7 @@ class BoxTool {
                     boxMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
                     boxMesh.material.color.setRGB(0.5, 0.5, 0.5);
                     boxMesh.shapeName = shapeName;
+                    boxMesh.faceMetadata = faceMetadata;
 
                     if (this.hitObject.name.includes("#")) {
                         this.world.history.addToUndo(boxMesh, this.hitObject);

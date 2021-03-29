@@ -6,6 +6,7 @@ export default function ConvertGeometry(meshData) {
     if (!meshData) { console.error("Mesher returned false..."); return null; }
     // Accumulate data across faces into a single array
     let vertices = [], triangles = [], normals = [], colors = [], uvs = [], vInd = 0, globalFaceIndex = 0;
+    let faceMetaData = [];
     meshData[0].forEach((face) => {
         // Copy Vertices into three.js Vector3 List
         vertices.push(...face.vertex_coord);
@@ -18,8 +19,14 @@ export default function ConvertGeometry(meshData) {
                 face.tri_indexes[i + 1] + vInd,
                 face.tri_indexes[i + 2] + vInd);
         }
-        globalFaceIndex++;
         vInd += face.vertex_coord.length / 3;
+
+        let faceMeta = {};
+        faceMeta.index = globalFaceIndex++;
+        faceMeta.is_planar = face.is_planar;
+        faceMeta.average = face.average;
+        faceMeta.normal = [uvs[0], uvs[1], uvs[2]];
+        faceMetaData.push(faceMeta);
     });
 
     // Compile the connected vertices and faces into a geometry object
@@ -31,5 +38,5 @@ export default function ConvertGeometry(meshData) {
     geometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
-    return geometry;
+    return [geometry, faceMetaData];
 }
