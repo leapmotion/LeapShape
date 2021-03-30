@@ -21,6 +21,7 @@ class ExtrusionTool {
         this.point = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
+        this.extrusionMesh = null;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -92,24 +93,10 @@ class ExtrusionTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.handleParent, true);
 
-            if (ray.active && intersects.length > 0) {
+            if (ray.justActivated && ray.active && intersects.length > 0) {
                 this.hit = intersects[0].object.parent;
-                console.log(this.hit);
-
-                // Spawn the Extrusion Preview
-                //let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
-                this.currentExtrusion = new THREE.Mesh();
-                //this.currentExtrusion.material.color.setRGB(0.5, 0.5, 0.5);
-                //this.currentExtrusion.material.emissive.setRGB(0, 0.25, 0.25);
-                //this.currentExtrusion.name = "Extrusion #" + this.numExtrusions;
-                //this.currentExtrusion.position.copy(this.hit.point);
-                //this.currentExtrusion.quaternion.copy(new THREE.Quaternion()
-                //    .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                //this.point.copy(this.hit.point);
-                this.world.scene.add(this.currentExtrusion);
-
+                this.point.copy(this.hit.position);
                 ray.alreadyActivated = true;
-
                 this.state += 1;
             }
         } else if(this.state === 1) {
@@ -119,20 +106,24 @@ class ExtrusionTool {
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
             this.height = pointOnSegment.sub(this.hit.position).dot(this.hit.extrusionDirection);
-            //this.currentExtrusion.position.copy(this.hit.extrusionDirection.clone()
-            //    .multiplyScalar(this.height / 2.0).add(this.point));
-            //this.currentExtrusion.scale.y = this.height;
-            //this.currentExtrusion.material.emissive.setRGB(
-            //    this.height > 0 ? 0.0  : 0.25,
-            //    this.height > 0 ? 0.25 : 0.0 , 0.0);
+
+            if (!this.currentExtrusion) {
+                this.createPreviewExtrusionGeometry(this.point,
+                    [this.hit.extrusionDirection.x, this.hit.extrusionDirection.y, this.hit.extrusionDirection.z,
+                        1, this.hit.faceIndex, this.hit.parentObject.shapeName, false]);
+            } else if (this.currentExtrusion !== "Waiting...") {
+                this.currentExtrusion.scale.y = this.height;
+                this.currentExtrusion.children[0].material.emissive.setRGB(
+                    this.height > 0 ? 0.0  : 0.25,
+                    this.height > 0 ? 0.25 : 0.0 , 0.0);
+            }
             ray.alreadyActivated = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
-                console.log(this.height);
                 this.createExtrusionGeometry(this.currentExtrusion,
                     [this.hit.extrusionDirection.x, this.hit.extrusionDirection.y, this.hit.extrusionDirection.z,
-                        this.height, this.hit.faceIndex, this.hit.parentObject.shapeName]);
+                        this.height, this.hit.faceIndex, this.hit.parentObject.shapeName, true]);
 
                 this.numExtrusions += 1;
                 this.currentExtrusion = null;
@@ -162,8 +153,34 @@ class ExtrusionTool {
             });
     }
 
+    /** @param {THREE.Vector3} extrusionPivot */
+    createPreviewExtrusionGeometry(extrusionPivot, createExtrusionArgs) {
+        let shapeName = "Extrusion #" + this.numExtrusions;
+        this.currentExtrusion = "Waiting...";
+        this.engine.execute(shapeName, this.createExtrusion, createExtrusionArgs,
+            (mesh) => {
+                if (this.currentExtrusion && this.currentExtrusion.parent) {
+                    this.currentExtrusion.parent.remove(this.currentExtrusion);
+                }
+
+                if (mesh) {
+                    mesh.shapeName = shapeName;
+                    mesh.material = createDitherDepthMaterial(this.world, mesh.material);
+
+                    this.currentExtrusion = new THREE.Group();
+                    this.currentExtrusion.position.copy(extrusionPivot);
+                    this.currentExtrusion.quaternion.copy(new THREE.Quaternion()
+                        .setFromUnitVectors(new THREE.Vector3(0, 1, 0),
+                            new THREE.Vector3(createExtrusionArgs[0], createExtrusionArgs[1], createExtrusionArgs[2])));
+                    this.currentExtrusion.attach(mesh);
+                    this.world.scene.add(this.currentExtrusion);
+                }
+                this.world.dirty = true;
+            });
+    }
+
     /** Create a Extrusion in OpenCascade; to be executed on the Worker Thread */
-    createExtrusion(nx, ny, nz, height, faceIndex, hitObjectName) {
+    createExtrusion(nx, ny, nz, height, faceIndex, hitObjectName, csg) {
         if (height != 0) {
             let hitObject = this.shapes[hitObjectName];
 
@@ -187,6 +204,8 @@ class ExtrusionTool {
                 // Construct the Extrusion Shape
                 let shape = new this.oc.BRepPrimAPI_MakePrism(face,
                     new this.oc.gp_Vec(nx, ny, nz), true, true).Shape();
+                
+                if (!csg) { return shape; } // Return the Raw Shape
 
                 // Let's CSG this Extrusion onto/into the object it came from
                 if (height > 0) {
