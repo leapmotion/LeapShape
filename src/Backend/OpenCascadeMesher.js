@@ -80,8 +80,9 @@ class OpenCascadeMesher {
                     normal_coord: [],
                     tri_indexes: [],
                     number_of_triangles: 0,
-                    face_index: fullShapeFaceHashes[myFace.HashCode(100000000)],
-                    is_planar: false
+                    face_index: faceIndex,
+                    is_planar: false,
+                    average: [0, 0, 0]
                 };
     
                 let pc = new this.oc.Poly_Connect(myT);
@@ -94,8 +95,14 @@ class OpenCascadeMesher {
                     this_face.vertex_coord[(i * 3) + 0] = p.X();
                     this_face.vertex_coord[(i * 3) + 1] = p.Y();
                     this_face.vertex_coord[(i * 3) + 2] = p.Z();
+                    this_face.average[0] += p.X();
+                    this_face.average[1] += p.Y();
+                    this_face.average[2] += p.Z();
                 }
-    
+                this_face.average[0] /= Nodes.Length();
+                this_face.average[1] /= Nodes.Length();
+                this_face.average[2] /= Nodes.Length();
+
                 // Write UV buffer
                 let orient = myFace.Orientation();
                 if (myT.get().HasUVNodes()) {
