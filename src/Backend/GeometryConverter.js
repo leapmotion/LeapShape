@@ -25,7 +25,7 @@ export default function ConvertGeometry(meshData) {
         faceMeta.index = globalFaceIndex++;
         faceMeta.is_planar = face.is_planar;
         faceMeta.average = face.average;
-        faceMeta.normal = [uvs[0], uvs[1], uvs[2]];
+        faceMeta.normal = [face.normal_coord[0], face.normal_coord[1], face.normal_coord[2]];
         faceMetaData.push(faceMeta);
     });
 

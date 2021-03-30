@@ -3,9 +3,10 @@ import { Menu } from './Menu.js';
 import { World } from '../World/World.js';
 
 import { DefaultTool } from './DefaultTool.js';
+import { BoxTool } from './BoxTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
-import { BoxTool } from './BoxTool.js';
+import { ExtrusionTool } from './ExtrusionTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
@@ -20,7 +21,8 @@ class Tools {
             new DefaultTool (this),
             new BoxTool     (this),
             new SphereTool  (this),
-            new CylinderTool(this)
+            new CylinderTool(this),
+            new ExtrusionTool(this)
         ];
 
         this.activeTool = null;
