@@ -26,8 +26,7 @@ class LeapShapeEngine {
         this.executionQueue = [];
         this.registerCallback("execute", (payload) => {
             this.workerWorking = false; // Free the worker up to take more requests
-            let geom = ConvertGeometry(payload.payload) || [null];
-            this.executeHandlers[payload.name](...geom);
+            this.executeHandlers[payload.name](ConvertGeometry(payload.payload));
 
             // Dequeue 
             if (this.executionQueue.length > 0) { this.execute(...this.executionQueue.pop());}

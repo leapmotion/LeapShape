@@ -145,28 +145,19 @@ class ExtrusionTool {
     createExtrusionGeometry(extrusionMesh, createExtrusionArgs) {
         let shapeName = "Extrusion #" + this.numExtrusions;
         this.engine.execute(shapeName, this.createExtrusion, createExtrusionArgs,
-            (geometry, faceMetadata) => {
-                if (geometry) {
-                    extrusionMesh.geometry.dispose();
-                    extrusionMesh.position.set(0, 0, 0);
-                    extrusionMesh.scale.set(1, 1, 1);
-                    extrusionMesh.quaternion.set(0, 0, 0, 1);
-                    extrusionMesh.geometry = geometry;
-                    extrusionMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
-                    extrusionMesh.material.color.setRGB(0.5, 0.5, 0.5);
-                    extrusionMesh.shapeName = shapeName;
-                    extrusionMesh.faceMetadata = faceMetadata;
-
+            (mesh) => {
+                if (mesh) {
+                    mesh.name = extrusionMesh.name;
+                    mesh.shapeName = shapeName;
                     if (this.hit.parentObject.name.includes("#")) {
-                        this.world.history.addToUndo(extrusionMesh, this.hit.parentObject);
-                        this.hit = null;
+                        this.world.history.addToUndo(mesh, this.hit.parentObject);
+                        this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(extrusionMesh);
+                        this.world.history.addToUndo(mesh);
                     }
-                } else {
-                    // Operation Failed, remove preview
-                    extrusionMesh.parent.remove(extrusionMesh);
                 }
+
+                extrusionMesh.parent.remove(extrusionMesh);
                 this.world.dirty = true;
             });
     }

@@ -165,28 +165,19 @@ class BoxTool {
     createBoxGeometry(boxMesh, createBoxArgs) {
         let shapeName = "Box #" + this.numBoxs;
         this.engine.execute(shapeName, this.createBox, createBoxArgs,
-            (geometry, faceMetadata) => {
-                if (geometry) {
-                    boxMesh.geometry.dispose();
-                    boxMesh.position.set(0, 0, 0);
-                    boxMesh.scale.set(1, 1, 1);
-                    boxMesh.quaternion.set(0, 0, 0, 1);
-                    boxMesh.geometry = geometry;
-                    boxMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
-                    boxMesh.material.color.setRGB(0.5, 0.5, 0.5);
-                    boxMesh.shapeName = shapeName;
-                    boxMesh.faceMetadata = faceMetadata;
-
+            (mesh) => {
+                if (mesh) {
+                    mesh.name = boxMesh.name;
+                    mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(boxMesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject);
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(boxMesh);
+                        this.world.history.addToUndo(mesh);
                     }
-                } else {
-                    // Operation Failed, remove preview
-                    boxMesh.parent.remove(boxMesh);
                 }
+
+                boxMesh.parent.remove(boxMesh);
                 this.world.dirty = true;
             });
     }

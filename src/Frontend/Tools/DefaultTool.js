@@ -128,23 +128,17 @@ class DefaultTool {
     moveShapeGeometry(originalMesh, moveShapeArgs) {
         let shapeName = "Transformed " + originalMesh.shapeName;
         this.engine.execute(shapeName, this.moveShape, moveShapeArgs,
-            (geometry, faceMetadata) => {
+            (mesh) => {
                 originalMesh.position  .set(0, 0, 0);
                 originalMesh.scale     .set(1, 1, 1);
                 originalMesh.quaternion.set(0, 0, 0, 1);
 
-                if (geometry) {
-                    let movedMesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial());
-                    movedMesh.material.color.setRGB(0.5, 0.5, 0.5);
-                    movedMesh.position  .set(0, 0, 0);
-                    movedMesh.scale     .set(1, 1, 1);
-                    movedMesh.quaternion.set(0, 0, 0, 1);
-                    movedMesh.shapeName = shapeName;
-                    movedMesh.faceMetadata = faceMetadata;
-
-                    this.world.history.addToUndo(movedMesh, originalMesh);
+                if (mesh) {
+                    mesh.shapeName = shapeName;
+                    mesh.name = originalMesh.name;
+                    this.world.history.addToUndo(mesh, originalMesh);
                     this.clearSelection(originalMesh);
-                    this.toggleSelection(movedMesh);
+                    this.toggleSelection(mesh);
                 }
                 this.world.dirty = true;
             });

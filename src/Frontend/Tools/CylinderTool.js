@@ -130,28 +130,19 @@ class CylinderTool {
     createCylinderGeometry(cylinderMesh, createCylinderArgs) {
         let shapeName = "Cylinder #" + this.numCylinders;
         this.engine.execute(shapeName, this.createCylinder, createCylinderArgs,
-            (geometry, faceMetadata) => {
-                if (geometry) {
-                    cylinderMesh.geometry.dispose();
-                    cylinderMesh.position.set(0, 0, 0);
-                    cylinderMesh.scale.set(1, 1, 1);
-                    cylinderMesh.quaternion.set(0, 0, 0, 1);
-                    cylinderMesh.geometry = geometry;
-                    cylinderMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
-                    cylinderMesh.material.color.setRGB(0.5, 0.5, 0.5);
-                    cylinderMesh.shapeName = shapeName;
-                    cylinderMesh.faceMetadata = faceMetadata;
-
+            (mesh) => {
+                if (mesh) {
+                    mesh.name = cylinderMesh.name;
+                    mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(cylinderMesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject);
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(cylinderMesh);
+                        this.world.history.addToUndo(mesh);
                     }
-                } else {
-                    // Operation Failed, remove preview
-                    cylinderMesh.parent.remove(cylinderMesh);
                 }
+
+                cylinderMesh.parent.remove(cylinderMesh);
                 this.world.dirty = true;
             });
     }

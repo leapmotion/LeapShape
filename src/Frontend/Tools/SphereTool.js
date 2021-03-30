@@ -108,27 +108,19 @@ class SphereTool {
     createSphereGeometry(sphereMesh, createSphereArgs) {
         let shapeName = "Sphere #" + this.numSpheres;
         this.engine.execute(shapeName, this.createSphere, createSphereArgs,
-            (geometry, faceMetadata) => {
-                if (geometry) {
-                    sphereMesh.geometry.dispose();
-                    sphereMesh.position.set(0, 0, 0);
-                    sphereMesh.scale.set(1, 1, 1);
-                    sphereMesh.geometry = geometry;
-                    sphereMesh.material = new THREE.MeshPhongMaterial({ wireframe: false });
-                    sphereMesh.material.color.setRGB(0.5, 0.5, 0.5);
-                    sphereMesh.shapeName = shapeName;
-                    sphereMesh.faceMetadata = faceMetadata;
-
+            (mesh) => {
+                if (mesh) {
+                    mesh.name = sphereMesh.name;
+                    mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(sphereMesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject);
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(sphereMesh);
+                        this.world.history.addToUndo(mesh);
                     }
-                } else {
-                    // Operation Failed, remove preview
-                    sphereMesh.parent.remove(sphereMesh);
                 }
+
+                sphereMesh.parent.remove(sphereMesh);
                 this.world.dirty = true;
             });
     }
