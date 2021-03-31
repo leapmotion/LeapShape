@@ -70,32 +70,26 @@ class History {
                     if (drawingLayer.children[i].name == condemnedName) { condemnedStroke = drawingLayer.children[i]; }
                 }
                 if (condemnedStroke) {
-                    //condemnedStroke.parent.remove(condemnedStroke);
                     reverseLayer.add(condemnedStroke);
                 } else {
                     console.error("Undo/Redo History is corrupt; " +
                         "couldn't find " + condemnedName + " to delete it...");
                 }
-                //commandLayer.length = commandLayer.length - 1;
                 commandLayer.remove(command);
             } else {
                 // Check and see if this item already exists
                 let strokeToReplace = null; let i = 0;
                 for (i = 0; i < drawingLayer.children.length; i++){
-                    if (drawingLayer.children[i].name == command.name) { strokeToReplace = drawingLayer.children[i]; }
+                    if (drawingLayer.children[i].name == command.name) { strokeToReplace = drawingLayer.children[i]; } //break;
                 }
                 if (strokeToReplace) {
                     // If it *does* exist, just replace it
-                    let parent = strokeToReplace.parent;
-                    //strokeToReplace.parent.remove(strokeToReplace);
                     reverseLayer.add(strokeToReplace);
-  
+
                     // Use 'replaceWith' to preserve layer order!
-                    parent.add(command);
-                    //drawingLayer.children[i] = command;
+                    drawingLayer.add(command);
                 } else {
                     // If it does not exist, create it
-                    //this.world.scene.add(command);
                     drawingLayer.add(command);
   
                     let removeCommand = new THREE.Group();
@@ -121,15 +115,23 @@ class History {
 
         this.shapeObjects.add(item);
 
-        //HACK FOR USDZ EXPORT
-        item.material.roughnessMap = null;
-        item.material.metalnessMap = null;
-        item.material.roughness = 1.0;
-        item.material.metalness = 0.0;
-
         this.curState += 1;
         window.history.pushState(this.curState, null, null);
 
+        // Clear the redo "history" (it's technically invalid now...)
+        this.ClearRedoHistory();
+    }
+
+    /** Removes this shape from the scene */
+    removeShape(item) {
+        this.undoObjects.add(item);
+
+        let removeCommand = new THREE.Group();
+        removeCommand.name = this.removeCmd + item.name;
+        this.redoObjects.add(removeCommand);
+
+        this.curState += 1;
+        window.history.pushState(this.curState, null, null);
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
     }

@@ -103,6 +103,10 @@ class World {
             polygonOffsetFactor: 2.0,
             polygonOffsetUnits: 1.0
         });
+        this.shapeMaterial.roughnessMap = null;
+        this.shapeMaterial.metalnessMap = null;
+        this.shapeMaterial.roughness = 1.0;
+        this.shapeMaterial.metalness = 0.0;
         this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
         this.selectedMaterial = this.shapeMaterial.clone();
         this.selectedMaterial.emissive.setRGB(0.0, 0.25, 0.25);

@@ -39,6 +39,8 @@ class Menu {
             menuItem.icon = menuItemIcon;
             menuItem.add(menuItemIcon);
 
+            menuItem.tool = tools.tools[i];
+
             this.menuItems.push(menuItem);
             this.menu.add(menuItem);
         }
@@ -70,7 +72,16 @@ class Menu {
         this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.menu, true);
 
+        let activeMenuIndex = 0;
         for (let i = 0; i < this.menuItems.length; i++){
+            // Hide/Show Contextual Menu Items
+            if (!(!this.menuItems[i].tool.shouldShow || this.menuItems[i].tool.shouldShow())) {
+                if (this.menu.children.includes(this.menuItems[i])) { this.menu.remove(this.menuItems[i]); }
+                continue;
+            } else {
+                if (!this.menu.children.includes(this.menuItems[i])) { this.menu.add(this.menuItems[i]); }
+            }
+
             // Hover highlight the menu spheres
             if (intersects.length > 0 && intersects[0].object === this.menuItems[i]) {
                 if (ray.justDeactivated) {
@@ -87,10 +98,12 @@ class Menu {
             }
 
             // Lerp the Spheres to their Target Slot's position
-            this.menuItems[i].position.lerp(this.slots[i].getWorldPosition(this.tempV3), 0.1);
+            this.menuItems[i].position.lerp(this.slots[activeMenuIndex].getWorldPosition(this.tempV3), 0.1);
 
             // Make the Icon Face the Camera
             this.menuItems[i].icon.quaternion.slerp(this.world.camera.quaternion, 0.1);
+
+            activeMenuIndex += 1;
         }
 
         ray.alreadyActivated = ray.alreadyActivated || (intersects.length > 0);

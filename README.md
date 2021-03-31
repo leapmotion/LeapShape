@@ -13,7 +13,7 @@
 Use simple gestures with your mouse or hands* to model 3D shapes in your browser!
 
 ## Features
- - Simple Interface for working with Boxes, Spheres, and Cylinders
+ - Simple Interface for working with Boxes, Spheres, Cylinders, and Extrusions
  - Powerful CSG Operations allow for infinite configurability
  - Export Models as .obj, .stl, or .gltf
  - Clean and Modular ES6 codebase for extreme extensibility
