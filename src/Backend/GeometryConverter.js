@@ -68,9 +68,8 @@ export default function ConvertGeometry(meshData) {
     let lineGeometry = new THREE.BufferGeometry().setFromPoints(lineVertices);
     let lineColors = []; for ( let i = 0; i < lineVertices.length; i++ ) { lineColors.push( 0, 0, 0 ); }
     lineGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( lineColors, 3 ) );
-    let lineMaterial = new THREE.LineBasicMaterial({
-      color: 0xffffff, linewidth: 1.5, vertexColors: true });
-    let line = new THREE.LineSegments(lineGeometry, lineMaterial);
+
+    let line = new THREE.LineSegments(lineGeometry, window.world.lineMaterial);
     line.globalEdgeIndices = globalEdgeIndices;
     line.name = "Model Edges";
     line.lineColors = lineColors;
@@ -79,15 +78,10 @@ export default function ConvertGeometry(meshData) {
     //line.layers.set(2);
     // End Adding Edges
 
-    let mesh = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        wireframe: false,
-        polygonOffset: true, // Push the mesh material back for line drawing
-        polygonOffsetFactor: 2.0,
-        polygonOffsetUnits: 1.0
-    }));
+    // A minor bit of dependency inversion, but for the greater good
+    let mesh = new THREE.Mesh(geometry, window.world.shapeMaterial);
     mesh.material.color.setRGB(0.5, 0.5, 0.5);
     mesh.faceMetadata = faceMetaData;
     mesh.add(line);
-
     return mesh;
 }

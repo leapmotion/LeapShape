@@ -2,7 +2,6 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial } from './ToolUtils.js';
 import { TransformControls } from '../../../node_modules/three/examples/jsm/controls/TransformControls.js';
 
 /** This class controls all of the DefaultTool behavior */
@@ -23,7 +22,7 @@ class DefaultTool {
         this.point = new THREE.Vector3();
         this.tangentAxis = new THREE.Vector3(); 
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
-                                       new THREE.MeshBasicMaterial());
+                                       this.world.basicMaterial);
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
         this.startPos = new THREE.Vector3();
@@ -219,7 +218,7 @@ class DefaultTool {
         if (obj && this.selected.includes(obj)) {
             this.clearSelection(obj);
         } else {
-            obj.material.emissive.setRGB(0.0, 0.25, 0.25);
+            obj.material = this.world.selectedMaterial;
             this.selected.push(obj);
         }
         this.positionTransformGizmo();
@@ -228,12 +227,12 @@ class DefaultTool {
     clearSelection(obj) {
         if (obj && this.selected.includes(obj)) {
             // Clear this object from the selection
-            obj.material.emissive.setRGB(0.0, 0.0, 0.0);
+            obj.material = this.world.shapeMaterial;
             this.selected.splice(this.selected.indexOf(obj), 1);
         } else {
             // If no obj passed in, clear all
             for (let i = 0; i < this.selected.length; i++) {
-                this.selected[i].material.emissive.setRGB(0.0, 0.0, 0.0);
+                this.selected[i].material = this.world.shapeMaterial;
             }
             this.selected = [];
 

@@ -2,7 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial, snapToGrid } from './ToolUtils.js';
+import { snapToGrid } from './ToolUtils.js';
 
 /** This class controls all of the SphereTool behavior */
 class SphereTool {
@@ -56,8 +56,7 @@ class SphereTool {
                 this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
 
                 // Spawn the Sphere
-                let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
-                this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), curMaterial);
+                this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), this.world.previewMaterial);
                 this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentSphere.name = "Sphere #" + this.numSpheres;
