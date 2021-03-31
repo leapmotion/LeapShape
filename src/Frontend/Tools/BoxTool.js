@@ -23,6 +23,8 @@ class BoxTool {
                                        this.world.basicMaterial);
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
+        this.arrow = new THREE.ArrowHelper(
+            new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 30, 0x00ffff);
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -65,11 +67,12 @@ class BoxTool {
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
-                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.previewMaterial);
+                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.noDepthPreviewMaterial);
                 this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentBox.name = "Box #" + this.numBoxs;
-                this.currentBox.position.copy(this.point);
+                this.currentBox.position.copy(this.worldNormal.clone()
+                    .multiplyScalar(0.5).add(this.hit.point));
                 this.world.scene.add(this.currentBox);
 
                 this.state += 1;
@@ -102,14 +105,24 @@ class BoxTool {
             ray.alreadyActivated = true;
 
             // When let go, advance to waiting for the next drag
-            if (!ray.active) { this.state += 1; }
+            if (!ray.active) {
+                this.state += 1;
+
+                // Add Arrow Preview
+                this.arrow.position.copy(this.currentBox.position);
+                this.arrow.setDirection(this.worldNormal);
+                this.arrow.setLength( 20, 13, 10 );
+                this.world.scene.add(this.arrow);
+            }
         } else if (this.state === 2) {
             // When dragging begins again, advance to the next state
             
             if (ray.justActivated) {
                 this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
-                let intersects = this.world.raycaster.intersectObject(this.currentBox);
+                let intersects = this.world.raycaster.intersectObjects([this.currentBox, this.arrow], true);
                 if (intersects.length > 0) {
+                    this.world.scene.remove(this.arrow);
+                    this.currentBox.material = this.world.previewMaterial;
                     ray.alreadyActivated = true;
                     this.state += 1;
                 }
@@ -241,6 +254,7 @@ class BoxTool {
     deactivate() {
         this.state = -1;
         this.tools.activeTool = null;
+        this.world.scene.remove(this.arrow);
         if (this.currentBox && this.currentBox.parent) {
             this.currentBox.parent.remove(this.currentBox);
         }
