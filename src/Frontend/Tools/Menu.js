@@ -17,6 +17,7 @@ class Menu {
         this.pressedColor     = new THREE.Color(1.0, 0.6, 0.5);
         this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
         this.tempV3           = new THREE.Vector3();
+        this.menuHeld         = false;
 
         this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
         this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
@@ -75,22 +76,25 @@ class Menu {
         let activeMenuIndex = 0;
         for (let i = 0; i < this.menuItems.length; i++){
             // Hide/Show Contextual Menu Items
-            if (!(!this.menuItems[i].tool.shouldShow || this.menuItems[i].tool.shouldShow())) {
+            if (!this.menuItems[i].tool.shouldShow || this.menuItems[i].tool.shouldShow()) {
+                if (!this.menu.children.includes(this.menuItems[i])) { this.menu.add(this.menuItems[i]); }
+            } else {
                 if (this.menu.children.includes(this.menuItems[i])) { this.menu.remove(this.menuItems[i]); }
                 continue;
-            } else {
-                if (!this.menu.children.includes(this.menuItems[i])) { this.menu.add(this.menuItems[i]); }
             }
 
             // Hover highlight the menu spheres
             if (intersects.length > 0 && intersects[0].object === this.menuItems[i]) {
-                if (ray.justDeactivated) {
+                if (ray.justDeactivated && this.menuHeld) {
                     // Activate the tool associated with this ID
                     this.tools.tools[i].activate();
                     this.menuItems[i].material.color.copy(this.pressedColor);
-                } else if (ray.active) {
+                    this.menuHeld = false;
+                } else if (ray.justActivated || this.menuHeld) {
+                    this.menuHeld = true;
                     this.menuItems[i].material.color.lerp(this.heldColor, 0.15);
                 } else {
+                    this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
                 }
             } else {
@@ -106,7 +110,9 @@ class Menu {
             activeMenuIndex += 1;
         }
 
-        ray.alreadyActivated = ray.alreadyActivated || (intersects.length > 0);
+        if (!ray.active) { this.menuHeld = false; }
+
+        ray.alreadyActivated = ray.alreadyActivated || this.menuHeld;
     }
 
 }
