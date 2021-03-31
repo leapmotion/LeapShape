@@ -2,7 +2,6 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial } from './ToolUtils.js';
 
 /** This class controls all of the ExtrusionTool behavior */
 class ExtrusionTool {
@@ -20,7 +19,7 @@ class ExtrusionTool {
         this.distance = 1;
         this.point = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
-                                       new THREE.MeshBasicMaterial());
+                                       this.world.basicMaterial);
         this.extrusionMesh = null;
 
         // Create Metadata for the Menu System
@@ -165,7 +164,7 @@ class ExtrusionTool {
 
                 if (mesh) {
                     mesh.shapeName = shapeName;
-                    mesh.material = createDitherDepthMaterial(this.world, mesh.material);
+                    mesh.material = this.world.previewMaterial;
 
                     this.currentExtrusion = new THREE.Group();
                     this.currentExtrusion.position.copy(extrusionPivot);
@@ -190,7 +189,6 @@ class ExtrusionTool {
             // Get a reference to the face to extrude
             let face = null; let face_index = 0;
             let anExplorer = new this.oc.TopExp_Explorer(hitObject, this.oc.TopAbs_FACE);
-            anExplorer.Init(hitObject, this.oc.TopAbs_FACE);
             for (anExplorer.Init(hitObject, this.oc.TopAbs_FACE); anExplorer.More(); anExplorer.Next()) {
                 if (face_index === faceIndex) {
                     face = this.oc.TopoDS.prototype.Face(anExplorer.Current());

@@ -2,7 +2,6 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial } from './ToolUtils.js';
 
 /** This class controls all of the CylinderTool behavior */
 class CylinderTool {
@@ -20,7 +19,7 @@ class CylinderTool {
         this.distance = 1;
         this.point = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
-                                       new THREE.MeshBasicMaterial());
+                                       this.world.basicMaterial);
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -56,8 +55,7 @@ class CylinderTool {
                 this.worldNormal = this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld );
 
                 // Spawn the Cylinder
-                let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
-                this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), curMaterial);
+                this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), this.world.previewMaterial);
                 this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;

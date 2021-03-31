@@ -1,4 +1,5 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
+import { Tools } from './Tools.js';
 import { World } from '../World/World.js';
 import { InteractionRay } from '../Input/Input.js';
 
@@ -17,16 +18,19 @@ class Menu {
         this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
         this.tempV3           = new THREE.Vector3();
 
+        this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
+        this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
+
         // Menu Container
         this.menu = new THREE.Group(); this.menuItems = [];
         for (let i = 0; i < tools.tools.length; i++) {
-            let menuItem = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 20),
-                                          new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5, depthTest:false }));
+            let menuItem = new THREE.Mesh(this.menuSphereGeo,
+                new THREE.MeshToonMaterial({ color: 0x999999, transparent: true, opacity: 0.5, depthTest: false }));
             menuItem.name = "Menu Item - "+i;
             menuItem.receiveShadow = false;
             menuItem.castShadow = false;
 
-            let menuItemIcon = new THREE.Mesh(new THREE.PlaneBufferGeometry(25, 25),
+            let menuItemIcon = new THREE.Mesh(this.menuPlaneGeo,
                 new THREE.MeshBasicMaterial(
                     { color: 0x999999, alphaTest: 0.5, map: tools.tools[i].descriptor.icon, depthTest:false }));
             menuItemIcon.name = "Menu Item Icon - "+i;

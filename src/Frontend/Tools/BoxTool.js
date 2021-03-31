@@ -2,7 +2,6 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { createDitherDepthMaterial } from './ToolUtils.js';
 
 /** This class controls all of the BoxTool behavior */
 class BoxTool {
@@ -21,7 +20,7 @@ class BoxTool {
         this.point = new THREE.Vector3();
         this.tangentAxis = new THREE.Vector3(); 
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
-                                       new THREE.MeshBasicMaterial());
+                                       this.world.basicMaterial);
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
 
@@ -66,8 +65,7 @@ class BoxTool {
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
-                let curMaterial = createDitherDepthMaterial(this.world, new THREE.MeshPhongMaterial({ wireframe: false, fog: false }));
-                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), curMaterial);
+                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.previewMaterial);
                 this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                 this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentBox.name = "Box #" + this.numBoxs;
@@ -186,6 +184,10 @@ class BoxTool {
     createBox(x, y, z, nx, ny, nz, vx, vy, vz, width, height, length, hitObjectName) {
         if (width != 0 && height != 0 && length != 0) {
             let hitAnObject = hitObjectName in this.shapes;
+
+            // Ugly hack to account for the difference between the raycast point and implicit point
+            // The true solution would be to raycast inside of the OpenCascade Kernel against the implicit BReps.
+            if (hitAnObject && height < 0) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
 
             // Construct the Box Shape
             let boxPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), new this.oc.gp_Dir(nx, ny, nz), new this.oc.gp_Dir(vx, vy, vz));

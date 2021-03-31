@@ -5,6 +5,7 @@ import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXL
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
 import { History } from "./History.js";
 import { LeapShapeRenderer } from "../main.js";
+import { createDitherDepthMaterial } from '../Tools/ToolUtils.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
@@ -94,6 +95,23 @@ class World {
         this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
         this.lastTimeInteractedWith = performance.now();
         this.dirty = false;
+
+        // Materials for the Scene
+        this.shapeMaterial = new THREE.MeshPhongMaterial({
+            wireframe: false,
+            polygonOffset: true, // Push the mesh material back for line drawing
+            polygonOffsetFactor: 2.0,
+            polygonOffsetUnits: 1.0
+        });
+        this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
+        this.selectedMaterial = this.shapeMaterial.clone();
+        this.selectedMaterial.emissive.setRGB(0.0, 0.25, 0.25);
+        this.previewMaterial = createDitherDepthMaterial(this, this.shapeMaterial);
+        this.basicMaterial = new THREE.MeshBasicMaterial();
+        this.lineMaterial = new THREE.LineBasicMaterial({
+            color: 0xffffff, linewidth: 1.5, vertexColors: true });
+
+        window.world = this;
     }
 
     /** Update the camera and render the scene 
@@ -108,6 +126,8 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);
             this.dirty = false;
+        } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
+            this.lastTimeInteractedWith += 1020; // Update once per second...
         }
     }
 
