@@ -126,6 +126,8 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);
             this.dirty = false;
+        } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
+            this.lastTimeInteractedWith += 1020; // Update once per second...
         }
     }
 
