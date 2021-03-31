@@ -74,8 +74,7 @@ export default function ConvertGeometry(meshData) {
     line.name = "Model Edges";
     line.lineColors = lineColors;
     line.globalEdgeMetadata = globalEdgeMetadata;
-    //line.layers.disableAll();
-    //line.layers.set(2);
+    line.layers.set(1);
     // End Adding Edges
 
     // A minor bit of dependency inversion, but for the greater good

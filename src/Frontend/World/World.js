@@ -24,6 +24,7 @@ class World {
         // camera and world
         this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
         this.camera.position.set( 100, 200, 300 );
+        this.camera.layers.enableAll();
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         this.scene.fog = new THREE.Fog(0xffffff, 200, 1000);
@@ -51,7 +52,7 @@ class World {
         this.grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
         this.grid.material.transparent = true;
-        this.grid.position.y = -0.5;
+        this.grid.layers.set(2);
         this.scene.add(this.grid);
         
         // renderer
@@ -82,6 +83,7 @@ class World {
         
         // raycaster
         this.raycaster = new THREE.Raycaster();
+        this.raycaster.layers.set(0);
 
         // stats
         //this.stats = new Stats();
