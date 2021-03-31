@@ -101,7 +101,11 @@ class World {
             wireframe: false,
             polygonOffset: true, // Push the mesh material back for line drawing
             polygonOffsetFactor: 2.0,
-            polygonOffsetUnits: 1.0
+            polygonOffsetUnits: 1.0,
+            roughnessMap: null,
+            metalnessMap: null,
+            roughness: 1.0,
+            metalness: 0.0
         });
         this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
         this.selectedMaterial = this.shapeMaterial.clone();

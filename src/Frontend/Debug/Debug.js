@@ -26,7 +26,7 @@ class Debug {
 
     // Log Errors as <div>s over the main viewport
     fakeError(...args) {
-        if (args.length > 0) {
+        if (args.length > 0 && args[0]) {
             let errorNode = window.document.createElement("div");
             errorNode.innerHTML = JSON.stringify(args[0]).fontcolor("red");
             window.document.getElementById("info").appendChild(errorNode);
