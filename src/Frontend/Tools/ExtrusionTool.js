@@ -95,7 +95,6 @@ class ExtrusionTool {
             if (ray.justActivated && ray.active && intersects.length > 0) {
                 this.hit = intersects[0].object.parent;
                 this.point.copy(this.hit.position);
-                ray.alreadyActivated = true;
                 this.state += 1;
             }
         } else if(this.state === 1) {

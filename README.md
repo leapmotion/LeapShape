@@ -29,7 +29,7 @@ Use simple gestures with your mouse or hands* to model 3D shapes in your browser
 ## Getting Started with Development
 Install [Node.js](https://nodejs.org/en/) first, then run `npm install` in the main folder.
 
-For development, [VSCode](https://code.visualstudio.com/) with [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) is recommended.
+For development, [VSCode](https://code.visualstudio.com/) with [Five Server](https://marketplace.visualstudio.com/items?itemName=yandeu.five-server) is recommended.
 
 
 ## Credits
@@ -39,5 +39,5 @@ LeapShape is based on several powerful libraries
  - [three.js](https://github.com/mrdoob/three.js/) (3D Rendering Engine)
  - [opencascade.js](https://github.com/donalffons/opencascade.js) (CAD Kernel)
  - [potpack](https://github.com/mapbox/potpack) (UV Atlas Packing)
- - [leapjs](https://github.com/leapmotion/leapjs) (Leap Motion Hand Tracking)
  - [Noun Project](https://github.com/leapmotion/LeapShape/blob/main/textures/LICENSE.txt) (Icons)
+ - [leapjs](https://github.com/leapmotion/leapjs) (Ultraleap Hand Tracking)

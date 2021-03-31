@@ -106,7 +106,8 @@ class World {
         this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
         this.selectedMaterial = this.shapeMaterial.clone();
         this.selectedMaterial.emissive.setRGB(0.0, 0.25, 0.25);
-        this.previewMaterial = createDitherDepthMaterial(this, this.shapeMaterial);
+        this.previewMaterial = createDitherDepthMaterial(this);
+        this.noDepthPreviewMaterial = this.selectedMaterial.clone();
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff, linewidth: 1.5, vertexColors: true });
