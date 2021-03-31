@@ -1,9 +1,9 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import Stats from      '../../../node_modules/three/examples/jsm/libs/stats.module.js';
 import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
-import { FBXLoader } from '../../../node_modules/three/examples/jsm/loaders/FBXLoader.js';
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
 import { History } from "./History.js";
+import { InteractionRay } from "../Input/Input.js";
 import { LeapShapeRenderer } from "../main.js";
 import { createDitherDepthMaterial } from '../Tools/ToolUtils.js';
 
@@ -14,8 +14,8 @@ class World {
      * @param {LeapShapeRenderer} parent The Parent LeapShape Renderer
      * @param {function} updateFunction */
     constructor(parent, updateFunction) {
-        // Sneaky Leaky Reference for flow inversion...
-        this.parent = parent;
+        // sneaky leaky references for dependency inversion...
+        this.parent = parent; window.world = this;
 
         // app container div
         this.container = document.getElementById('appbody');
@@ -110,15 +110,13 @@ class World {
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff, linewidth: 1.5, vertexColors: true });
-
-        window.world = this;
     }
 
     /** Update the camera and render the scene 
-     * @param {THREE.Ray} ray The Current Input Ray */
+     * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Conserve Power, don't rerender unless the view is dirty
-        if (!this.mobile || ray.active || this.dirty) {
+        if (ray.active || this.dirty) {
             this.lastTimeInteractedWith = performance.now();
         }
         if (performance.now() - this.lastTimeInteractedWith < 2000) {
@@ -126,6 +124,7 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);
             this.dirty = false;
+            //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
             this.lastTimeInteractedWith += 1020; // Update once per second...
         }
@@ -139,7 +138,7 @@ class World {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
-        this.dirty = false;
+        this.dirty = true;
     }
 
 }
