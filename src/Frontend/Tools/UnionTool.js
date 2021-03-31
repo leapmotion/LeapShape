@@ -62,11 +62,13 @@ class UnionTool {
                     mesh.shapeName = shapeName;
                     this.tools.tools[0].clearSelection();
 
+                    // Creation of the Final Composite Unioned Object
+                    this.world.history.addToUndo(mesh);
+
+                    // Individually Undoable Removal of Union Constituents
                     for (let s = 0; s < unionMeshes.length; s++){
                         this.world.history.removeShape(unionMeshes[s]);
                     }
-
-                    this.world.history.addToUndo(mesh);
                 }
                 this.world.dirty = true;
             });
@@ -99,7 +101,6 @@ class UnionTool {
             return fused ? shape : null;
         }
     }
-
 }
 
 export { UnionTool };

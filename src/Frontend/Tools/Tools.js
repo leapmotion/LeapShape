@@ -4,6 +4,7 @@ import { World } from '../World/World.js';
 
 import { DefaultTool } from './DefaultTool.js';
 import { UnionTool } from './UnionTool.js';
+import { DifferenceTool } from './DifferenceTool.js';
 import { BoxTool } from './BoxTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
@@ -19,12 +20,13 @@ class Tools {
         this.world = world; this.engine = engine;
 
         this.tools = [
-            new DefaultTool  (this),
-            new UnionTool    (this),
-            new BoxTool      (this),
-            new SphereTool   (this),
-            new CylinderTool (this),
-            new ExtrusionTool(this)
+            new DefaultTool   (this),
+            new UnionTool     (this),
+            new DifferenceTool(this),
+            new BoxTool       (this),
+            new SphereTool    (this),
+            new CylinderTool  (this),
+            new ExtrusionTool (this)
         ];
 
         this.activeTool = null;

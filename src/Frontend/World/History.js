@@ -85,21 +85,9 @@ class History {
                 if (strokeToReplace) {
                     // If it *does* exist, just replace it
                     reverseLayer.add(strokeToReplace);
-                    //if (strokeToReplace.undoObjects) {
-                    //    // If this is a union object, take all of its children
-                    //    for (let i = 0; i < strokeToReplace.undoObjects.length; i++) {
-                    //        strokeToReplace.add(strokeToReplace.undoObjects[i]);
-                    //    }
-                    //}
 
                     // Use 'replaceWith' to preserve layer order!
                     drawingLayer.add(command);
-                    //if (command.undoObjects) {
-                    //    // If this is a union object, take all of its children
-                    //    for (let i = 0; i < command.undoObjects.length; i++) {
-                    //        drawingLayer.add(command.undoObjects[i]);
-                    //    }
-                    //}
                 } else {
                     // If it does not exist, create it
                     drawingLayer.add(command);
@@ -114,19 +102,8 @@ class History {
 
     /** Store this item's current state in the Undo Queue 
      * @param {THREE.Object3D} item Object to add into the scene
-     * @param {THREE.Object3D} toReplace Object(s) to replace with item */
+     * @param {THREE.Object3D} toReplace Object to replace with item */
     addToUndo(item, toReplace) {
-        //if (toReplace && toReplace.length) {
-        //    // To Replace is an Array of Shapes
-        //    let arrayReplace = new THREE.Group();
-        //    arrayReplace.name = toReplace[0].name;
-        //    //toReplace[0].name += " Unioned";
-        //    for (let q = 0; q < toReplace.length; q++) { arrayReplace.add(toReplace[q]); }
-        //    arrayReplace.undoShapes = toReplace;
-        //    this.undoObjects.add(arrayReplace);
-        //    item.name = arrayReplace.name;
-        //    item.undoShapes = toReplace;
-        //}else 
         if (toReplace) {
             this.undoObjects.add(toReplace);
             item.name = toReplace.name;
