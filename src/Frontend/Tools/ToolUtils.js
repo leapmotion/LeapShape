@@ -4,12 +4,15 @@ import { World } from '../World/World.js';
 /** Creates a modified material that dithers when occluded.  Useful for CSG Previews.
  * @param {World} world
  * @param {THREE.Material} inputMaterial */
-export function createDitherDepthMaterial(world, inputMaterial) {
+export function createDitherDepthMaterial(world) {
     // Inject some spicy stochastic depth logic into this object's material
     let safari = /(Safari)/g.test(navigator.userAgent) && ! /(Chrome)/g.test(navigator.userAgent);
     let hasFragDepth = (world.renderer.capabilities.isWebGL2 || (world.renderer.extensions.has('EXT_frag_depth'))) && !safari;
-    if (!hasFragDepth) { return inputMaterial; }
-    let stochasticDepthMaterial = inputMaterial.clone();
+
+    let stochasticDepthMaterial = new THREE.MeshPhongMaterial();
+    stochasticDepthMaterial.color.setRGB(0.5, 0.5, 0.5);
+    if (!hasFragDepth) { return stochasticDepthMaterial; }
+
     stochasticDepthMaterial.uniforms = {};
     stochasticDepthMaterial.extensions = { fragDepth: hasFragDepth }; // set to use fragment depth values
     stochasticDepthMaterial.onBeforeCompile = (shader) => {
