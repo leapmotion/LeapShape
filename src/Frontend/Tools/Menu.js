@@ -90,7 +90,7 @@ class Menu {
             this.menuItems[i].position.lerp(this.slots[i].getWorldPosition(this.tempV3), 0.1);
 
             // Make the Icon Face the Camera
-            this.menuItems[i].icon.lookAt(this.world.camera.getWorldPosition(this.tempV3))
+            this.menuItems[i].icon.quaternion.slerp(this.world.camera.quaternion, 0.1);
         }
 
         ray.alreadyActivated = ray.alreadyActivated || (intersects.length > 0);
