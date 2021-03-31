@@ -101,6 +101,9 @@ class UnionTool {
             return fused ? shape : null;
         }
     }
+
+    /** Whether or not to show this tool in the menu */
+    shouldShow() { return this.tools.tools[0].selected.length >= 2; }
 }
 
 export { UnionTool };

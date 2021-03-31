@@ -100,6 +100,9 @@ class DifferenceTool {
             console.error("Cannot Diff; fewer than two objects in the selection...");
         }
     }
+
+    /** Whether or not to show this tool in the menu */
+    shouldShow() { return this.tools.tools[0].selected.length >= 2; }
 }
 
 export { DifferenceTool };
