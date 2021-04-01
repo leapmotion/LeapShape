@@ -53,10 +53,14 @@ class LeapShapeEngineWorker {
         let shape = null;
         try {
             shape = op(...payload.shapeArguments);
-            if (!shape || shape.IsNull()) { console.error("Shape is null"); console.error(shape); }
-            let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
-            if (meshData) { this.shapes[payload.name] = shape; }
-            return { name: payload.name, payload: meshData };
+            if (shape && shape.isMetadata) {
+                return { name: payload.name, payload: shape };
+            } else {
+                if (!shape || shape.IsNull()) { console.error("Shape is null"); console.error(shape); }
+                let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
+                if (meshData) { this.shapes[payload.name] = shape; }
+                return { name: payload.name, payload: meshData };
+            }
         } catch (e) {
             return { name: payload.name, payload: null };
         }

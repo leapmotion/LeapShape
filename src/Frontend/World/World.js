@@ -6,6 +6,7 @@ import { History } from "./History.js";
 import { InteractionRay } from "../Input/Input.js";
 import { LeapShapeRenderer } from "../main.js";
 import { createDitherDepthMaterial } from '../Tools/ToolUtils.js';
+import { Cursor } from './Cursor.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
@@ -117,6 +118,8 @@ class World {
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff, linewidth: 1.5, vertexColors: true });
+        
+        this.cursor = new Cursor(this);
     }
 
     /** Update the camera and render the scene 
@@ -127,6 +130,7 @@ class World {
             this.lastTimeInteractedWith = performance.now();
         }
         if (performance.now() - this.lastTimeInteractedWith < 2000) {
+            this.cursor.update();
             this.controls.enabled = !ray.alreadyActivated;
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);

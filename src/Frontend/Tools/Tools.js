@@ -30,7 +30,7 @@ class Tools {
         ];
 
         this.activeTool = null;
-        this.gridPitch = 0.0;
+        this.gridPitch = 10.0;
     }
 
     /** Update the Tool and Menu State Machines

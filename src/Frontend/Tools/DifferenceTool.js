@@ -87,7 +87,7 @@ class DifferenceTool {
                 let overlapChecker = new this.oc.BRepExtrema_DistShapeShape(shape, cuttingTool);
                 overlapChecker.Perform();
 
-                if (overlapChecker.Value() === 0) {
+                if (overlapChecker.Value() <= 0 || overlapChecker.InnerSolution()) {
                     let differenceOp = new this.oc.BRepAlgoAPI_Cut(shape, cuttingTool);
                     differenceOp.SetFuzzyValue(0.00001); differenceOp.Build();
                     shape = differenceOp.Shape();
