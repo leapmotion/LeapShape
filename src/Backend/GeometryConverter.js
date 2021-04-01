@@ -5,13 +5,20 @@ import * as THREE from '../../node_modules/three/build/three.module.js';
 export default function ConvertGeometry(meshData) {
     if (!meshData) { console.error("Mesher returned false..."); return null; }
     // Accumulate data across faces into a single array
-    let vertices = [], triangles = [], normals = [], colors = [], uvs = [], vInd = 0, globalFaceIndex = 0;
+    let vertices = [], triangles = [], normals = [], colors = [], uvs = [], uv2s = [], vInd = 0, globalFaceIndex = 0;
     let faceMetaData = [];
     meshData[0].forEach((face) => {
+        let faceMeta = {};
+
         // Copy Vertices into three.js Vector3 List
         vertices.push(...face.vertex_coord);
         normals .push(...face.normal_coord);
         uvs     .push(...face.    uv_coord);
+        uv2s    .push(...face.    oc_uv_coord);
+        
+        // Starting Triangle Index (inclusive)
+        faceMeta.start = triangles.length / 3;
+      
         // Sort Triangles into a three.js Face List
         for (let i = 0; i < face.tri_indexes.length; i += 3) {
             triangles.push(
@@ -21,7 +28,8 @@ export default function ConvertGeometry(meshData) {
         }
         vInd += face.vertex_coord.length / 3;
 
-        let faceMeta = {};
+        // Ending Triangle Index (exclusive)
+        faceMeta.end = triangles.length / 3;
         faceMeta.index = globalFaceIndex++;
         faceMeta.is_planar = face.is_planar;
         faceMeta.average = face.average;
@@ -34,8 +42,9 @@ export default function ConvertGeometry(meshData) {
     geometry.setIndex(triangles);
     geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
     geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
-    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute(colors, 3));
-    geometry.setAttribute( 'uv', new THREE.Float32BufferAttribute( uvs, 2 ) );
+    geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+    geometry.setAttribute( 'uv' , new THREE.Float32BufferAttribute( uvs, 2 ) );
+    geometry.setAttribute( 'uv2' , new THREE.Float32BufferAttribute( uv2s, 2 ) );
     geometry.computeBoundingSphere();
     geometry.computeBoundingBox();
 

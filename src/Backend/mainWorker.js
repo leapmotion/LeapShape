@@ -9,6 +9,7 @@ class LeapShapeEngineWorker {
     constructor() {
         this.shapes = {};
         this.resolution = 0.75;
+        this.backendFunctions = {};
 
         // Initialize the WebAssembly Module
         new opencascade({
@@ -48,14 +49,22 @@ class LeapShapeEngineWorker {
     /** Executes a CAD operation from the Main Thread 
      * @param {{name: string, shapeFunction: function, shapeArguments: number[], meshDataCallback: function}} payload */
     execute(payload) {
-        this.safari = /(Safari|iPhone)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
-        let op = new Function("return " + (this.safari ? "" : "function ") + payload.shapeFunction)().bind(this);
+        // Cache Backend Execution Functions to save on memory
+        if (!(payload.shapeFunction in this.backendFunctions)) {
+            this.safari = /(Safari|iPhone)/g.test(navigator.userAgent) && ! /(Chrome)/g.test(navigator.userAgent);
+            this.backendFunctions[payload.shapeFunction] =
+                new Function("return " + (this.safari ? "" : "function ") + payload.shapeFunction)().bind(this);
+        }
+        let op = this.backendFunctions[payload.shapeFunction];
+        
         let shape = null;
         try {
             shape = op(...payload.shapeArguments);
             if (shape && shape.isMetadata) {
+                // Return the output raw if it's marked as data
                 return { name: payload.name, payload: shape };
             } else {
+                // Otherwise Convert the Shape to a Mesh + Metadata
                 if (!shape || shape.IsNull()) { console.error("Shape is null"); console.error(shape); }
                 let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
                 if (meshData) { this.shapes[payload.name] = shape; }

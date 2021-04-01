@@ -139,6 +139,18 @@ class World {
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
             this.lastTimeInteractedWith += 1020; // Update once per second...
         }
+
+        // Just activaterd, cast a ray from the center of the camera and set the center there...
+        // This could be annoying...
+        //if (!ray.alreadyActivated && ray.justActivated) {
+        //    this.raycaster.ray.origin.copy(this.camera.position);
+        //    this.camera.getWorldDirection(this.raycaster.ray.direction);
+        //    let intersections = this.raycaster.intersectObjects([this.scene], true);
+        //    if (intersections.length > 0) {
+        //        this.controls.target.copy(intersections[0].point);
+        //    }
+        //}
+
     }
 
     /** **INTERNAL**: This function recalculates the viewport 

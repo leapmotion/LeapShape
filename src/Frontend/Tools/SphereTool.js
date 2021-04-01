@@ -50,11 +50,12 @@ class SphereTool {
                         this.hit = intersects[i]; break;
                     }
                 }
+                //if (this.hit.uv2) { console.log(this.hit.uv, this.hit.uv2); }
                 
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
                 this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
-                this.world.cursor.updateMetadata(this.snappedHitPoint, this.hit.object);
+                this.world.cursor.updateMetadata(this.snappedHitPoint, this.hit);
 
                 if (ray.justActivated) {
                     // Spawn the Sphere
@@ -84,8 +85,8 @@ class SphereTool {
 
                 this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
                 if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
-                this.world.cursor.updateMetadata(this.point.clone().add(intersects[0].point.clone().sub(this.point).normalize().multiplyScalar(this.distance)));
-                this.distance = Math.max(1.0, this.world.cursor.position.clone().sub(this.point).length());
+                //this.world.cursor.updateMetadata(this.point.clone().add(intersects[0].point.clone().sub(this.point).normalize().multiplyScalar(this.distance)));
+                //this.distance = Math.max(1.0, this.world.cursor.position.clone().sub(this.point).length());
 
                 this.currentSphere.scale.x = this.distance;
                 this.currentSphere.scale.y = this.distance;
