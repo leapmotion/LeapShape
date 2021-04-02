@@ -25,6 +25,7 @@ class Cursor {
         this.position = this.cursor.position;
         this.hitObject = null;
 
+        this.vec1 = new THREE.Vector3(); this.vec2 = new THREE.Vector3();
         this.middle = new THREE.Mesh(this.sphereGeo, new THREE.MeshBasicMaterial());
         this.middle.material.color.set(0xff0000);
         //this.middle.scale.set(new THREE.Vector3(10, 10, 10));
@@ -32,6 +33,11 @@ class Cursor {
         this.middle.receiveShadow = false;
         this.middle.castShadow = false;
         this.middle.layers.set(1); // Ignore Raycasts
+        this.grid = new THREE.GridHelper( 50, 6, 0x000000, 0x000000 );
+        this.grid.material.opacity = 0.4;
+        this.grid.material.transparent = true;
+        this.grid.layers.set(2);
+        //this.middle.add(this.grid);
 
         //this.world.cursor = this.cursor;
         this.world.scene.add(this.cursor);
@@ -46,6 +52,9 @@ class Cursor {
             if (this.metadata) {
                 this.cursor.position.set(this.metadata.x, this.metadata.y, this.metadata.z);
                 this.middle.position.set(this.metadata.midX, this.metadata.midY, this.metadata.midZ);
+                this.vec1.set(0, 1, 0);
+                this.vec2.set(this.metadata.nX, this.metadata.nY, this.metadata.nZ);
+                this.middle.quaternion.setFromUnitVectors(this.vec1, this.vec2);
             } else {
                 this.cursor.position.lerp(this.targetPosition, 0.15);
             }
@@ -54,7 +63,7 @@ class Cursor {
             this.cursor.quaternion.slerp(this.world.camera.quaternion, 0.15);
 
             if (this.hit && this.hit.object.shapeName && !this.engine.workerWorking) {
-                querySurface(this.world.parent.engine, this.hit, (metadata) => { this.metadata = metadata; console.log(metadata); });
+                querySurface(this.world.parent.engine, this.hit, (metadata) => { this.metadata = metadata; /*console.log(metadata);*/ });
             }
 
         } else {

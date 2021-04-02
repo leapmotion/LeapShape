@@ -51,10 +51,9 @@ class Menu {
         this.slots = [];
         for (let i = 0; i < 10; i++) {
             let slot = new THREE.Group();
-            slot.name = "Slot #"+i;
-            slot.position.x = (i * 50) - 225;
-            slot.position.y = -100;
-            slot.position.z = -300;
+            slot.name = "Slot #" + i;
+            slot.canonicalPosition = new THREE.Vector3((i * 50) - 100, -100, -300);
+            slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
         }
@@ -64,9 +63,10 @@ class Menu {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Update the slot positions based on the camera's aspect
+        let minAspect = Math.min(this.world.camera.aspect, 1.0);
         for (let i = 0; i < 10; i++) {
-            let xOffset = (-100 * this.world.camera.aspect);
-            this.slots[i].position.x = (i * 50) + xOffset;
+            this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
+            this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
         }
 
         // Check to see if the interaction ray intersects one of these items
