@@ -77,6 +77,7 @@ class OpenCascadeMesher {
                 let this_face = {
                     vertex_coord: [],
                     uv_coord: [],
+                    oc_uv_coord: [],
                     normal_coord: [],
                     tri_indexes: [],
                     number_of_triangles: 0,
@@ -114,8 +115,8 @@ class OpenCascadeMesher {
                     for (let i = 0; i < UVNodesLength; i++) {
                         let p = UVNodes.Value(i + 1);
                         let x = p.X(), y = p.Y();
-                        this_face.uv_coord[(i * 2) + 0] = x;
-                        this_face.uv_coord[(i * 2) + 1] = y;
+                        this_face.oc_uv_coord[(i * 2) + 0] = x;
+                        this_face.oc_uv_coord[(i * 2) + 1] = y;
     
                         // Compute UV Bounds
                         if (i == 0) { UMin = x; UMax = x; VMin = y; VMax = y; }
@@ -138,8 +139,8 @@ class OpenCascadeMesher {
     
                     // Normalize each face's UVs to 0-1
                     for (let i = 0; i < UVNodesLength; i++) {
-                        let x = this_face.uv_coord[(i * 2) + 0],
-                            y = this_face.uv_coord[(i * 2) + 1];
+                        let x = this_face.oc_uv_coord[(i * 2) + 0],
+                            y = this_face.oc_uv_coord[(i * 2) + 1];
                 
                         x = ((x - UMin) / (UMax - UMin));
                         y = ((y - VMin) / (VMax - VMin));

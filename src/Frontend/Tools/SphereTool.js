@@ -42,7 +42,7 @@ class SphereTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (ray.active && intersects.length > 0) {
+            if (intersects.length > 0) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
@@ -50,25 +50,29 @@ class SphereTool {
                         this.hit = intersects[i]; break;
                     }
                 }
+                //if (this.hit.uv2) { console.log(this.hit.uv, this.hit.uv2); }
                 
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
                 this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
+                this.world.cursor.updateMetadata(this.snappedHitPoint, this.hit);
 
-                // Spawn the Sphere
-                this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), this.world.previewMaterial);
-                this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
-                this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
-                this.currentSphere.name = "Sphere #" + this.numSpheres;
-                this.currentSphere.position.copy(this.snappedHitPoint);
-                this.point.copy(this.snappedHitPoint);
-                this.world.scene.add(this.currentSphere);
-                this.rayPlane.position.copy(this.snappedHitPoint);
-                this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
-                this.rayPlane.updateMatrixWorld(true);
+                if (ray.justActivated) {
+                    // Spawn the Sphere
+                    this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), this.world.previewMaterial);
+                    this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
+                    this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
+                    this.currentSphere.name = "Sphere #" + this.numSpheres;
+                    this.currentSphere.position.copy(this.snappedHitPoint);
+                    this.point.copy(this.snappedHitPoint);
+                    this.world.scene.add(this.currentSphere);
+                    this.rayPlane.position.copy(this.snappedHitPoint);
+                    this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
+                    this.rayPlane.updateMatrixWorld(true);
 
-                this.state += 1;
-                ray.alreadyActivated = true;
+                    this.state += 1;
+                    ray.alreadyActivated = true;
+                }
             }
         } else if(this.state === 1) {
             // While holding, resize the Sphere
@@ -81,6 +85,8 @@ class SphereTool {
 
                 this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
                 if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
+                //this.world.cursor.updateMetadata(this.point.clone().add(intersects[0].point.clone().sub(this.point).normalize().multiplyScalar(this.distance)));
+                //this.distance = Math.max(1.0, this.world.cursor.position.clone().sub(this.point).length());
 
                 this.currentSphere.scale.x = this.distance;
                 this.currentSphere.scale.y = this.distance;

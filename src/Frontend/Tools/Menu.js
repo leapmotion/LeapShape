@@ -17,6 +17,7 @@ class Menu {
         this.pressedColor     = new THREE.Color(1.0, 0.6, 0.5);
         this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
         this.tempV3           = new THREE.Vector3();
+        this.menuHeld         = false;
 
         this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
         this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
@@ -50,10 +51,9 @@ class Menu {
         this.slots = [];
         for (let i = 0; i < 10; i++) {
             let slot = new THREE.Group();
-            slot.name = "Slot #"+i;
-            slot.position.x = (i * 50) - 225;
-            slot.position.y = -100;
-            slot.position.z = -300;
+            slot.name = "Slot #" + i;
+            slot.canonicalPosition = new THREE.Vector3((i * 50) - 100, -100, -300);
+            slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
         }
@@ -63,9 +63,10 @@ class Menu {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Update the slot positions based on the camera's aspect
+        let minAspect = Math.min(this.world.camera.aspect, 1.0);
         for (let i = 0; i < 10; i++) {
-            let xOffset = (-100 * this.world.camera.aspect);
-            this.slots[i].position.x = (i * 50) + xOffset;
+            this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
+            this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
         }
 
         // Check to see if the interaction ray intersects one of these items
@@ -75,22 +76,25 @@ class Menu {
         let activeMenuIndex = 0;
         for (let i = 0; i < this.menuItems.length; i++){
             // Hide/Show Contextual Menu Items
-            if (!(!this.menuItems[i].tool.shouldShow || this.menuItems[i].tool.shouldShow())) {
+            if (!this.menuItems[i].tool.shouldShow || this.menuItems[i].tool.shouldShow()) {
+                if (!this.menu.children.includes(this.menuItems[i])) { this.menu.add(this.menuItems[i]); }
+            } else {
                 if (this.menu.children.includes(this.menuItems[i])) { this.menu.remove(this.menuItems[i]); }
                 continue;
-            } else {
-                if (!this.menu.children.includes(this.menuItems[i])) { this.menu.add(this.menuItems[i]); }
             }
 
             // Hover highlight the menu spheres
             if (intersects.length > 0 && intersects[0].object === this.menuItems[i]) {
-                if (ray.justDeactivated) {
+                if (ray.justDeactivated && this.menuHeld) {
                     // Activate the tool associated with this ID
                     this.tools.tools[i].activate();
                     this.menuItems[i].material.color.copy(this.pressedColor);
-                } else if (ray.active) {
+                    this.menuHeld = false;
+                } else if (ray.justActivated || this.menuHeld) {
+                    this.menuHeld = true;
                     this.menuItems[i].material.color.lerp(this.heldColor, 0.15);
                 } else {
+                    this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
                 }
             } else {
@@ -106,7 +110,9 @@ class Menu {
             activeMenuIndex += 1;
         }
 
-        ray.alreadyActivated = ray.alreadyActivated || (intersects.length > 0);
+        if (!ray.active) { this.menuHeld = false; }
+
+        ray.alreadyActivated = ray.alreadyActivated || this.menuHeld;
     }
 
 }
