@@ -62,6 +62,7 @@ class BoxTool {
                 this.tools.grid.updateWithHit(this.hit);
                 this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
                 this.tools.cursor.updateTarget(this.snappedPoint);
+                this.tools.cursor.updateLabelNumbers(this.snappedPoint.x, this.snappedPoint.y, this.snappedPoint.z);
                 if (!ray.active) { return; }
 
                 // Record the hit object and plane...
@@ -106,8 +107,10 @@ class BoxTool {
                 if (!ray.active) { this.tools.cursor.cursor.position.copy(this.snappedPoint); } // Force Cursor to Snap upon letting go
 
                 let relative = intersects[0].object.worldToLocal(this.tools.cursor.cursor.position.clone());
-                this.width   = relative.x;
-                this.length  = relative.y;
+                this.width = relative.x; this.length = relative.y;
+
+                let relativeSnapped = intersects[0].object.worldToLocal(this.snappedPoint.clone());
+                this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.y));
 
                 this.height     = 1;
                 this.widthAxis  = new THREE.Vector3(1, 0, 0).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this. width));
@@ -131,6 +134,7 @@ class BoxTool {
                 this.state += 1;
 
                 // Add Arrow Preview
+                this.tools.grid.setVisible(false);
                 this.arrow.position.copy(this.currentBox.position);
                 this.arrow.setDirection(this.worldNormal);
                 this.arrow.setLength( 20, 13, 10 );
@@ -156,7 +160,10 @@ class BoxTool {
             ray.ray.distanceSqToSegment(lowerSegment, upperSegment, null, this.vec);
             this.snappedHeight = this.vec.sub(this.point).dot(this.worldNormal);
             this.snappedHeight = this.tools.grid.snapToGrid1D(this.snappedHeight);
+            this.tools.cursor.updateLabelNumbers(this.snappedHeight);
             this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.85) + (this.snappedHeight * 0.15);
+
+            this.tools.cursor.updateTarget(this.worldNormal.clone().multiplyScalar(this.height).add(this.point));
 
             this.heightAxis = new THREE.Vector3(0, 0, 1)
                 .transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
@@ -212,7 +219,6 @@ class BoxTool {
                     }
                 }
 
-                this.tools.grid.setVisible(false);
                 boxMesh.parent.remove(boxMesh);
                 this.world.dirty = true;
             });

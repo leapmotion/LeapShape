@@ -24,7 +24,7 @@ class Grid {
         // The Visual Grid Mesh
         this.gridCells = 20;
         this.gridMesh = new THREE.GridHelper( this.gridPitch * this.gridCells, this.gridCells, 0x000000, 0x000000 );
-        this.gridMesh.material.opacity = 0.4;
+        this.gridMesh.material.opacity = 0.2;
         this.gridMesh.material.transparent = true;
         this.gridMesh.layers.set(1);
         this.space.add(this.gridMesh);
@@ -83,7 +83,7 @@ class Grid {
 
     /** @param {number} length */
     snapToGrid1D(length) {
-        return Math.round(length / this.gridPitch) * this.gridPitch;
+        return (Math.round((length + Number.EPSILON) / this.gridPitch) * this.gridPitch);
     }
 
     /** @param {boolean} visible */

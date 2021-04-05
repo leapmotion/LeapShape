@@ -52,9 +52,9 @@ export function createDitherDepthMaterial(world) {
 export function snapToGrid(vecToSnap, gridPitch) {
     if (gridPitch > 0) {
         vecToSnap.set(
-            Math.round(vecToSnap.x / gridPitch) * gridPitch,
-            Math.round(vecToSnap.y / gridPitch) * gridPitch,
-            Math.round(vecToSnap.z / gridPitch) * gridPitch);
+            (Math.round((vecToSnap.x + Number.EPSILON) / gridPitch) * gridPitch),
+            (Math.round((vecToSnap.y + Number.EPSILON) / gridPitch) * gridPitch),
+            (Math.round((vecToSnap.z + Number.EPSILON) / gridPitch) * gridPitch));
     }
     return vecToSnap;
 }

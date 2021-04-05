@@ -1,4 +1,5 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
+import { HTMLMesh } from '../World/three.html.js';
 
 /** This is an in-scene helper for measurements and precision placement. */
 class Cursor {
@@ -23,6 +24,16 @@ class Cursor {
         this.position = this.cursor.position;
         this.hitObject = null;
 
+        // Create a Text Updating Label for the Coordinate Data
+        this.labelElem = document.createElement("a");
+        this.labelElem.innerText = "Abs: (0,0,0)";
+        this.labelElem.style.backgroundColor = 'transparent';
+        this.labelElem.style.fontSize = '40px';
+        document.getElementById("topnav").appendChild(this.labelElem);
+        this.label = new HTMLMesh(this.labelElem);
+        this.label.layers.set(1); // Ignore Raycasts
+        this.cursor.add(this.label);
+
         this.vec1 = new THREE.Vector3(); this.vec2 = new THREE.Vector3();
 
         this.world.scene.add(this.cursor);
@@ -37,7 +48,6 @@ class Cursor {
 
             // Make the Cursor Contents Face the Camera
             this.cursor.quaternion.slerp(this.world.camera.quaternion, 0.15);
-
         } else {
             this.cursor.visible = false;
         }
@@ -47,6 +57,19 @@ class Cursor {
         this.targetPosition.copy(position);
         this.hit = raycastHit;
         this.lastTimeTargetUpdated = performance.now();
+    }
+
+    updateLabel(text) {
+        this.labelElem.innerText = text;
+        this.label.update();
+    }
+
+    updateLabelNumbers(...numbers) {
+        this.labelElem.innerText = "(";
+        numbers.forEach((num) => { this.labelElem.innerText += Number(num.toFixed(2)) + ", "; });
+        this.labelElem.innerText = this.labelElem.innerText.substr(0, this.labelElem.innerText.length - 1);
+        this.labelElem.innerText += ")";
+        this.label.update();
     }
 
 }
