@@ -59,7 +59,7 @@ export function snapToGrid(vecToSnap, gridPitch) {
     return vecToSnap;
 }
 
-/** Returns info from the CAD engine about the surface.
+/** Callbacks info from the CAD engine about the surface.
  * @param {LeapShapeEngine} engine
  * @param {any} raycastHit,
  * @param {Function} callback */
@@ -81,9 +81,22 @@ export function querySurface(engine, raycastHit, callback) {
     engine.execute("SurfaceQuery", BackendFunctions.querySurfaceBackend, queryArgs, callback);
 }
 
+/** *If engine is not busy*, callbacks info from the CAD engine about the surface.
+ * Use this version for frequent updates that don't queue up and spiral of death.
+ * @param {LeapShapeEngine} engine
+ * @param {any} raycastHit,
+ * @param {Function} callback */
+export function safeQuerySurface(engine, raycastHit, callback) {
+    if (!engine.workerWorking) { return querySurface(engine, raycastHit, callback); }
+}
+
 class BackendFunctions {
 
+    /** This function is called in the backend and returns information about the surface.
+     * @param {string} shapeName @param {number} faceIndex @param {number} u @param {number} v */
     static querySurfaceBackend(shapeName, faceIndex, u, v, x, y, z) {
+        if (false) { this.oc = oc; } // This fools the intellisense into working
+
         let toReturn = { isMetadata: true };
         let shape = this.shapes[shapeName];
         let faceName = shapeName + " Face #" + faceIndex;
@@ -148,7 +161,6 @@ class BackendFunctions {
             toReturn.tVX = tempDir.X(); toReturn.tVY = tempDir.Y(); toReturn.tVZ = tempDir.Z();
         }
         this.oc._free(tempDir);
-
 
         return toReturn;
     }

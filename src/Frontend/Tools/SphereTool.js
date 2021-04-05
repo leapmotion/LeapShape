@@ -55,7 +55,7 @@ class SphereTool {
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
                 this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
-                this.world.cursor.updateMetadata(this.snappedHitPoint, this.hit);
+                //this.world.cursor.updateTarget(this.snappedHitPoint, this.hit);
 
                 if (ray.justActivated) {
                     // Spawn the Sphere

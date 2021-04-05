@@ -2,6 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
+import { Grid } from './Grid.js';
+import { Cursor } from './Cursor.js';
 
 /** This class controls all of the BoxTool behavior */
 class BoxTool {
@@ -18,6 +20,7 @@ class BoxTool {
         this.numBoxs  =  0;
         this.distance =  1;
         this.point = new THREE.Vector3();
+        this.snappedPoint = new THREE.Vector3();
         this.tangentAxis = new THREE.Vector3(); 
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
@@ -45,7 +48,7 @@ class BoxTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (ray.active && intersects.length > 0) {
+            if (intersects.length > 0) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
@@ -54,16 +57,30 @@ class BoxTool {
                     }
                 }
 
+                // Update the grid origin
+                this.tools.grid.setVisible(true);
+                this.tools.grid.updateWithHit(this.hit);
+                this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
+                this.tools.cursor.updateTarget(this.snappedPoint);
+                if (!ray.active) { return; }
+
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
-                this.point.copy(this.hit.point);
-                this.worldNormal = this.hit.face.normal.clone()
-                    .transformDirection(this.hit.object.matrixWorld);
+                this.point.copy(this.snappedPoint);
+                this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
+                this.threeWorldNormal = this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld); // Triangle Normal
+                if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
+                    // Sometimes the CAD Normal is the wrong way around; flip if so
+                    // TODO: Figure out why!!
+                    this.worldNormal.multiplyScalar(-1.0);
+                }
 
                 // Position an Invisible Plane to Raycast against for resizing operations
+                //this.rayPlane.position.copy(this.tools.grid.space.position);
+                //this.rayPlane.quaternion.copy(this.tools.grid.space.quaternion);
                 this.rayPlane.position.copy(this.point);
-                this.rayPlane.lookAt(this.hit.face.normal.clone()
-                    .transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
+                this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
                 this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Box
@@ -72,7 +89,7 @@ class BoxTool {
                 this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentBox.name = "Box #" + this.numBoxs;
                 this.currentBox.position.copy(this.worldNormal.clone()
-                    .multiplyScalar(0.5).add(this.hit.point));
+                    .multiplyScalar(0.5).add(this.point));
                 this.world.scene.add(this.currentBox);
 
                 this.state += 1;
@@ -83,7 +100,12 @@ class BoxTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
-                let relative = intersects[0].object.worldToLocal(intersects[0].point);
+                // Snap to grid and lerp cursor
+                this.tools.grid.snapToGrid(this.snappedPoint.copy(intersects[0].point));
+                this.tools.cursor.updateTarget(this.snappedPoint);
+                if (!ray.active) { this.tools.cursor.cursor.position.copy(this.snappedPoint); } // Force Cursor to Snap upon letting go
+
+                let relative = intersects[0].object.worldToLocal(this.tools.cursor.cursor.position.clone());
                 this.width   = relative.x;
                 this.length  = relative.y;
 
@@ -132,7 +154,9 @@ class BoxTool {
             let upperSegment = this.worldNormal.clone().multiplyScalar( 1000.0).add(this.point);
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
             ray.ray.distanceSqToSegment(lowerSegment, upperSegment, null, this.vec);
-            this.height = this.vec.sub(this.point).dot(this.worldNormal);
+            this.snappedHeight = this.vec.sub(this.point).dot(this.worldNormal);
+            this.snappedHeight = this.tools.grid.snapToGrid1D(this.snappedHeight);
+            this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.85) + (this.snappedHeight * 0.15);
 
             this.heightAxis = new THREE.Vector3(0, 0, 1)
                 .transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
@@ -188,6 +212,7 @@ class BoxTool {
                     }
                 }
 
+                this.tools.grid.setVisible(false);
                 boxMesh.parent.remove(boxMesh);
                 this.world.dirty = true;
             });
@@ -197,10 +222,6 @@ class BoxTool {
     createBox(x, y, z, nx, ny, nz, vx, vy, vz, width, height, length, hitObjectName) {
         if (width != 0 && height != 0 && length != 0) {
             let hitAnObject = hitObjectName in this.shapes;
-
-            // Ugly hack to account for the difference between the raycast point and implicit point
-            // The true solution would be to raycast inside of the OpenCascade Kernel against the implicit BReps.
-            if (hitAnObject && height < 0) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
 
             // Construct the Box Shape
             let boxPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), new this.oc.gp_Dir(nx, ny, nz), new this.oc.gp_Dir(vx, vy, vz));
