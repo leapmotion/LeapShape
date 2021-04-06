@@ -162,7 +162,7 @@ class BoxTool {
             this.snappedHeight = this.vec.sub(this.point).dot(this.worldNormal);
             this.snappedHeight = this.tools.grid.snapToGrid1D(this.snappedHeight);
             this.tools.cursor.updateLabelNumbers(this.snappedHeight);
-            this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.85) + (this.snappedHeight * 0.15);
+            this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.75) + (this.snappedHeight * 0.25);
 
             this.tools.cursor.updateTarget(this.worldNormal.clone().multiplyScalar(this.height).add(this.point));
 
