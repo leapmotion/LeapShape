@@ -29,6 +29,7 @@ class Cursor {
         this.labelElem.innerText = "Abs: (0,0,0)";
         this.labelElem.style.backgroundColor = 'transparent';
         this.labelElem.style.fontSize = '40px';
+        this.labelElem.style.display = "none";
         document.getElementById("topnav").appendChild(this.labelElem);
         this.label = new HTMLMesh(this.labelElem);
         this.label.layers.set(1); // Ignore Raycasts
@@ -60,16 +61,20 @@ class Cursor {
     }
 
     updateLabel(text) {
+        this.labelElem.style.display = "block";
         this.labelElem.innerText = text;
         this.label.update();
+        this.labelElem.style.display = "none";
     }
 
     updateLabelNumbers(...numbers) {
+        this.labelElem.style.display = "block";
         this.labelElem.innerText = "(";
         numbers.forEach((num) => { this.labelElem.innerText += Number(num.toFixed(2)) + ", "; });
         this.labelElem.innerText = this.labelElem.innerText.substr(0, this.labelElem.innerText.length - 1);
         this.labelElem.innerText += ")";
         this.label.update();
+        this.labelElem.style.display = "none";
     }
 
 }

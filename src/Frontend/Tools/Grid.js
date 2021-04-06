@@ -16,6 +16,8 @@ class Grid {
         this.vec1 = new THREE.Vector3();
         this.vec2 = new THREE.Vector3();
         this.normal = new THREE.Vector3();
+        this.needsUpdate = true;
+        this.updateCount = 0;
 
         // The coordinate space for the grid
         this.space = new THREE.Group();
@@ -48,6 +50,8 @@ class Grid {
             // Set Grid Rotation
             this.space.quaternion.identity();
             this.normal.copy(raycastHit.face.normal.clone().transformDirection(raycastHit.object.matrixWorld));
+            this.needsUpdate = false;
+            this.updateCount += 1;
         }
     }
 
@@ -67,6 +71,9 @@ class Grid {
             // Set Grid Rotation
             this.vec1.set(0, 1, 0); this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
             this.space.quaternion.setFromUnitVectors(this.vec1, this.normal);
+
+            this.needsUpdate = false;
+            this.updateCount += 1;
         }
     }
 

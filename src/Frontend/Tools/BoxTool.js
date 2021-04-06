@@ -46,13 +46,13 @@ class BoxTool {
         } else if(this.state === 0) {
             // Wait for the ray to be active and pointing at a drawable surface
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
-            let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
+            let intersects = this.world.raycaster.intersectObjects([this.world.mesh, this.world.history.shapeObjects], true);
 
-            if (intersects.length > 0) {
+            if (intersects.length > 0 && !ray.justDeactivated) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
-                    if (intersects[i].object.name.includes("#") || this.hit.face !== null) {
+                    if (intersects[i].object.name.includes("#")) {
                         this.hit = intersects[i]; break;
                     }
                 }
@@ -62,39 +62,40 @@ class BoxTool {
                 this.tools.grid.updateWithHit(this.hit);
                 this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
                 this.tools.cursor.updateTarget(this.snappedPoint);
-                this.tools.cursor.updateLabelNumbers(this.snappedPoint.x, this.snappedPoint.y, this.snappedPoint.z);
-                if (!ray.active) { return; }
+                //this.tools.cursor.updateLabelNumbers(this.snappedPoint.x, this.snappedPoint.y, this.snappedPoint.z);
+                let relativeSnapped = this.tools.grid.space.worldToLocal(this.snappedPoint.clone());
+                this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.z));
 
-                // Record the hit object and plane...
-                this.hitObject = this.hit.object;
-                this.point.copy(this.snappedPoint);
-                this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
-                this.threeWorldNormal = this.hit.face.normal.clone()
-                    .transformDirection(this.hit.object.matrixWorld); // Triangle Normal
-                if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
-                    // Sometimes the CAD Normal is the wrong way around; flip if so
-                    // TODO: Figure out why!!
-                    this.worldNormal.multiplyScalar(-1.0);
+                if (ray.active && this.tools.grid.updateCount > 1) { // iPhones need more than 
+                    // Record the hit object and plane...
+                    this.hitObject = this.hit.object;
+                    this.point.copy(this.snappedPoint);
+                    this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
+                    this.threeWorldNormal = this.hit.face.normal.clone()
+                        .transformDirection(this.hit.object.matrixWorld); // Triangle Normal
+                    if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
+                        // Sometimes the CAD Normal is the wrong way around; flip if so
+                        // TODO: Figure out why!!
+                        this.worldNormal.multiplyScalar(-1.0);
+                    }
+
+                    // Position an Invisible Plane to Raycast against for resizing operations
+                    this.rayPlane.position.copy(this.point);
+                    this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
+                    this.rayPlane.updateMatrixWorld(true);
+
+                    // Spawn the Box
+                    this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.noDepthPreviewMaterial);
+                    this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
+                    this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
+                    this.currentBox.name = "Box #" + this.numBoxs;
+                    this.currentBox.position.copy(this.worldNormal.clone()
+                        .multiplyScalar(0.5).add(this.point));
+                    this.world.scene.add(this.currentBox);
+
+                    this.state += 1;
+                    ray.alreadyActivated = true;
                 }
-
-                // Position an Invisible Plane to Raycast against for resizing operations
-                //this.rayPlane.position.copy(this.tools.grid.space.position);
-                //this.rayPlane.quaternion.copy(this.tools.grid.space.quaternion);
-                this.rayPlane.position.copy(this.point);
-                this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
-                this.rayPlane.updateMatrixWorld(true);
-
-                // Spawn the Box
-                this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.noDepthPreviewMaterial);
-                this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
-                this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
-                this.currentBox.name = "Box #" + this.numBoxs;
-                this.currentBox.position.copy(this.worldNormal.clone()
-                    .multiplyScalar(0.5).add(this.point));
-                this.world.scene.add(this.currentBox);
-
-                this.state += 1;
-                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Box
@@ -240,14 +241,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.00001);
+                unionOp.SetFuzzyValue(0.01);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.00001);
+                differenceOp.SetFuzzyValue(0.01);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }
@@ -276,15 +277,18 @@ class BoxTool {
         }
         this.state = 0;
         this.tools.activeTool = this;
+        this.tools.grid.updateCount = 0;
     }
 
     deactivate() {
         this.state = -1;
         this.tools.activeTool = null;
         this.world.scene.remove(this.arrow);
+        this.tools.grid.setVisible(false);
         if (this.currentBox && this.currentBox.parent) {
             this.currentBox.parent.remove(this.currentBox);
         }
+        this.tools.grid.updateCount = 0;
     }
 
 }
