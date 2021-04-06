@@ -2,6 +2,9 @@ import { LeapShapeEngine } from '../../Backend/main.js';
 import { Menu } from './Menu.js';
 import { World } from '../World/World.js';
 
+import { Grid } from './Grid.js';
+import { Cursor } from './Cursor.js';
+
 import { DefaultTool } from './DefaultTool.js';
 import { UnionTool } from './UnionTool.js';
 import { DifferenceTool } from './DifferenceTool.js';
@@ -30,7 +33,8 @@ class Tools {
         ];
 
         this.activeTool = null;
-        this.gridPitch = 0.0;
+        this.grid = new Grid(this);
+        this.cursor = new Cursor(this);
     }
 
     /** Update the Tool and Menu State Machines
@@ -50,7 +54,7 @@ class Tools {
             this.tools[0].activate();
         }
         this.activeTool.update(ray);
-
+        this.cursor.update();
     }
 
 }

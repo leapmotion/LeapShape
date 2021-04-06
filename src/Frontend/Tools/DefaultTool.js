@@ -107,7 +107,8 @@ class DefaultTool {
 
             // Upon release, check if we tapped
             if (!ray.active) {
-                if (!this.draggingGizmo && ray.activeMS < 200) {
+                if (!this.draggingGizmo && ray.activeMS < 200
+                    && !this.tools.engine.workerWorking) { // This last one prevents selecting parts in progress
                     // Toggle an object's selection state
                     if (this.raycastObject(ray)) {
                         this.toggleSelection(this.hitObject);

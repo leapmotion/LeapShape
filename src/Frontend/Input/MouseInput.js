@@ -16,6 +16,9 @@ class MouseInput {
         this.prevButton = 0;
         this.lastTimestep = performance.now();
         this.activeTime = 0;
+        this.up = new THREE.Vector3(0, 1, 0);
+
+        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent);
     }
 
     /** Triggered whenever the mouse moves over the application
@@ -31,10 +34,6 @@ class MouseInput {
 
     update() {
         if (this.isActive()) {
-            this.ray.ray.origin.setFromMatrixPosition( this.world.camera.matrixWorld );
-            this.ray.ray.direction.set(this.mouse.x, this.mouse.y, 0.5)
-                .unproject(this.world.camera).sub(this.ray.ray.origin).normalize();
-            
             // Add Extra Fields for the active state
             this.ray.justActivated = false; this.ray.justDeactivated = false;
             this.ray.active = this.mouse.buttons    === 1;
@@ -45,6 +44,17 @@ class MouseInput {
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;
             this.lastTimestep = performance.now();
+
+            // Set Ray Origin and Direction
+            this.ray.ray.origin.setFromMatrixPosition(this.world.camera.matrixWorld);
+
+            // Point ray into sky when not touching on mobile
+            if (this.mobile && !this.ray.active && !this.ray.justDeactivated) {
+                this.ray.ray.direction.copy(this.up);
+            } else {
+                this.ray.ray.direction.set(this.mouse.x, this.mouse.y, 0.5)
+                    .unproject(this.world.camera).sub(this.ray.ray.origin).normalize();
+            }
         }
     }
 
