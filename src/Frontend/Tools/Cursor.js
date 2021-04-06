@@ -45,10 +45,10 @@ class Cursor {
             this.cursor.visible = true;
 
             // Lerp the Cursor to the Target Position
-            this.cursor.position.lerp(this.targetPosition, 0.15);
+            this.cursor.position.lerp(this.targetPosition, 0.25);
 
             // Make the Cursor Contents Face the Camera
-            this.cursor.quaternion.slerp(this.world.camera.quaternion, 0.15);
+            this.cursor.quaternion.slerp(this.world.camera.quaternion, 0.25);
         } else {
             this.cursor.visible = false;
         }
