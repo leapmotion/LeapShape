@@ -37,6 +37,9 @@ class DefaultTool {
 
         // Initialize Transform Gizmo (which allows for the movement of objects around the scene)
         this.gizmo = new TransformControls(this.world.camera, this.world.container);
+        this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
+        this.gizmo.setRotationSnap( THREE.MathUtils.degToRad( 15 ) );
+        this.gizmo.setScaleSnap( 0.25 );
         this.gizmo.addEventListener('dragging-changed', (event) => {
             this.draggingGizmo = event.value;
             if (this.draggingGizmo) {
@@ -97,6 +100,7 @@ class DefaultTool {
         } else if (this.state === 1) {
             this.world.dirty = true;
             if (this.draggingGizmo) {
+                this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
                 for (let i = 0; i < this.selected.length; i++) {
                     let rotDis = this.startPos.clone().applyQuaternion(this.gizmoTransform.quaternion).sub(this.startPos);
                     this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis));
