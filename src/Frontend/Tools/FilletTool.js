@@ -73,7 +73,7 @@ class FilletTool {
 
                     // Calculate the radius...
                     this.distance = intersects[0].point.clone().sub(this.point).length();
-                    this.distance = this.tools.grid.snapToGrid1D(this.distance, 5);
+                    this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
                     this.distance *= Math.sign(this.cameraRelativeMovement.x);
                     this.tools.cursor.updateTarget(this.point);
                     this.tools.cursor.updateLabel(this.distance === 0 ? "Left-Chamfer\nRight-Fillet" :

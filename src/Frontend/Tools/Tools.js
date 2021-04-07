@@ -13,6 +13,7 @@ import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
 import { ExtrusionTool } from './ExtrusionTool.js';
 import { FilletTool } from './FilletTool.js';
+import { OffsetTool } from './OffsetTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
@@ -35,6 +36,7 @@ class Tools {
             new CylinderTool  (this),
             new ExtrusionTool (this),
             new FilletTool    (this),
+            new OffsetTool    (this)
         ];
 
         this.activeTool = null;
