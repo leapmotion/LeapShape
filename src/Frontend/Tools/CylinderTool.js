@@ -53,7 +53,7 @@ class CylinderTool {
                         this.hit = intersects[i]; break;
                     }
                 }
-                
+
                 // Update the grid origin
                 this.tools.grid.setVisible(true);
                 this.tools.grid.updateWithHit(this.hit);
@@ -63,39 +63,40 @@ class CylinderTool {
                 this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.z));
 
                 // Spawn the Cylinder
-                if (!(ray.active && this.tools.grid.updateCount > 1)) { return; }// iPhones need more than one frame
-                // Record the hit object and plane...
-                this.hitObject = this.hit.object;
-                this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
-                this.threeWorldNormal = this.hit.face.normal.clone()
-                    .transformDirection(this.hit.object.matrixWorld); // Triangle Norma
-                if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
-                    // Sometimes the CAD Normal is the wrong way around; flip if so
-                    // TODO: Figure out why!!
-                    this.worldNormal.multiplyScalar(-1.0);
+                if (ray.active && this.tools.grid.updateCount > 1) {// iPhones need more than one frame
+                    // Record the hit object and plane...
+                    this.hitObject = this.hit.object;
+                    this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
+                    this.threeWorldNormal = this.hit.face.normal.clone()
+                        .transformDirection(this.hit.object.matrixWorld); // Triangle Norma
+                    if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
+                        // Sometimes the CAD Normal is the wrong way around; flip if so
+                        // TODO: Figure out why!!
+                        this.worldNormal.multiplyScalar(-1.0);
+                    }
+
+                    this.point.copy(this.snappedPoint);
+
+                    // Position an Invisible Plane to Raycast against for resizing operations
+                    this.rayPlane.position.copy(this.point);
+                    this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
+                    this.rayPlane.updateMatrixWorld(true);
+
+                    // Spawn the Cylinder
+                    this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), this.world.noDepthPreviewMaterial);
+                    this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
+                    this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
+                    this.currentCylinder.name = "Cylinder #" + this.numCylinders;
+                    this.currentCylinder.position.copy(this.worldNormal.clone()
+                        .multiplyScalar(0.5).add(this.point));
+                    this.currentCylinder.quaternion.copy(new THREE.Quaternion()
+                        .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
+                    this.height = 1;
+                    this.world.scene.add(this.currentCylinder);
+
+                    ray.alreadyActivated = true;
+                    this.state += 1;
                 }
-
-                this.point.copy(this.snappedPoint);
-
-                // Position an Invisible Plane to Raycast against for resizing operations
-                this.rayPlane.position.copy(this.point);
-                this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
-                this.rayPlane.updateMatrixWorld(true);
-
-                // Spawn the Cylinder
-                this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), this.world.noDepthPreviewMaterial);
-                this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
-                this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
-                this.currentCylinder.name = "Cylinder #" + this.numCylinders;
-                this.currentCylinder.position.copy(this.worldNormal.clone()
-                    .multiplyScalar(0.5).add(this.point));
-                this.currentCylinder.quaternion.copy(new THREE.Quaternion()
-                    .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                this.height = 1;
-                this.world.scene.add(this.currentCylinder);
-
-                ray.alreadyActivated = true;
-                this.state += 1;
             }
         } else if(this.state === 1) {
             // While holding, resize the Cylinder
