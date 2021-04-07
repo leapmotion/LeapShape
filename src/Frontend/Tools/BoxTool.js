@@ -62,11 +62,10 @@ class BoxTool {
                 this.tools.grid.updateWithHit(this.hit);
                 this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
                 this.tools.cursor.updateTarget(this.snappedPoint);
-                //this.tools.cursor.updateLabelNumbers(this.snappedPoint.x, this.snappedPoint.y, this.snappedPoint.z);
                 let relativeSnapped = this.tools.grid.space.worldToLocal(this.snappedPoint.clone());
                 this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.z));
 
-                if (ray.active && this.tools.grid.updateCount > 1) { // iPhones need more than 
+                if (ray.active && this.tools.grid.updateCount > 1) { // iPhones need more than one frame
                     // Record the hit object and plane...
                     this.hitObject = this.hit.object;
                     this.point.copy(this.snappedPoint);

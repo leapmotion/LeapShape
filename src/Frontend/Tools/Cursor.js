@@ -13,7 +13,7 @@ class Cursor {
         this.engine = this.world.parent.engine;
 
         this.sphereGeo = new THREE.SphereBufferGeometry(1, 5, 5);
-        this.cursor = new THREE.Mesh(this.sphereGeo, new THREE.MeshBasicMaterial());
+        this.cursor = new THREE.Mesh(this.sphereGeo, new THREE.MeshBasicMaterial( {depthTest: false}));
         this.cursor.material.color.set(0x00ffff);
         this.cursor.name = "Cursor";
         this.cursor.receiveShadow = false;
