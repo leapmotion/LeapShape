@@ -2,7 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './ToolUtils.js';
+import { Grid } from './Grid.js';
+import { Cursor } from './Cursor.js';
 
 /** This class controls all of the SphereTool behavior */
 class SphereTool {
@@ -19,6 +20,7 @@ class SphereTool {
         this.numSpheres = 0;
         this.distance = 1;
         this.point = new THREE.Vector3();
+        this.snappedPoint = new THREE.Vector3();
         this.cameraRelativeMovement = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
@@ -42,7 +44,7 @@ class SphereTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (intersects.length > 0) {
+            if (intersects.length > 0 && !ray.justDeactivated) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
@@ -50,23 +52,29 @@ class SphereTool {
                         this.hit = intersects[i]; break;
                     }
                 }
-                //if (this.hit.uv2) { console.log(this.hit.uv, this.hit.uv2); }
-                
-                // Record the hit object and plane...
-                this.hitObject = this.hit.object;
-                this.snappedHitPoint = snapToGrid(this.hit.point, this.tools.gridPitch);
-                //this.world.cursor.updateTarget(this.snappedHitPoint, this.hit);
 
-                if (ray.justActivated) {
+                // Update the grid origin
+                this.tools.grid.setVisible(true);
+                this.tools.grid.updateWithHit(this.hit);
+                this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
+                this.tools.cursor.updateTarget(this.snappedPoint);
+                let relativeSnapped = this.tools.grid.space.worldToLocal(this.snappedPoint.clone());
+                this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.z));
+
+                if (ray.active && this.tools.grid.updateCount > 1) {// iPhones need more than one frame
+                    // Record the hit object and plane...
+                    this.hitObject = this.hit.object;
+
+                    this.point.copy(this.snappedPoint);
+
                     // Spawn the Sphere
                     this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), this.world.previewMaterial);
                     this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentSphere.name = "Sphere #" + this.numSpheres;
-                    this.currentSphere.position.copy(this.snappedHitPoint);
-                    this.point.copy(this.snappedHitPoint);
+                    this.currentSphere.position.copy(this.point);
                     this.world.scene.add(this.currentSphere);
-                    this.rayPlane.position.copy(this.snappedHitPoint);
+                    this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
                     this.rayPlane.updateMatrixWorld(true);
 
@@ -85,8 +93,9 @@ class SphereTool {
 
                 this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
                 if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
-                //this.world.cursor.updateMetadata(this.point.clone().add(intersects[0].point.clone().sub(this.point).normalize().multiplyScalar(this.distance)));
-                //this.distance = Math.max(1.0, this.world.cursor.position.clone().sub(this.point).length());
+                this.distance = this.tools.grid.snapToGrid1D(this.distance);
+                this.tools.cursor.updateTarget(this.point);
+                this.tools.cursor.updateLabelNumbers(this.distance);
 
                 this.currentSphere.scale.x = this.distance;
                 this.currentSphere.scale.y = this.distance;
@@ -100,6 +109,7 @@ class SphereTool {
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {
+                this.tools.grid.setVisible(false);
                 this.createSphereGeometry(this.currentSphere,
                     [this.point.x, this.point.y, this.point.z, this.distance, this.hitObject.shapeName]);
                 this.numSpheres += 1;
@@ -161,6 +171,7 @@ class SphereTool {
         }
         this.state = 0;
         this.tools.activeTool = this;
+        this.tools.grid.updateCount = 0;
     }
 
     deactivate() {
@@ -169,6 +180,8 @@ class SphereTool {
         if (this.currentSphere && this.currentSphere.parent) {
             this.currentSphere.parent.remove(this.currentSphere);
         }
+        this.tools.grid.updateCount = 0;
+        this.tools.grid.setVisible(false);
     }
 
 }

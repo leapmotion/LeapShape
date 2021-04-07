@@ -17,6 +17,7 @@ class ExtrusionTool {
         this.state = -1; // -1 is Deactivated
         this.numExtrusions = 0;
         this.distance = 1;
+        this.height = 1;
         this.point = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
@@ -103,7 +104,13 @@ class ExtrusionTool {
             let lowerSegment = this.hit.extrusionDirection.clone().multiplyScalar(-1000.0).add(this.point);
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
-            this.height = pointOnSegment.sub(this.hit.position).dot(this.hit.extrusionDirection);
+            //this.height = pointOnSegment.sub(this.hit.position).dot(this.hit.extrusionDirection);
+            this.snappedHeight = pointOnSegment.sub(this.point).dot(this.hit.extrusionDirection);
+            this.snappedHeight = this.tools.grid.snapToGrid1D(this.snappedHeight);
+            this.tools.cursor.updateLabelNumbers(this.snappedHeight);
+            this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.75) + (this.snappedHeight * 0.25);
+
+            this.tools.cursor.updateTarget(this.hit.extrusionDirection.clone().multiplyScalar(this.height).add(this.point));
 
             if (!this.currentExtrusion) {
                 this.createPreviewExtrusionGeometry(this.point,

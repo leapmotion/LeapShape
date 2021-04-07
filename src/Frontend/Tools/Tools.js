@@ -22,6 +22,9 @@ class Tools {
     constructor(world, engine) {
         this.world = world; this.engine = engine;
 
+        this.grid = new Grid(this);
+        this.cursor = new Cursor(this);
+
         this.tools = [
             new DefaultTool   (this),
             new UnionTool     (this),
@@ -33,8 +36,6 @@ class Tools {
         ];
 
         this.activeTool = null;
-        this.grid = new Grid(this);
-        this.cursor = new Cursor(this);
     }
 
     /** Update the Tool and Menu State Machines

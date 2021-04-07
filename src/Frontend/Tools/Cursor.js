@@ -61,22 +61,23 @@ class Cursor {
     }
 
     updateLabel(text) {
-        this.labelElem.style.display = "block";
-        this.labelElem.innerText = text;
-        this.label.update();
-        this.labelElem.style.display = "none";
+        if (this.labelElem.innerText !== text) {
+            this.labelElem.style.display = "block";
+            this.labelElem.innerText = text;
+            this.label.update();
+            this.labelElem.style.display = "none";
+        }
     }
 
     updateLabelNumbers(...numbers) {
-        this.labelElem.style.display = "block";
-        this.labelElem.innerText = "(";
-        numbers.forEach((num) => { this.labelElem.innerText += Number(num.toFixed(2)) + ", "; });
-        this.labelElem.innerText = this.labelElem.innerText.substr(0, this.labelElem.innerText.length - 1);
-        this.labelElem.innerText += ")";
-        this.label.update();
-        this.labelElem.style.display = "none";
-    }
+        // Compute New Label String
+        let str = "(";
+        numbers.forEach((num) => { str += Number(num.toFixed(2)) + ", "; });
+        str = str.substr(0, str.length - 2);
+        str += ")";
 
+        this.updateLabel(str);
+    }
 }
 
 export { Cursor };
