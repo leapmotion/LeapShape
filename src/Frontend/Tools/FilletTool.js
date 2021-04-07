@@ -76,9 +76,10 @@ class FilletTool {
                     this.distance = this.tools.grid.snapToGrid1D(this.distance, 5);
                     this.distance *= Math.sign(this.cameraRelativeMovement.x);
                     this.tools.cursor.updateTarget(this.point);
-                    this.tools.cursor.updateLabel(this.distance > 0 ?
+                    this.tools.cursor.updateLabel(this.distance === 0 ? "Left-Chamfer\nRight-Fillet" :
+                        (this.distance > 0 ?
                         Number(this.distance.toFixed(2)) + " - Fillet" :
-                        Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer");
+                        Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer"));
                 }
 
                 ray.alreadyActivated = true;
