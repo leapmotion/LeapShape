@@ -92,7 +92,7 @@ class SphereTool {
                 this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
 
                 this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
-                if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
+                //if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
                 this.distance = this.tools.grid.snapToGrid1D(this.distance);
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);

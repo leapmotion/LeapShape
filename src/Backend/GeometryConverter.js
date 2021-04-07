@@ -80,10 +80,10 @@ export default function ConvertGeometry(meshData) {
 
     let line = new THREE.LineSegments(lineGeometry, window.world.lineMaterial);
     line.globalEdgeIndices = globalEdgeIndices;
+    line.globalEdgeMetadata = globalEdgeMetadata;
     line.name = "Model Edges";
     line.lineColors = lineColors;
-    line.globalEdgeMetadata = globalEdgeMetadata;
-    line.layers.set(1);
+    line.layers.set(2);
     // End Adding Edges
 
     // A minor bit of dependency inversion, but for the greater good

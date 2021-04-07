@@ -15,13 +15,13 @@ Use simple gestures with your mouse or hands* to model 3D shapes in your browser
 ## Features
  - Simple Interface for working with Boxes, Spheres, Cylinders, and Extrusions
  - Powerful CSG Operations allow for infinite configurability
+ - Snapping and Coordinate Previews for Precision Assembly
  - Export Models as .obj, .stl, or .gltf
  - Clean and Modular ES6 codebase for extreme extensibility
  - **Free and Open Source under the Apache V2 License**
 
 #### Coming Soon*
  - Modify Objects via Movement, Face Extrusion, and Fillets
- - Snapping and Coordinate Previews for Precision Assembly
  - Draw and Extrude Custom Profiles
  - Model anywhere with first-class Desktop, Mobile, and VR Platform support
  - Easily Installable for Offline-use as a Progressive Web App
