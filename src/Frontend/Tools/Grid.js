@@ -24,12 +24,21 @@ class Grid {
         this.space.layers.set(1);
 
         // The Visual Grid Mesh
-        this.gridCells = 20;
-        this.gridMesh = new THREE.GridHelper( this.gridPitch * this.gridCells, this.gridCells, 0x000000, 0x000000 );
-        this.gridMesh.material.opacity = 0.2;
-        this.gridMesh.material.transparent = true;
-        this.gridMesh.layers.set(1);
-        this.space.add(this.gridMesh);
+        this.gridCells = 10;
+        //this.gridMesh = new THREE.GridHelper( this.gridPitch * this.gridCells, this.gridCells, 0x000000, 0x000000 );
+        //this.gridMesh.material.opacity = 0.2;
+        //this.gridMesh.material.transparent = true;
+        //this.gridMesh.layers.set(1);
+        //this.space.add(this.gridMesh);
+
+        this.sphereGeometry = new THREE.SphereBufferGeometry(1, 5, 5);
+        this.gridSpheres = new THREE.InstancedMesh(this.sphereGeometry, new THREE.MeshStandardMaterial(), this.gridCells * (this.gridCells + 3));
+        this.gridSpheres.castShadow = true;
+        this.gridSpheres.layers.set(1);
+        this.radius = 2; this.mat = new THREE.Matrix4(); this.gridCenter = new THREE.Vector3(); this.tempVec = new THREE.Vector3();
+        this.pos = new THREE.Vector3(); this.rot = new THREE.Quaternion().identity(); this.scale = new THREE.Vector3();
+        this.updateGridVisual(this.gridCenter);
+        this.space.add(this.gridSpheres);
 
         this.world.scene.add(this.space);
         this.setVisible(false);
@@ -50,6 +59,10 @@ class Grid {
             // Set Grid Rotation
             this.space.quaternion.identity();
             this.normal.copy(raycastHit.face.normal.clone().transformDirection(raycastHit.object.matrixWorld));
+
+            // Set the dot center
+            this.updateGridVisual(this.tempVec.copy(raycastHit.point));
+
             this.needsUpdate = false;
             this.updateCount += 1;
         }
@@ -72,9 +85,42 @@ class Grid {
             this.vec1.set(0, 1, 0); this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
             this.space.quaternion.setFromUnitVectors(this.vec1, this.normal);
 
+            // Set the dot center
+            this.updateGridVisual(this.tempVec.set(this.queryResult.x, this.queryResult.y, this.queryResult.z));
+
             this.needsUpdate = false;
             this.updateCount += 1;
         }
+    }
+
+    updateGridVisual(worldCenter) {
+        this.space.updateWorldMatrix(true, true);
+        this.gridSpheres.position.copy(this.space.worldToLocal(this.snapToGrid(worldCenter.clone())));
+        this.gridSpheres.updateWorldMatrix(true, true);
+        let center = new THREE.Vector3().copy(worldCenter);
+        this.gridSpheres.worldToLocal(center);
+
+        let i = 0;
+        for (let x = -this.gridCells / 2; x <= this.gridCells/2; x++){
+            for (let y = -this.gridCells / 2; y <= this.gridCells / 2; y++){
+                let newX = ((x ) * this.gridPitch) - center.x;
+                let newY = ((y ) * this.gridPitch) - center.z;
+                this.radius = Math.min(2, (8 * this.gridPitch * this.gridPitch) /
+                                ((newX * newX) + (newY * newY) + 0.0001));
+
+                this.pos.set(x * this.gridPitch, 0, y * this.gridPitch)
+                this.mat.makeRotationFromQuaternion(this.rot)
+                    .scale(this.scale.set(this.radius, this.radius, this.radius)).setPosition(this.pos);
+                this.gridSpheres.setMatrixAt(i, this.mat);
+                //this.gridSpheres.setColorAt (i, temp_color.setRGB(color[0], color[1], color[2]));
+                i++;
+            }
+        }
+
+        // Upload the adjusted instance data to the GPU
+        this.gridSpheres.count = i;
+        if (this.gridSpheres.instanceColor ) { this.gridSpheres.instanceColor .needsUpdate = true; }
+        if (this.gridSpheres.instanceMatrix) { this.gridSpheres.instanceMatrix.needsUpdate = true; }
     }
 
     /** @param {THREE.Vector3} position */
