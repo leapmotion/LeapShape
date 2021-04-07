@@ -46,7 +46,7 @@ class FilletTool {
             if (ray.justActivated) {
                 // Check to see if we began dragging on an already selected edge
                 if (this.raycastObject(ray, true)) {
-                    // Create a plane at the origin to look at us
+                    // Create a plane at the origin for dragging
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.world.camera.position);
                     this.rayPlane.updateMatrixWorld(true);
@@ -73,10 +73,12 @@ class FilletTool {
 
                     // Calculate the radius...
                     this.distance = intersects[0].point.clone().sub(this.point).length();
-                    this.distance = this.tools.grid.snapToGrid1D(this.distance);
+                    this.distance = this.tools.grid.snapToGrid1D(this.distance, 5);
                     this.distance *= Math.sign(this.cameraRelativeMovement.x);
                     this.tools.cursor.updateTarget(this.point);
-                    this.tools.cursor.updateLabelNumbers(this.distance);
+                    this.tools.cursor.updateLabel(this.distance > 0 ?
+                        Number(this.distance.toFixed(2)) + " - Fillet" :
+                        Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer");
                 }
 
                 ray.alreadyActivated = true;
@@ -86,7 +88,9 @@ class FilletTool {
             if (!ray.active) {
                 if (this.dragging && ray.activeMS > 200) {
                     // Commit the new fillet radius
-                    console.log("COMMIT: ", this.selected, this.distance);
+                    this.filletShapeGeometry(this.hitObject,
+                        [this.hitObject.shapeName, this.distance,
+                            this.selected.map((range) => range.localEdgeIndex)]);
                     this.clearSelection();
                 // Else, check if we tapped to toggle an edge selection
                 }else if (ray.activeMS < 200
@@ -102,8 +106,8 @@ class FilletTool {
         }
     }
 
-    /*// Ask OpenCascade to Move the Shape on this Mesh
-    //@param {THREE.Mesh} originalMesh 
+    /** Ask OpenCascade to Fillet Edges on this shape
+     * @param {THREE.Mesh} originalMesh */
     filletShapeGeometry(originalMesh, filletShapeArgs) {
         let shapeName = "Filleted " + originalMesh.shapeName;
         this.engine.execute(shapeName, this.filletShape, filletShapeArgs,
@@ -116,36 +120,41 @@ class FilletTool {
                     mesh.shapeName = shapeName;
                     mesh.name = originalMesh.name;
                     this.world.history.addToUndo(mesh, originalMesh);
-                    this.clearSelection(originalMesh);
-                    this.toggleSelection(mesh);
                 }
                 this.world.dirty = true;
             });
     }
 
-    // Create a moved shape in OpenCascade; to be executed on the Worker Thread 
-    filletShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
-        // Use three transforms until SetValues comes in...
-        let translation = new this.oc.gp_Trsf(),
-            rotation = new this.oc.gp_Trsf(),
-            scaling = new this.oc.gp_Trsf();
-        
-        // Set Transformations
-        translation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+    /** Create fillets on edges in a shape in OpenCascade; 
+     * to be executed on the Worker Thread */
+    filletShape(shapeToFillet, radius, edges) {
+        if (radius === 0) { console.error("Invalid Fillet Radius!");  return null; }
+        let shape = this.shapes[shapeToFillet];
+        let mkFillet = radius > 0 ? new this.oc.BRepFilletAPI_MakeFillet(shape) : new this.oc.BRepFilletAPI_MakeChamfer(shape);
 
-        if (degrees !== 0) {
-             rotation.SetRotation(
-                new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
-                    new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
+        // Iterate through the edges of the shape and add them to the Fillet as they come
+        let foundEdges = 0, edge_index = 0, edgeHashes = {};
+        if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_EDGE); }
+        for (this.edgeExplorer.Init(shape, this.oc.TopAbs_EDGE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
+            let edge = this.oc.TopoDS.prototype.Edge(this.edgeExplorer.Current());
+
+            // Edge explorer visits every edge twice; 
+            // hash them to ensure visiting only once
+            // This matches the indexing of the function
+            // in OpenCascadeMesher
+            let edgeHash = edge.HashCode(100000000);
+            if(!edgeHashes.hasOwnProperty(edgeHash)){
+              edgeHashes[edgeHash] = edge_index;
+              if (edges.includes(edge_index)) {
+                  mkFillet.Add(Math.abs(radius),edge);
+                  foundEdges++;
+                }
+                edge_index++;
+            }
         }
-        if (scale !== 1) { scaling.SetScaleFactor(scale); }
-
-        // Multiply together
-        scaling.Multiply(rotation); translation.Multiply(scaling);
-
-        return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
-            new this.oc.TopLoc_Location(translation)));
-    }*/
+        if (foundEdges == 0) { console.error("Fillet Edges Not Found!");  return null; }
+        return new this.oc.TopoDS_Solid(mkFillet.Shape());
+    }
 
     raycastObject(ray, checkSelected) {
         this.world.raycaster.layers.set(2); // 2 is reserved for edges

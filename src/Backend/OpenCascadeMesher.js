@@ -26,6 +26,9 @@ class OpenCascadeMesher {
         if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_EDGE); }
         for (this.edgeExplorer.Init(shape, this.oc.TopAbs_EDGE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
             let edge = this.oc.TopoDS.prototype.Edge(this.edgeExplorer.Current());
+
+            // Edge explorer visits every edge twice; 
+            // hash them to ensure visiting only once
             let edgeHash = edge.HashCode(100000000);
             if(!edgeHashes.hasOwnProperty(edgeHash)){
                 edgeHashes[edgeHash] = edgeIndex;
@@ -55,11 +58,13 @@ class OpenCascadeMesher {
     /** Initialize the CAD Meshing System
      * @param {oc.TopoDS_Shape} shape OpenCascade Shape
      * @param {number} maxDeviation */
-    shapeToMesh(shape, maxDeviation, fullShapeEdgeHashes, fullShapeFaceHashes) {
+    shapeToMesh(shape, maxDeviation) {
         if (!shape || shape.IsNull()) { console.error("Shape is null or undefined!"); return null; }
         let facelist = [], edgeList = []; let corrupt = false;
         try {
             //shape = new this.oc.TopoDS_Shape(shape);
+            let fullShapeEdgeHashes = {};
+            Object.assign(fullShapeEdgeHashes, this.ForEachEdge(shape, (index, edge) => { }));
     
             // Set up the Incremental Mesh builder, with a precision
             this.incrementalMesh = new this.oc.BRepMesh_IncrementalMesh(shape, maxDeviation, false, maxDeviation * 5);
