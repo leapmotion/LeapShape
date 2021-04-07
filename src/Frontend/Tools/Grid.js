@@ -135,8 +135,9 @@ class Grid {
     }
 
     /** @param {number} length */
-    snapToGrid1D(length) {
-        return (Math.round((length + Number.EPSILON) / this.gridPitch) * this.gridPitch);
+    snapToGrid1D(length, incrementOverride) {
+        return (Math.round((length + Number.EPSILON) /
+            (incrementOverride || this.gridPitch)) * (incrementOverride || this.gridPitch));
     }
 
     /** @param {boolean} visible */

@@ -84,6 +84,7 @@ class World {
         // raycaster
         this.raycaster = new THREE.Raycaster();
         this.raycaster.layers.set(0);
+        this.raycaster.params.Line.threshold = 3;
 
         // stats
         //this.stats = new Stats();
@@ -117,6 +118,8 @@ class World {
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff, linewidth: 1.5, vertexColors: true });
+        this.selectedLineMaterial = new THREE.LineBasicMaterial({
+            color: 0x00ffff, linewidth: 1.5, vertexColors: false });
     }
 
     /** Update the camera and render the scene 
