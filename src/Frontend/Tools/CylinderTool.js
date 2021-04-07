@@ -2,6 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
+import { Grid } from './Grid.js';
+import { Cursor } from './Cursor.js';
 
 /** This class controls all of the CylinderTool behavior */
 class CylinderTool {
@@ -18,6 +20,7 @@ class CylinderTool {
         this.numCylinders = 0;
         this.distance = 1;
         this.point = new THREE.Vector3();
+        this.snappedPoint = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.arrow = new THREE.ArrowHelper(
@@ -42,7 +45,7 @@ class CylinderTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (ray.active && intersects.length > 0) {
+            if (intersects.length > 0 && !ray.justDeactivated) {
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
@@ -51,10 +54,33 @@ class CylinderTool {
                     }
                 }
                 
+                // Update the grid origin
+                this.tools.grid.setVisible(true);
+                this.tools.grid.updateWithHit(this.hit);
+                this.tools.grid.snapToGrid(this.snappedPoint.copy(this.hit.point));
+                this.tools.cursor.updateTarget(this.snappedPoint);
+                let relativeSnapped = this.tools.grid.space.worldToLocal(this.snappedPoint.clone());
+                this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.z));
+
+                // Spawn the Cylinder
+                if (!(ray.active && this.tools.grid.updateCount > 1)) { return; }// iPhones need more than one frame
                 // Record the hit object and plane...
                 this.hitObject = this.hit.object;
+                this.worldNormal = this.tools.grid.normal.clone(); // Analytic CAD Normal
+                this.threeWorldNormal = this.hit.face.normal.clone()
+                    .transformDirection(this.hit.object.matrixWorld); // Triangle Norma
+                if (this.worldNormal.dot(this.threeWorldNormal) < 0) {
+                    // Sometimes the CAD Normal is the wrong way around; flip if so
+                    // TODO: Figure out why!!
+                    this.worldNormal.multiplyScalar(-1.0);
+                }
 
-                this.worldNormal = this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld );
+                this.point.copy(this.snappedPoint);
+
+                // Position an Invisible Plane to Raycast against for resizing operations
+                this.rayPlane.position.copy(this.point);
+                this.rayPlane.lookAt(this.worldNormal.clone().add(this.rayPlane.position));
+                this.rayPlane.updateMatrixWorld(true);
 
                 // Spawn the Cylinder
                 this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), this.world.noDepthPreviewMaterial);
@@ -62,16 +88,13 @@ class CylinderTool {
                 this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                 this.currentCylinder.name = "Cylinder #" + this.numCylinders;
                 this.currentCylinder.position.copy(this.worldNormal.clone()
-                    .multiplyScalar(0.5).add(this.hit.point));
+                    .multiplyScalar(0.5).add(this.point));
                 this.currentCylinder.quaternion.copy(new THREE.Quaternion()
                     .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                this.point.copy(this.hit.point);
+                this.height = 1;
                 this.world.scene.add(this.currentCylinder);
-                this.rayPlane.position.copy(this.hit.point);
-                this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection( this.hit.object.matrixWorld ).add(this.rayPlane.position));
-                this.rayPlane.updateMatrixWorld(true);
-                ray.alreadyActivated = true;
 
+                ray.alreadyActivated = true;
                 this.state += 1;
             }
         } else if(this.state === 1) {
@@ -80,6 +103,10 @@ class CylinderTool {
             let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
                 this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
+                this.distance = this.tools.grid.snapToGrid1D(this.distance);
+                this.tools.cursor.updateTarget(this.point);
+                this.tools.cursor.updateLabelNumbers(this.distance);
+                
                 this.currentCylinder.scale.x = this.distance;
                 this.currentCylinder.scale.y = 1;
                 this.currentCylinder.scale.z = this.distance;
@@ -91,6 +118,7 @@ class CylinderTool {
                 this.state += 1;
 
                 // Add Arrow Preview
+                this.tools.grid.setVisible(false);
                 this.arrow.position.copy(this.worldNormal.clone().add(this.point));
                 this.arrow.setDirection(this.worldNormal);
                 this.arrow.setLength( 20, 13, 10 );
@@ -114,7 +142,14 @@ class CylinderTool {
             let lowerSegment = this.worldNormal.clone().multiplyScalar(-1000.0).add(this.point);
             let pointOnRay = new THREE.Vector3(), pointOnSegment = new THREE.Vector3();
             let sqrDistToSeg = ray.ray.distanceSqToSegment(lowerSegment, upperSegment, pointOnRay, pointOnSegment);
-            this.height = pointOnSegment.sub(this.point).dot(this.worldNormal);
+            //this.height      = pointOnSegment.sub(this.point).dot(this.worldNormal);
+            this.snappedHeight = pointOnSegment.sub(this.point).dot(this.worldNormal);
+            this.snappedHeight = this.tools.grid.snapToGrid1D(this.snappedHeight);
+            this.tools.cursor.updateLabelNumbers(this.snappedHeight);
+            this.height = (!ray.active) ? this.snappedHeight : (this.height * 0.75) + (this.snappedHeight * 0.25);
+
+            this.tools.cursor.updateTarget(this.worldNormal.clone().multiplyScalar(this.height).add(this.point));
+            
             this.currentCylinder.position.copy(this.worldNormal.clone()
                 .multiplyScalar(this.height / 2.0).add(this.point));
             this.currentCylinder.scale.y = this.height;
@@ -168,7 +203,7 @@ class CylinderTool {
 
             // Ugly hack to account for the difference between the raycast point and implicit point
             // The true solution would be to raycast inside of the OpenCascade Kernel against the implicit BReps.
-            if (hitAnObject) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
+            //if (hitAnObject) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
 
             // Construct the Cylinder Shape
             let cylinderPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, centered ? z-height / 2 : z), new this.oc.gp_Dir(nx, ny, nz));
@@ -202,6 +237,7 @@ class CylinderTool {
         }
         this.state = 0;
         this.tools.activeTool = this;
+        this.tools.grid.updateCount = 0;
     }
 
     deactivate() {
@@ -211,6 +247,7 @@ class CylinderTool {
         if (this.currentCylinder && this.currentCylinder.parent) {
             this.currentCylinder.parent.remove(this.currentCylinder);
         }
+        this.tools.grid.updateCount = 0;
     }
 
 }
