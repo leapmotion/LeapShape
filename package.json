@@ -10,6 +10,9 @@
 	"author": {
 		"name": "Ultraleap"
 	},
+	"scripts": {
+		"build": "esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --minify --sourcemap --format=esm --outdir=./build --external:fs --external:path --loader:.wasm=file --define:ESBUILD=true"
+	},
 	"license": "Apache-2.0",
 	"bundledDependencies": false,
 	"dependencies": {

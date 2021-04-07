@@ -15,7 +15,7 @@ class LeapShapeEngineWorker {
         new opencascade({
             locateFile(path) {
                 if (path.endsWith('.wasm')) {
-                    return "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
+                    return (typeof ESBUILD !== 'undefined') ? "."+url : "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
                 }
                 return path;
             }

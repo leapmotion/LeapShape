@@ -20,7 +20,7 @@ class UnionTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Union.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Union.png' : '../../../textures/Union.png' );
         this.descriptor = {
             name: "Union Tool",
             icon: this.icon

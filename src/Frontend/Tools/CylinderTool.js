@@ -28,7 +28,7 @@ class CylinderTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Cylinder.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Cylinder.png' : '../../../textures/Cylinder.png');
         this.descriptor = {
             name: "Cylinder Tool",
             icon: this.icon

@@ -20,7 +20,7 @@ class DifferenceTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Difference.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Difference.png' : '../../../textures/Difference.png' );
         this.descriptor = {
             name: "Difference Tool",
             icon: this.icon

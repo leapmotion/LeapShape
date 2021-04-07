@@ -25,7 +25,7 @@ class ExtrusionTool {
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ('../../../textures/Extrusion.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Extrusion.png' : '../../../textures/Extrusion.png');
         this.descriptor = {
             name: "Extrusion Tool",
             icon: this.icon
