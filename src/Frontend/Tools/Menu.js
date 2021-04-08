@@ -16,6 +16,7 @@ class Menu {
         this.highlightedColor = new THREE.Color(0.5, 0.6, 0.5);
         this.pressedColor     = new THREE.Color(1.0, 0.6, 0.5);
         this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
+        this.activeColor      = new THREE.Color(0.4, 0.5, 0.5);
         this.tempV3           = new THREE.Vector3();
         this.menuHeld         = false;
 
@@ -98,7 +99,11 @@ class Menu {
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
                 }
             } else {
-                this.menuItems[i].material.color.lerp(this.normalColor, 0.15);
+                if (this.menuItems[i].tool === this.tools.activeTool) {
+                    this.menuItems[i].material.color.lerp(this.activeColor, 0.15);
+                } else {
+                    this.menuItems[i].material.color.lerp(this.normalColor, 0.15);
+                }
             }
 
             // Lerp the Spheres to their Target Slot's position
