@@ -26,6 +26,8 @@ class FilletTool {
         this.cameraRelativeMovement = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
+        this.didHitEdge = false;
+        this.tapThreshold = 300; // Touches below this threshold (in ms) are considered taps
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -42,17 +44,24 @@ class FilletTool {
         if (ray.alreadyActivated || this.state === -1) {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
+            this.didHitEdge = false;
             // Tool is currently in Selection Mode
             if (ray.justActivated) {
-                // Check to see if we began dragging on an already selected edge
-                if (this.raycastObject(ray, true)) {
+                let alreadySelected = this.raycastObject(ray, true);
+
+                if (this.raycastObject(ray)) {
                     // Create a plane at the origin for dragging
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.world.camera.position);
                     this.rayPlane.updateMatrixWorld(true);
 
-                    this.dragging = true;
-                    ray.alreadyActivated = true;
+                    // Check to see if we began dragging on an already selected edge
+                    if (alreadySelected) {
+                        this.dragging = true;
+                        ray.alreadyActivated = true;
+                    } else {
+                        this.didHitEdge = true;
+                    }
                 } else {
                     this.dragging = false;
                 }
@@ -83,19 +92,25 @@ class FilletTool {
                 }
 
                 ray.alreadyActivated = true;
+            } else if (ray.active && this.didHitEdge && ray.activeMS > this.tapThreshold) {
+                // If we're dragging for a while, and we hit an edge... select the edge we hit and adjust it
+                this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
+                this.dragging = true;
+                ray.alreadyActivated = true;
+            } else if (ray.active && this.didHitEdge && ray.activeMS < this.tapThreshold) {
+                ray.alreadyActivated = true;
             }
 
             // Upon release
             if (!ray.active) {
-                if (this.dragging && ray.activeMS > 200) {
+                if (this.dragging && ray.activeMS > this.tapThreshold) {
                     // Commit the new fillet radius
                     this.filletShapeGeometry(this.hitObject,
                         [this.hitObject.shapeName, this.distance,
                             this.selected.map((range) => range.localEdgeIndex)]);
                     this.clearSelection();
                 // Else, check if we tapped to toggle an edge selection
-                }else if (ray.activeMS < 200
-                    && !this.tools.engine.workerWorking) { // This last one prevents selecting parts in progress
+                } else if (ray.activeMS < this.tapThreshold) { 
                     // Toggle an object's selection state
                     if (this.raycastObject(ray, false)) {
                         this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
@@ -158,6 +173,9 @@ class FilletTool {
     }
 
     raycastObject(ray, checkSelected) {
+        // This last one prevents selecting parts in progress
+        if (this.tools.engine.workerWorking) { return false; }
+
         this.world.raycaster.layers.set(2); // 2 is reserved for edges
         this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.world.history.shapeObjects, true);//

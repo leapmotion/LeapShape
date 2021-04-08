@@ -238,7 +238,7 @@ class CylinderTool {
         }
         this.state = 0;
         this.tools.activeTool = this;
-        this.tools.grid.updateCount = 0;
+        this.tools.grid.setVisible(false);
     }
 
     deactivate() {
@@ -248,7 +248,7 @@ class CylinderTool {
         if (this.currentCylinder && this.currentCylinder.parent) {
             this.currentCylinder.parent.remove(this.currentCylinder);
         }
-        this.tools.grid.updateCount = 0;
+        this.tools.grid.setVisible(false);
     }
 
 }

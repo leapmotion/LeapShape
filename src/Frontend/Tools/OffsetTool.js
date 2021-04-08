@@ -4,6 +4,7 @@ import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { Grid } from './Grid.js';
 import { Cursor } from './Cursor.js';
+import { hasFragmentDepth, createDitherDepthFragmentShader } from "./ToolUtils.js";
 
 /** This class controls all of the OffsetTool behavior */
 class OffsetTool {
@@ -24,7 +25,26 @@ class OffsetTool {
         this.cameraRelativeMovement = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
-        this.offsetMaterial = new THREE.MeshPhongMaterial();
+        let hasFragDepth = hasFragmentDepth(this.world);
+        this.offsetMaterial = this.world.previewMaterial.clone();
+        this.offsetMaterial.uniforms = {};
+        this.offsetMaterial.extensions = { fragDepth: hasFragDepth }; // set to use fragment depth values
+        this.offsetMaterial.onBeforeCompile = ( shader ) => {
+            // Vertex Shader: Dilate Vertex positions by the normals
+            let insertionPoint = shader.vertexShader.indexOf("#include <displacementmap_vertex>");
+            console.log(insertionPoint);
+            shader.vertexShader =
+               '\nuniform float dilation;\n' +
+               shader.vertexShader.slice(0, insertionPoint) +
+                'transformed += dilation * objectNormal;\n    '
+             + shader.vertexShader.slice(   insertionPoint);
+
+             shader.fragmentShader = createDitherDepthFragmentShader(hasFragDepth, shader.fragmentShader);
+            
+            shader.uniforms.dilation = { value: 0.0 };
+            this.offsetMaterial.uniforms = shader.uniforms;
+            this.offsetMaterial.userData.shader = shader;
+        };
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -58,14 +78,16 @@ class OffsetTool {
                 if (this.hit.object.shapeName) {
                     this.hitObject = this.hit.object;
                     this.point.copy(this.hit.point);
+                    //this.hitObject.material = this.offsetMaterial;
 
                     // Spawn the Offset
-                    //this.currentOffset = new THREE.Mesh(new THREE.OffsetBufferGeometry(1, 10, 10), this.world.previewMaterial);
-                    //this.currentOffset.material.color.setRGB(0.5, 0.5, 0.5);
-                    //this.currentOffset.material.emissive.setRGB(0, 0.25, 0.25);
-                    //this.currentOffset.name = "Offset #" + this.numOffsets;
-                    //this.currentOffset.position.copy(this.point);
-                    //this.world.scene.add(this.currentOffset);
+                    this.currentOffset = new THREE.Mesh(this.hitObject.geometry, this.offsetMaterial);
+                    this.offsetMaterial.emissive.setRGB(0, 0.25, 0.25);
+                    this.currentOffset.name = "Waiting...";
+                    this.world.scene.add(this.currentOffset);
+
+                    // Creates an expected offset 
+                    this.createPreviewOffsetGeometry([this.hitObject.shapeName, 1]);
 
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.world.camera.position);
@@ -82,21 +104,25 @@ class OffsetTool {
             if (intersects.length > 0) {
                 // Get camera-space position to determine union or subtraction
                 this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
-                this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
+                //this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
+                this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone());
 
                 this.distance = Math.max(0.0, intersects[0].point.clone().sub(this.point).length());
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
                 this.distance *= Math.sign(this.cameraRelativeMovement.x);
+
+                // Update the Visual Feedback
+                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 1.0 };
+                this.offsetMaterial.needsUpdate = true;
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
 
                 //this.currentOffset.scale.x = this.distance;
                 //this.currentOffset.scale.y = this.distance;
                 //this.currentOffset.scale.z = this.distance;
-                //
-                //this.currentOffset.material.emissive.setRGB(
-                //    this.distance > 0 ? 0.0  : 0.25,
-                //    this.distance > 0 ? 0.25 : 0.0 , 0.0);
+                this.offsetMaterial.emissive.setRGB(
+                    this.distance > 0 ? 0.0  : 0.25,
+                    this.distance > 0 ? 0.25 : 0.0 , 0.0);
             }
             ray.alreadyActivated = true;
 
@@ -113,11 +139,14 @@ class OffsetTool {
 
     /** @param {THREE.Mesh} offsetMesh */
     createOffsetGeometry(offsetMesh, createOffsetArgs) {
-        console.log(createOffsetArgs);
         let shapeName = "Offset " + offsetMesh.shapeName;
         this.engine.execute(shapeName, this.createOffset, createOffsetArgs,
             (mesh) => {
                 if (mesh) {
+                    if (this.currentOffset) {
+                        this.world.scene.remove(this.currentOffset);
+                    }
+
                     mesh.name = offsetMesh.name;
                     mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
@@ -126,6 +155,27 @@ class OffsetTool {
                     } else {
                         this.world.history.addToUndo(mesh);
                     }
+                }
+
+                offsetMesh.material = this.world.shapeMaterial;
+                this.world.dirty = true;
+            });
+    }
+
+    /** Creates an unit offset for previewing */
+    createPreviewOffsetGeometry(createOffsetArgs) {
+        let shapeName = "Offset #" + this.numOffsets;
+        this.engine.execute(shapeName, this.createOffset, createOffsetArgs,
+            (mesh) => {
+                if (this.currentOffset) {
+                    this.world.scene.remove(this.currentOffset);
+                }
+
+                if (mesh) {
+                    mesh.shapeName = shapeName;
+                    mesh.material = this.offsetMaterial;
+                    this.currentOffset = mesh;
+                    this.world.scene.add(this.currentOffset);
                 }
                 this.world.dirty = true;
             });
@@ -150,6 +200,12 @@ class OffsetTool {
             if (offsetDistance > 0) {
                 return outShape;
             } else {
+                // Doesn't seem to work; not sure why...
+                //let emptyList = new this.oc.TopTools_ListOfShape();
+                //let hollowOp = new this.oc.BRepOffsetAPI_MakeThickSolid();
+                //hollowOp.MakeThickSolidByJoin(inShape, emptyList, offsetDistance, 0.00001);
+                //hollowOp.Build();
+                //return hollowOp.Shape();
                 let differenceCut = new this.oc.BRepAlgoAPI_Cut(inShape, outShape);
                 differenceCut.SetFuzzyValue(0.00001);
                 differenceCut.Build();

@@ -141,9 +141,9 @@ class OpenCascadeMesher {
                     }
                     let w = this.LengthOfCurve(this.adaptorCurve, UMin, UMax);
                     this.adaptorCurve.Load(UIso_Handle);
-                    let h = this.LengthOfCurve(this.adaptorCurve, UMin, UMax);
+                    let h = this.LengthOfCurve(this.adaptorCurve, VMin, VMax);
                     uv_boxes.push({w: w, h: h, index: curFace });
-    
+
                     // Normalize each face's UVs to 0-1
                     for (let i = 0; i < UVNodesLength; i++) {
                         let x = this_face.oc_uv_coord[(i * 2) + 0],
