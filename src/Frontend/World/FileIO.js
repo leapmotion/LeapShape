@@ -38,6 +38,15 @@ class FileIO {
         });
     }
 
+    /** Return all objects unless one object is selected. */
+    objectToSave(){
+        let toSave = this.world.history.shapeObjects;
+        if (this.world.parent.tools.tools[0].selected.length === 1) {
+            toSave = this.world.parent.tools.tools[0].selected[0];
+        }
+        return toSave;
+    }
+
     /** Creates a NavBar Button
      * @param {string} title
      * @param {Function} callback */
@@ -77,7 +86,7 @@ class FileIO {
     /**  Save the current scene shapes to .obj */
     async saveShapesOBJ() {
         this.objExporter = new OBJExporter();
-        let result = this.objExporter.parse(this.world.history.shapeObjects);
+        let result = this.objExporter.parse(this.objectToSave());
         await this.writeFile(result, "obj", "text/plain", "OBJ files").then(() => {
             console.log("Saved OBJ");
         });
@@ -86,7 +95,7 @@ class FileIO {
     /**  Save the current scene shapes to .stl */
     async saveShapesSTL() {
         this.stlExporter = new STLExporter();
-        let result = this.stlExporter.parse(this.world.history.shapeObjects, { binary: false });
+        let result = this.stlExporter.parse(this.objectToSave(), { binary: false });
         await this.writeFile(result, "stl", "text/plain", "STL files").then(() => {
             console.log("Saved STL");
         });
@@ -95,7 +104,7 @@ class FileIO {
     /**  Save the current scene to .gltf */
     async saveShapesGLTF() {
         this.gltfExporter = new GLTFExporter();
-        this.gltfExporter.parse(this.world.history.shapeObjects, async (result) => {
+        this.gltfExporter.parse(this.objectToSave(), async (result) => {
             let gltf = JSON.stringify(result, null, 2);
             this.writeFile(gltf, "gltf", "text/plain", "GLTF files").then(() => {
                 console.log("Saved GLTF");
@@ -105,19 +114,19 @@ class FileIO {
 
     async launchARiOS() {
         // Scale to 1/1000th for iOS Quick Look
-        this.world.history.shapeObjects.scale.set(0.001, 0.001, 0.001);
-        this.world.history.shapeObjects.updateWorldMatrix(true, true);
+        this.objectToSave().scale.set(0.001, 0.001, 0.001);
+        this.objectToSave().updateWorldMatrix(true, true);
 
         this.usdzExporter = new USDZExporter();
-        let usdz = await this.usdzExporter.parse(this.world.history.shapeObjects);
+        let usdz = await this.usdzExporter.parse(this.objectToSave());
         let usdzURL = URL.createObjectURL(new Blob([usdz], { type: "model/vnd.usdz+zip" }));
         this.arLink.setAttribute('rel', 'ar');
         this.arLink.appendChild(document.createElement('img'));
         this.arLink.href = usdzURL;
 
         // Scale back to 1:1 for Editing
-        this.world.history.shapeObjects.scale.set(1.0, 1.0, 1.0);
-        this.world.history.shapeObjects.updateWorldMatrix(true, true);
+        this.objectToSave().scale.set(1.0, 1.0, 1.0);
+        this.objectToSave().updateWorldMatrix(true, true);
     }
 }
 
