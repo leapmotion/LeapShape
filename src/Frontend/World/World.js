@@ -27,7 +27,7 @@ class World {
         this.camera.layers.enableAll();
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
-        this.scene.fog = new THREE.Fog(0xffffff, 200, 1000);
+        this.scene.fog = new THREE.Fog(0xffffff, 500, 1300);
         
         // light
         this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );

@@ -19,6 +19,7 @@ class Menu {
         this.activeColor      = new THREE.Color(0.4, 0.5, 0.5);
         this.tempV3           = new THREE.Vector3();
         this.menuHeld         = false;
+        this.halfSpacing      = 25;
 
         this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
         this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
@@ -53,7 +54,7 @@ class Menu {
         for (let i = 0; i < 10; i++) {
             let slot = new THREE.Group();
             slot.name = "Slot #" + i;
-            slot.canonicalPosition = new THREE.Vector3((i * 50) - 100, -100, -300);
+            slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -27*6, (-75*6));
             slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
