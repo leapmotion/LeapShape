@@ -123,11 +123,13 @@ class Grid {
         if (this.gridSpheres.instanceMatrix) { this.gridSpheres.instanceMatrix.needsUpdate = true; }
     }
 
-    /** @param {THREE.Vector3} position */
-    snapToGrid(position) {
+    /** Snap this position to the grid
+     * @param {THREE.Vector3} position
+     * @param {boolean} volumetric */
+    snapToGrid(position, volumetric) {
         this.vec1.copy(position);
         this.space.worldToLocal(this.vec1);
-        this.vec1.y = 0;
+        if (!volumetric) { this.vec1.y = 0; }
         snapToGrid(this.vec1, this.gridPitch);
         this.space.localToWorld(this.vec1);
         position.copy(this.vec1);
@@ -141,7 +143,13 @@ class Grid {
     }
 
     /** @param {boolean} visible */
-    setVisible(visible) { this.space.visible = visible; }
+    setVisible(visible) {
+        this.space.visible = visible;
+        if (!visible) {
+            this.space.position.set(0, 0, 0);
+            this.space.quaternion.identity();
+        }
+    }
 }
 
 export { Grid };

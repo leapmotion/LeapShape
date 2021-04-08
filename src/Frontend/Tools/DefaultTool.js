@@ -194,6 +194,7 @@ class DefaultTool {
             }
         }
         this.selectionBoundingBox.getCenter(this.gizmoTransform.position);
+        this.tools.grid.snapToGrid(this.gizmoTransform.position, true);
         this.gizmoTransform.quaternion.set(0.0, 0.0, 0.0, 1.0);
         this.gizmoTransform.scale.set(1.0, 1.0, 1.0);
     }
