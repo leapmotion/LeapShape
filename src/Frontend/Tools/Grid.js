@@ -148,6 +148,7 @@ class Grid {
         if (!visible) {
             this.space.position.set(0, 0, 0);
             this.space.quaternion.identity();
+            this.updateCount = 0;
         }
     }
 }

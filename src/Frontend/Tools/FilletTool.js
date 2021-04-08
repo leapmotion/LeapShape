@@ -27,6 +27,7 @@ class FilletTool {
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
         this.didHitEdge = false;
+        this.tapThreshold = 300; // Touches below this threshold (in ms) are considered taps
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -91,25 +92,25 @@ class FilletTool {
                 }
 
                 ray.alreadyActivated = true;
-            } else if (ray.active && this.didHitEdge && ray.activeMS > 200) {
+            } else if (ray.active && this.didHitEdge && ray.activeMS > this.tapThreshold) {
                 // If we're dragging for a while, and we hit an edge... select the edge we hit and adjust it
                 this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
                 this.dragging = true;
                 ray.alreadyActivated = true;
-            } else if (ray.active && this.didHitEdge && ray.activeMS < 200) {
+            } else if (ray.active && this.didHitEdge && ray.activeMS < this.tapThreshold) {
                 ray.alreadyActivated = true;
             }
 
             // Upon release
             if (!ray.active) {
-                if (this.dragging && ray.activeMS > 200) {
+                if (this.dragging && ray.activeMS > this.tapThreshold) {
                     // Commit the new fillet radius
                     this.filletShapeGeometry(this.hitObject,
                         [this.hitObject.shapeName, this.distance,
                             this.selected.map((range) => range.localEdgeIndex)]);
                     this.clearSelection();
                 // Else, check if we tapped to toggle an edge selection
-                } else if (ray.activeMS < 200) { 
+                } else if (ray.activeMS < this.tapThreshold) { 
                     // Toggle an object's selection state
                     if (this.raycastObject(ray, false)) {
                         this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
