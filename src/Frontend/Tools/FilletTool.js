@@ -78,12 +78,10 @@ class FilletTool {
                 if (intersects.length > 0) {
                     // Get camera-space position to determine fillet or chamfer radius
                     this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
-                    this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
+                    this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone().invert());
 
-                    // Calculate the radius...
-                    this.distance = intersects[0].point.clone().sub(this.point).length();
+                    this.distance = this.cameraRelativeMovement.x;
                     this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
-                    this.distance *= Math.sign(this.cameraRelativeMovement.x);
                     this.tools.cursor.updateTarget(this.point);
                     this.tools.cursor.updateLabel(this.distance === 0 ? "Left-Chamfer\nRight-Fillet" :
                         (this.distance > 0 ?
