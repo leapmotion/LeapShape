@@ -42,13 +42,15 @@ class Cursor {
 
     update() {
         if (performance.now() - this.lastTimeTargetUpdated < 100) {
+            let alpha = this.cursor.visible ? 0.25 : 1.0;
+
             this.cursor.visible = true;
 
             // Lerp the Cursor to the Target Position
-            this.cursor.position.lerp(this.targetPosition, 0.25);
+            this.cursor.position.lerp(this.targetPosition, alpha);
 
             // Make the Cursor Contents Face the Camera
-            this.cursor.quaternion.slerp(this.world.camera.quaternion, 0.25);
+            this.cursor.quaternion.slerp(this.world.camera.quaternion, alpha);
         } else {
             this.cursor.visible = false;
         }
