@@ -15,13 +15,13 @@ Use simple gestures with your mouse or hands* to model 3D shapes in your browser
 ## Features
  - Simple Interface for working with Boxes, Spheres, Cylinders, and Extrusions
  - Powerful CSG Operations allow for infinite configurability
+ - Modify Objects via Movement, Extrusion, Filleting/Chamfering, and Dilation/Hollowing
  - Snapping and Coordinate Previews for Precision Assembly
  - Export Models as .obj, .stl, or .gltf
  - Clean and Modular ES6 codebase for extreme extensibility
  - **Free and Open Source under the Apache V2 License**
 
 #### Coming Soon*
- - Modify Objects via Movement, Face Extrusion, and Fillets
  - Draw and Extrude Custom Profiles
  - Model anywhere with first-class Desktop, Mobile, and VR Platform support
  - Easily Installable for Offline-use as a Progressive Web App
@@ -41,3 +41,4 @@ LeapShape is based on several powerful libraries
  - [potpack](https://github.com/mapbox/potpack) (UV Atlas Packing)
  - [Noun Project](https://github.com/leapmotion/LeapShape/blob/main/textures/LICENSE.txt) (Icons)
  - [leapjs](https://github.com/leapmotion/leapjs) (Ultraleap Hand Tracking)
+ 

@@ -24,7 +24,24 @@ class OffsetTool {
         this.cameraRelativeMovement = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
-        this.offsetMaterial = new THREE.MeshPhongMaterial();
+        this.offsetMaterial = this.world.previewMaterial.clone();
+        this.offsetMaterial.uniforms = {};
+        this.offsetMaterial.onBeforeCompile = ( shader ) => {
+            // Vertex Shader: Dilate Vertex positions by the normals
+            let insertionPoint = shader.vertexShader.indexOf("#include <displacementmap_vertex>");
+            console.log(insertionPoint);
+            shader.vertexShader =
+               '\nuniform float dilation;\n' +
+               shader.vertexShader.slice(0, insertionPoint) +
+                'transformed += dilation * objectNormal;\n    '
+             + shader.vertexShader.slice(   insertionPoint);
+
+            console.log(shader.vertexShader);
+            
+            shader.uniforms.dilation = { value: 0.0 };
+            this.offsetMaterial.uniforms = shader.uniforms;
+            this.offsetMaterial.userData.shader = shader;
+        };
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -58,6 +75,7 @@ class OffsetTool {
                 if (this.hit.object.shapeName) {
                     this.hitObject = this.hit.object;
                     this.point.copy(this.hit.point);
+                    this.hitObject.material = this.offsetMaterial;
 
                     // Spawn the Offset
                     //this.currentOffset = new THREE.Mesh(new THREE.OffsetBufferGeometry(1, 10, 10), this.world.previewMaterial);
@@ -87,13 +105,16 @@ class OffsetTool {
                 this.distance = Math.max(0.0, intersects[0].point.clone().sub(this.point).length());
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
                 this.distance *= Math.sign(this.cameraRelativeMovement.x);
+
+                // Update the Visual Feedback
+                this.offsetMaterial.uniforms.dilation = { value: this.distance };
+                this.offsetMaterial.needsUpdate = true;
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
 
                 //this.currentOffset.scale.x = this.distance;
                 //this.currentOffset.scale.y = this.distance;
                 //this.currentOffset.scale.z = this.distance;
-                //
                 //this.currentOffset.material.emissive.setRGB(
                 //    this.distance > 0 ? 0.0  : 0.25,
                 //    this.distance > 0 ? 0.25 : 0.0 , 0.0);
@@ -127,6 +148,8 @@ class OffsetTool {
                         this.world.history.addToUndo(mesh);
                     }
                 }
+
+                offsetMesh.material = this.world.shapeMaterial;
                 this.world.dirty = true;
             });
     }
@@ -150,6 +173,12 @@ class OffsetTool {
             if (offsetDistance > 0) {
                 return outShape;
             } else {
+                // Doesn't seem to work; not sure why...
+                //let emptyList = new this.oc.TopTools_ListOfShape();
+                //let hollowOp = new this.oc.BRepOffsetAPI_MakeThickSolid();
+                //hollowOp.MakeThickSolidByJoin(inShape, emptyList, offsetDistance, 0.00001);
+                //hollowOp.Build();
+                //return hollowOp.Shape();
                 let differenceCut = new this.oc.BRepAlgoAPI_Cut(inShape, outShape);
                 differenceCut.SetFuzzyValue(0.00001);
                 differenceCut.Build();
