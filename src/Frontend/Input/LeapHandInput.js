@@ -1,6 +1,7 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import "../../../node_modules/leapjs/leap-1.1.0.js";
 import { World } from '../World/World.js';
+import { LeapPinchLocomotion } from './LeapPinchLocomotion.js';
 
 /**
  * This is the Leap Hand Tracking-based Input
@@ -12,6 +13,7 @@ class LeapHandInput {
         this.world = world;
         this.ray = null;
         this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
+        this.lastFrameNumber = 0;
 
         this.hands = {};
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(
@@ -50,22 +52,37 @@ class LeapHandInput {
         this.world.scene.add(this.pinchSpheres['right']);
 
         this.indexPos = new THREE.Vector3(); this.thumbPos = new THREE.Vector3();
+        this.locomotion = new LeapPinchLocomotion(world, this.pinchSpheres['left'], this.pinchSpheres['right']);
     }
 
     /** Updates visuals and regenerates the input ray */
     update() {
         // Child the hands to the Camera
-        this.handParentParent.position  .copy(this.world.camera.position  );
-        this.handParentParent.quaternion.copy(this.world.camera.quaternion);
-
-        for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
-            let hand = this.controller.lastFrame.hands[h];
-            if (hand.type in this.hands) {
-                this.updateHand(hand);
-                this.updatePinching(hand);
-            } else {
-                this.createHand(hand);
+        this.world.camera.getWorldPosition(this.handParentParent.position);
+        this.world.camera.getWorldQuaternion(this.handParentParent.quaternion);
+        this.world.camera.getWorldScale(this.handParentParent.scale);
+        
+        if (this.controller.lastFrame.id !== this.lastFrameNumber) {
+            let handsAreTracking = false;
+            for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
+                let hand = this.controller.lastFrame.hands[h];
+                if (hand.type in this.hands) {
+                    this.updateHand(hand);
+                    this.updatePinching(hand);
+                    handsAreTracking = true;
+                } else {
+                    this.createHand(hand);
+                }
             }
+            this.locomotion.update();
+            this.world.camera.getWorldPosition(this.handParentParent.position);
+            this.world.camera.getWorldQuaternion(this.handParentParent.quaternion);
+            this.world.camera.getWorldScale(this.handParentParent.scale);
+            this.world.camera.parent.updateWorldMatrix(true, true);
+
+            this.world.handsAreTracking = handsAreTracking;
+
+            this.lastFrameNumber = this.controller.lastFrame.id;
         }
     }
 
@@ -79,7 +96,8 @@ class LeapHandInput {
         this.hands[hand.type].spheres[0][4].getWorldPosition(this.thumbPos);
         this.hands[hand.type].spheres[1][4].getWorldPosition(this.indexPos);
 
-        if (this.thumbPos.distanceToSquared(this.indexPos) < 40 * 40) {
+        if (this.hands[hand.type].spheres[0][4].position.distanceToSquared(
+            this.hands[hand.type].spheres[1][4].position) < 40 * 40) {
             this.pinchSpheres[hand.type].visible = true;
             this.pinchSpheres[hand.type].position.copy(this.thumbPos).add(this.indexPos).multiplyScalar(0.5);
         } else {

@@ -38,10 +38,20 @@ class LeapPinchLocomotion {
           left .getWorldPosition(this.curA);
           right.getWorldPosition(this.curB);
   
-          if (!this.isLeftPinching || !isRightPinching) {
+          if (!this.isLeftPinching || !this.isRightPinching) {
             this.rootA.copy(this.curA);
             this.rootB.copy(this.curB);
           }
+        //} else if (leftPinching) {                       // Set Points when Left Pinched
+        //  left .getWorldPosition(this.curA);
+        //  if (!this.isLeftPinching) {
+        //    this.rootA.copy(this.curA);
+        //  }
+        //} else if (rightPinching) {                      // Set Points when Right Pinched
+        //  right.getWorldPosition(this.curB);
+        //  if (!this.isRightPinching) {
+        //    this.rootB.copy(this.curB);
+        //  }
         } else if (leftPinching) {                       // Set Points when Left Pinched
           this.oneHandedPinchMove(left, this.isLeftPinching, this.isRightPinching,
                                   this.rootA, this.curA, this.rootB, this.curB);
@@ -60,7 +70,7 @@ class LeapPinchLocomotion {
         /** @type {THREE.Vector3} */
         let pivot       = this.rootA.clone().add(this.rootB).multiplyScalar(0.5);
         /** @type {THREE.Vector3} */
-        let translation = pivot.clone().sub(((this. curA + this. curB) / 2));
+        let translation = pivot.clone().sub(this.curA.clone().add(this.curB).multiplyScalar(0.5));
         /** @type {THREE.Quaternion} */
         let rotation = new THREE.Quaternion().setFromUnitVectors(
             this.curB .clone().sub(this.curA) .normalize(),
@@ -70,26 +80,23 @@ class LeapPinchLocomotion {
 
         let scale = (this.rootA.clone().sub(this.rootB)).length() / 
                     (this.curA .clone().sub(this. curB)).length();
-  
+
         // Apply Translation
         this.world.camera.parent.position.add(translation);
-  
-        // TODO: Update to THREE Below this line! 
-      
+
         if (this.rootA.x !== this.rootB.x) {
           // Apply Rotation
-          let curTrans           = new Pose(transform.root.position, transform.root.rotation);
-              curTrans           = curTrans.Pivot(rotation, pivot);
-          transform.root.position = curTrans.position; transform.root.rotation = curTrans.rotation;
-  
+          this.Pivot(this.world.camera.parent.position,
+            this.world.camera.parent.quaternion, pivot, rotation);
+
           // Apply Scale about Pivot
-          if (!float.IsNaN(scale) && enableScaling) {
-            transform.root.position    = ((transform.root.position - pivot) * scale) + pivot;
-            transform.root.localScale *= scale;
+          if (!isNaN(scale) && this.enableScaling) {
+            this.world.camera.parent.position.sub(pivot).multiplyScalar(scale).add(pivot);
+            this.world.camera.parent.scale.multiplyScalar(scale);
           }
         }
 
-        this.world.camera.updateWorldMatrix(true, true);
+        this.world.camera.parent.updateWorldMatrix(true, true);
     }
 
     /** Ambidextrous function for handling one-handed pinch movement with momentum. 
@@ -104,10 +111,18 @@ class LeapPinchLocomotion {
         this.residualMomentum = otherCur.clone().sub(otherRoot);
         thisRoot.copy(thisCur);
       } else {
-        otherCur.copy((otherRoot + (thisCur.clone().sub(thisRoot))).clone().add(this.residualMomentum));
+        otherCur.copy((otherRoot.clone().add(thisCur.clone().sub(thisRoot))).clone().add(this.residualMomentum));
       }
       this.residualMomentum.multiplyScalar(1.0 - this.momentum);
-    }
+  }
+  
+  /** Pivots the original position and quaternion about another point + quaternion
+   * @param {THREE.Vector3} position @param {THREE.Quaternion} quaternion 
+   * @param {THREE.Vector3} pivotPoint @param {THREE.Quaternion} pivotQuaternion */
+  Pivot(position, quaternion, pivotPoint, pivotQuaternion) {
+    position.sub(pivotPoint).applyQuaternion(pivotQuaternion).add(pivotPoint);
+    quaternion.premultiply(pivotQuaternion);
+  }
 
 }
 

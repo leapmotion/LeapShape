@@ -19,6 +19,9 @@ class Menu {
         this.activeColor      = new THREE.Color(0.4, 0.5, 0.5);
         this.tempV3           = new THREE.Vector3();
         this.menuHeld         = false;
+        this.cameraWorldPos   = new THREE.Vector3();
+        this.cameraWorldRot   = new THREE.Quaternion();
+        this.cameraWorldScale = new THREE.Vector3();
         this.halfSpacing      = 25;
 
         this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
@@ -64,6 +67,10 @@ class Menu {
     /** Update the menu motion and interactive state 
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
+        this.world.camera.getWorldPosition  (this.cameraWorldPos);
+        this.world.camera.getWorldQuaternion(this.cameraWorldRot);
+        this.world.camera.getWorldScale     (this.cameraWorldScale);
+
         // Update the slot positions based on the camera's aspect
         let minAspect = Math.min(this.world.camera.aspect, 1.5);
         for (let i = 0; i < 10; i++) {
@@ -110,8 +117,11 @@ class Menu {
             // Lerp the Spheres to their Target Slot's position
             this.menuItems[i].position.lerp(this.slots[activeMenuIndex].getWorldPosition(this.tempV3), 0.1);
 
+            // Lerp the Spheres to their Target Slot's position
+            this.menuItems[i].scale.copy(this.cameraWorldScale);
+
             // Make the Icon Face the Camera
-            this.menuItems[i].icon.quaternion.slerp(this.world.camera.quaternion, 0.1);
+            this.menuItems[i].icon.quaternion.slerp(this.cameraWorldRot, 0.1);
 
             activeMenuIndex += 1;
         }

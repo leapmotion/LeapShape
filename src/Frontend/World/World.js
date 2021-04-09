@@ -134,7 +134,7 @@ class World {
             this.lastTimeInteractedWith = performance.now();
         }
         if (performance.now() - this.lastTimeInteractedWith < 2000) {
-            this.controls.enabled = !ray.alreadyActivated;
+            this.controls.enabled = !ray.alreadyActivated && !this.handsAreTracking;
             if (this.controls.enabled) { this.controls.update(); }
             this.renderer.render(this.scene, this.camera);
             this.dirty = false;
