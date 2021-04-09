@@ -57,10 +57,10 @@ class LeapHandInput {
     update() {
         if (this.controller.lastFrame.id !== this.lastFrameNumber) {
             let handsAreTracking = false;
-            for (let type in this.hands) {
-                this.hands[type].visible = false;
-            }
 
+            for (let type in this.hands) {
+                this.hands[type].markForHiding = true;
+            }
             for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
                 let hand = this.controller.lastFrame.hands[h];
                 if (hand.type in this.hands) {
@@ -69,14 +69,18 @@ class LeapHandInput {
                     this.updatePinching(hand);
                 } else {
                     this.createHand(hand);
-                    console.log("Created hand!");
+                }
+            }
+            for (let type in this.hands) {
+                if (this.hands[type].markForHiding) {
+                    this.hands[type].visible = false;
                 }
             }
 
             // Update the Pinch Locomotion
             this.locomotion.update();
 
-            // Reset the world's camera parenting scheme so orbit controls still work
+            // HACK: Reset the world's camera parenting scheme so orbit controls still work
             if (!handsAreTracking && this.world.handsAreTracking) {
                 this.world.scene.attach(this.world.camera);
                 this.world.cameraParent.position  .set(0, 0, 0);
@@ -103,8 +107,14 @@ class LeapHandInput {
         if (handGroup.visible &&
             handGroup.joints[0][4].position.distanceTo(
             handGroup.joints[1][4].position) <
-                (pinchSphere.visible ? 40 : 20)) { // Use hysteresis to mitigate spurious pinches
+                ((pinchSphere.visible || pinchSphere.invalidPinch) ? 40 : 20)) { // Use hysteresis to mitigate spurious pinches
 
+            // If the hand is too young and it starts pinching... that's no good.
+            if (pinchSphere.invalidPinch || (!(pinchSphere.visible) && handGroup.ageMs < 300)) {
+                pinchSphere.invalidPinch = true; return;
+            }
+            
+            // This hand is pinching in a valid way, push it through
             pinchSphere.visible = true;
             pinchSphere.updateWorldMatrix(true, true);
             let worldScale = handGroup.getWorldScale(this.vec).x;
@@ -118,17 +128,20 @@ class LeapHandInput {
             handGroup.getWorldQuaternion(pinchSphere.quaternion);
         } else {
             pinchSphere.visible = false;
+            pinchSphere.invalidPinch = false;
         }
     }
 
     /** Create the hand's meshes
      * @param {Hand} hand */
     createHand(hand) {
-        let handGroup = new THREE.Group();
-        handGroup.name = hand.type + " Hand";
-        handGroup.bones  = [];
-        handGroup.joints = [];
+        let handGroup     = new THREE.Group();
+        handGroup.name    = hand.type + " Hand";
+        handGroup.bones   = [];
+        handGroup.joints  = [];
         handGroup.visible = true;
+        handGroup.startMs = performance.now();
+        handGroup.age     = 0;
 
         hand.fingers.forEach((finger) => {
             let boneMeshesFinger  = [];
@@ -168,6 +181,12 @@ class LeapHandInput {
      * @param {Hand} hand */
     updateHand(hand) {
         let handGroup = this.hands[hand.type];
+        if (!(handGroup.visible)) {
+            handGroup.startMs = performance.now();
+            handGroup.ageMs = 0;
+        } else {
+            handGroup.ageMs = performance.now() - handGroup.startMs;
+        }
         handGroup.visible = true;
 
         // Set Hand Palm Position
@@ -213,6 +232,7 @@ class LeapHandInput {
             });
         });
 
+        handGroup.markForHiding = false;
         this.world.dirty = true;
     }
 
