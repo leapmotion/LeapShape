@@ -20,6 +20,7 @@ class OffsetTool {
         this.state = -1; // -1 is Deactivated
         this.numOffsets = 0;
         this.distance = 1;
+        this.vec = new THREE.Vector3(); this.quat = new THREE.Quaternion();
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
         this.cameraRelativeMovement = new THREE.Vector3();
@@ -90,7 +91,7 @@ class OffsetTool {
                     this.createPreviewOffsetGeometry([this.hitObject.shapeName, 1]);
 
                     this.rayPlane.position.copy(this.point);
-                    this.rayPlane.lookAt(this.world.camera.position);
+                    this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
                     this.rayPlane.updateMatrixWorld(true);
 
                     this.state += 1;
@@ -104,7 +105,7 @@ class OffsetTool {
             if (intersects.length > 0) {
                 // Get camera-space position to determine union or subtraction
                 this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
-                this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone().invert());
+                this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat).invert());
 
                 this.distance = this.cameraRelativeMovement.x;
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);

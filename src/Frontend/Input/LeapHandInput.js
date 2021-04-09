@@ -76,6 +76,15 @@ class LeapHandInput {
             // Update the Pinch Locomotion
             this.locomotion.update();
 
+            // Reset the world's camera parenting scheme so orbit controls still work
+            if (!handsAreTracking && this.world.handsAreTracking) {
+                this.world.scene.attach(this.world.camera);
+                this.world.cameraParent.position  .set(0, 0, 0);
+                this.world.cameraParent.quaternion.identity();
+                this.world.cameraParent.scale     .set(1, 1, 1);
+                this.world.cameraParent.attach(this.world.camera);
+                this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
+            }
             this.world.handsAreTracking = handsAreTracking;
             this.lastFrameNumber = this.controller.lastFrame.id;
         }
@@ -105,6 +114,7 @@ class LeapHandInput {
 
             // Keep the pinch point within a 10mm sphere in Unscaled World Space
             pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
+            //pinchSphere.position.lerp(this.vec, 0.01);
             handGroup.getWorldQuaternion(pinchSphere.quaternion);
         } else {
             pinchSphere.visible = false;

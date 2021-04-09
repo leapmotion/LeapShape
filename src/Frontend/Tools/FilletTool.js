@@ -52,7 +52,7 @@ class FilletTool {
                 if (this.raycastObject(ray)) {
                     // Create a plane at the origin for dragging
                     this.rayPlane.position.copy(this.point);
-                    this.rayPlane.lookAt(this.world.camera.position);
+                    this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
                     this.rayPlane.updateMatrixWorld(true);
 
                     // Check to see if we began dragging on an already selected edge
@@ -78,7 +78,7 @@ class FilletTool {
                 if (intersects.length > 0) {
                     // Get camera-space position to determine fillet or chamfer radius
                     this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
-                    this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone().invert());
+                    this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat1).invert());
 
                     this.distance = this.cameraRelativeMovement.x;
                     this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
