@@ -106,7 +106,7 @@ class FilletTool {
                     this.filletShapeGeometry(this.hitObject,
                         [this.hitObject.shapeName, this.distance,
                             this.selected.map((range) => range.localEdgeIndex)]);
-                    this.clearSelection();
+                    this.deactivate();
                 // Else, check if we tapped to toggle an edge selection
                 } else if (ray.activeMS < this.tapThreshold) { 
                     // Toggle an object's selection state

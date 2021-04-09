@@ -22,7 +22,7 @@
 		"three": "^0.127.0"
 	},
 	"devDependencies": {
-		"@types/three": "^0.126.2",
+		"@types/three": "^0.127.0",
 		"esbuild": "^0.9.7"
 	}
 }

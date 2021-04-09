@@ -54,7 +54,7 @@ class Menu {
         for (let i = 0; i < 10; i++) {
             let slot = new THREE.Group();
             slot.name = "Slot #" + i;
-            slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -27*6, (-75*6));
+            slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -25*6, (-75*6));
             slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
@@ -65,7 +65,7 @@ class Menu {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Update the slot positions based on the camera's aspect
-        let minAspect = Math.min(this.world.camera.aspect, 1.0);
+        let minAspect = Math.min(this.world.camera.aspect, 1.5);
         for (let i = 0; i < 10; i++) {
             this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
             this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;

@@ -22,13 +22,17 @@ class World {
         document.body.appendChild(this.container);
         
         // camera and world
-        this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-        this.camera.position.set( 100, 200, 300 );
-        this.camera.layers.enableAll();
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         this.scene.fog = new THREE.Fog(0xffffff, 500, 1300);
-        
+
+        this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+        this.camera.position.set( 100, 200, 300 );
+        this.camera.layers.enableAll();
+        this.cameraParent = new THREE.Group();
+        this.cameraParent.add(this.camera);
+        this.scene.add(this.cameraParent);
+
         // light
         this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
         this.light.position.set( 0, 200, 0 );
