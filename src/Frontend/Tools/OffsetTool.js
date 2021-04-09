@@ -104,12 +104,10 @@ class OffsetTool {
             if (intersects.length > 0) {
                 // Get camera-space position to determine union or subtraction
                 this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
-                //this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
-                this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone());
+                this.cameraRelativeMovement.applyQuaternion(this.world.camera.quaternion.clone().invert());
 
-                this.distance = Math.max(0.0, intersects[0].point.clone().sub(this.point).length());
+                this.distance = this.cameraRelativeMovement.x;
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
-                this.distance *= Math.sign(this.cameraRelativeMovement.x);
 
                 // Update the Visual Feedback
                 this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 1.0 };

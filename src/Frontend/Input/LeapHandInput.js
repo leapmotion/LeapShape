@@ -11,16 +11,23 @@ class LeapHandInput {
     constructor(world) {
         this.world = world;
         this.ray = null;
-        this.controller = new window.Leap.Controller({ optimizeHMD: true }).connect();
+        this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
 
         this.hands = {};
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(
             new THREE.Euler(Math.PI / 2, 0, 0)
         );
         this.handParent = new THREE.Group();
-        this.handParent.position.z = -100;
+        // HMD Mode
+        //this.handParent.position.z = -100;
+        //this.handParent.quaternion.setFromEuler(
+        //    new THREE.Euler(Math.PI / 2, 0, Math.PI)
+        //);
+        // Desktop Mode
+        this.handParent.position.y = -300;
+        this.handParent.position.z = -400;
         this.handParent.quaternion.setFromEuler(
-            new THREE.Euler(Math.PI / 2, 0, Math.PI)
+            new THREE.Euler(0, 0, 0)
         );
 
         // Create an artificial parent since parenting 
@@ -29,6 +36,20 @@ class LeapHandInput {
         this.handParentParent = new THREE.Group();
         this.handParentParent.add(this.handParent);
         this.world.scene.add(this.handParentParent);
+
+        this.pinchSpheres = {};
+        this.pinchSpheres['left'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
+        this.pinchSpheres['left'].material.color.setRGB(0.2, 0.5, 0.5);
+        this.pinchSpheres['left'].name = "Left Pinch Sphere";
+        this.pinchSpheres['left'].visible = false;
+        this.pinchSpheres['right'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
+        this.pinchSpheres['right'].material.color.setRGB(0.5, 0.2, 0.2);
+        this.pinchSpheres['right'].name = "Right Pinch Sphere";
+        this.pinchSpheres['right'].visible = false;
+        this.world.scene.add(this.pinchSpheres['left']);
+        this.world.scene.add(this.pinchSpheres['right']);
+
+        this.indexPos = new THREE.Vector3(); this.thumbPos = new THREE.Vector3();
     }
 
     /** Updates visuals and regenerates the input ray */
@@ -41,6 +62,7 @@ class LeapHandInput {
             let hand = this.controller.lastFrame.hands[h];
             if (hand.type in this.hands) {
                 this.updateHand(hand);
+                this.updatePinching(hand);
             } else {
                 this.createHand(hand);
             }
@@ -50,6 +72,23 @@ class LeapHandInput {
     /** Does this input want to take control? */
     isActive() { return false; }
 
+    /** Update the pinch state of the hands 
+     * @param {Hand} hand */
+    updatePinching(hand) {
+        //console.log(hand.type);
+        this.hands[hand.type].spheres[0][4].getWorldPosition(this.thumbPos);
+        this.hands[hand.type].spheres[1][4].getWorldPosition(this.indexPos);
+
+        if (this.thumbPos.distanceToSquared(this.indexPos) < 40 * 40) {
+            this.pinchSpheres[hand.type].visible = true;
+            this.pinchSpheres[hand.type].position.copy(this.thumbPos).add(this.indexPos).multiplyScalar(0.5);
+        } else {
+            this.pinchSpheres[hand.type].visible = false;
+        }
+    }
+
+    /** Create the hand's meshes
+     * @param {Hand} hand */
     createHand(hand) {
         let  boneMeshes = [];
         let jointMeshes = [];
@@ -85,6 +124,8 @@ class LeapHandInput {
         this.hands[hand.type] = { cylinders: boneMeshes, spheres: jointMeshes };
     }
 
+    /** Update the hand's meshes
+     * @param {Hand} hand */
     updateHand(hand) {
         let models = this.hands[hand.type];
         hand.fingers.forEach((finger, index) => {
@@ -107,6 +148,7 @@ class LeapHandInput {
                 }
             });
         });
+        this.world.dirty = true;
     }
 
 }

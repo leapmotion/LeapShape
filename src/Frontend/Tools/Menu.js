@@ -16,8 +16,10 @@ class Menu {
         this.highlightedColor = new THREE.Color(0.5, 0.6, 0.5);
         this.pressedColor     = new THREE.Color(1.0, 0.6, 0.5);
         this.heldColor        = new THREE.Color(1.0, 0.3, 0.3);
+        this.activeColor      = new THREE.Color(0.4, 0.5, 0.5);
         this.tempV3           = new THREE.Vector3();
         this.menuHeld         = false;
+        this.halfSpacing      = 25;
 
         this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
         this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
@@ -52,7 +54,7 @@ class Menu {
         for (let i = 0; i < 10; i++) {
             let slot = new THREE.Group();
             slot.name = "Slot #" + i;
-            slot.canonicalPosition = new THREE.Vector3((i * 50) - 100, -100, -300);
+            slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -25*6, (-75*6));
             slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
@@ -63,7 +65,7 @@ class Menu {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         // Update the slot positions based on the camera's aspect
-        let minAspect = Math.min(this.world.camera.aspect, 1.0);
+        let minAspect = Math.min(this.world.camera.aspect, 1.5);
         for (let i = 0; i < 10; i++) {
             this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
             this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
@@ -98,7 +100,11 @@ class Menu {
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
                 }
             } else {
-                this.menuItems[i].material.color.lerp(this.normalColor, 0.15);
+                if (this.menuItems[i].tool === this.tools.activeTool) {
+                    this.menuItems[i].material.color.lerp(this.activeColor, 0.15);
+                } else {
+                    this.menuItems[i].material.color.lerp(this.normalColor, 0.15);
+                }
             }
 
             // Lerp the Spheres to their Target Slot's position
