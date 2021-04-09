@@ -20,9 +20,7 @@ class LeapHandInput {
         this.quat = new THREE.Quaternion();
 
         this.hands = {};
-        this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(
-            new THREE.Euler(Math.PI / 2, 0, 0)
-        );
+        this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
         this.handParent = new THREE.Group();
         // HMD Mode
         //this.handParent.position.z = -100;
@@ -32,9 +30,7 @@ class LeapHandInput {
         // Desktop Mode
         this.handParent.position.y = -300;
         this.handParent.position.z = -400;
-        this.handParent.quaternion.setFromEuler(
-            new THREE.Euler(0, 0, 0)
-        );
+        this.handParent.quaternion.setFromEuler(new THREE.Euler(0, 0, 0));
 
         // Create an artificial parent since parenting 
         // directly to the camera doesn't work
@@ -99,13 +95,24 @@ class LeapHandInput {
     /** Update the pinch state of the hands 
      * @param {Hand} hand */
     updatePinching(hand) {
+        let pinchSphere = this.pinchSpheres[hand.type];
+        let handGroup   = this.handGroups  [hand.type];
+
         // Check pinching with local fingertip positions
-        if (this.hands[hand.type].spheres[0][4].position.distanceToSquared(
-            this.hands[hand.type].spheres[1][4].position) < 40 * 40) {
-            this.pinchSpheres[hand.type].visible = true;
-            this.handGroups[hand.type].localToWorld(this.pinchSpheres[hand.type].position.copy(this.pinchSpheres[hand.type].localPinchPos));
+        if (this.hands[hand.type].spheres[0][4].position.distanceTo(
+            this.hands[hand.type].spheres[1][4].position) < 40) {
+
+            pinchSphere.visible = true;
+            pinchSphere.updateWorldMatrix(true, true);
+            let worldScale = handGroup.getWorldScale(this.vec).x;
+
+            // Unfiltered Palm-Relative Pinching position
+            handGroup.localToWorld(this.vec.copy(pinchSphere.localPinchPos));
+
+            // Keep the pinch point within a 7mm sphere in Unscaled World Space
+            pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
         } else {
-            this.pinchSpheres[hand.type].visible = false;
+            pinchSphere.visible = false;
         }
     }
 

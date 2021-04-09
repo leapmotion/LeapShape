@@ -81,22 +81,30 @@ class LeapPinchLocomotion {
         let scale = (this.rootA.clone().sub(this.rootB)).length() / 
                     (this.curA .clone().sub(this. curB)).length();
 
+        // Apply movement to both the Camera Parent (and the Pinch Points to avoid accidental Verlet)
+        this.applyMovement(this.world.camera.parent, pivot, translation, rotation, scale);
+        this.applyMovement(left                    , pivot, translation, rotation, scale);
+        this.applyMovement(right                   , pivot, translation, rotation, scale);
+        
+        this.world.camera.parent.updateWorldMatrix(true, true);
+    }
+    
+    applyMovement(object, pivot, translation, rotation, scale) {
         // Apply Translation
-        this.world.camera.parent.position.add(translation);
+        object.position.add(translation);
 
         if (this.rootA.x !== this.rootB.x) {
           // Apply Rotation
-          this.Pivot(this.world.camera.parent.position,
-            this.world.camera.parent.quaternion, pivot, rotation);
+          this.Pivot(object.position, object.quaternion, pivot, rotation);
 
           // Apply Scale about Pivot
           if (!isNaN(scale) && this.enableScaling) {
-            this.world.camera.parent.position.sub(pivot).multiplyScalar(scale).add(pivot);
-            this.world.camera.parent.scale.multiplyScalar(scale);
+            object.position.sub(pivot).multiplyScalar(scale).add(pivot);
+            object.scale.multiplyScalar(scale);
           }
         }
+        
 
-        this.world.camera.parent.updateWorldMatrix(true, true);
     }
 
     /** Ambidextrous function for handling one-handed pinch movement with momentum. 
