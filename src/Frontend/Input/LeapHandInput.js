@@ -14,6 +14,10 @@ class LeapHandInput {
         this.ray = null;
         this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
         this.lastFrameNumber = 0;
+        this.palmDirection = new THREE.Vector3();
+        this.palmNormal = new THREE.Vector3();
+        this.vec = new THREE.Vector3();
+        this.quat = new THREE.Quaternion();
 
         this.hands = {};
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(
@@ -44,15 +48,18 @@ class LeapHandInput {
         this.pinchSpheres['left'].material.color.setRGB(0.2, 0.5, 0.5);
         this.pinchSpheres['left'].name = "Left Pinch Sphere";
         this.pinchSpheres['left'].visible = false;
+        this.pinchSpheres['left'].localPinchPos = new THREE.Vector3(-32, -50, 20);
         this.pinchSpheres['right'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
         this.pinchSpheres['right'].material.color.setRGB(0.5, 0.2, 0.2);
         this.pinchSpheres['right'].name = "Right Pinch Sphere";
         this.pinchSpheres['right'].visible = false;
+        this.pinchSpheres['right'].localPinchPos = new THREE.Vector3(32, -50, 20);
         this.world.scene.add(this.pinchSpheres['left']);
         this.world.scene.add(this.pinchSpheres['right']);
 
-        this.indexPos = new THREE.Vector3(); this.thumbPos = new THREE.Vector3();
         this.locomotion = new LeapPinchLocomotion(world, this.pinchSpheres['left'], this.pinchSpheres['right']);
+
+        this.handGroups = {};
     }
 
     /** Updates visuals and regenerates the input ray */
@@ -67,9 +74,9 @@ class LeapHandInput {
             for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
                 let hand = this.controller.lastFrame.hands[h];
                 if (hand.type in this.hands) {
+                    handsAreTracking = true;
                     this.updateHand(hand);
                     this.updatePinching(hand);
-                    handsAreTracking = true;
                 } else {
                     this.createHand(hand);
                 }
@@ -92,14 +99,11 @@ class LeapHandInput {
     /** Update the pinch state of the hands 
      * @param {Hand} hand */
     updatePinching(hand) {
-        //console.log(hand.type);
-        this.hands[hand.type].spheres[0][4].getWorldPosition(this.thumbPos);
-        this.hands[hand.type].spheres[1][4].getWorldPosition(this.indexPos);
-
+        // Check pinching with local fingertip positions
         if (this.hands[hand.type].spheres[0][4].position.distanceToSquared(
             this.hands[hand.type].spheres[1][4].position) < 40 * 40) {
             this.pinchSpheres[hand.type].visible = true;
-            this.pinchSpheres[hand.type].position.copy(this.thumbPos).add(this.indexPos).multiplyScalar(0.5);
+            this.handGroups[hand.type].localToWorld(this.pinchSpheres[hand.type].position.copy(this.pinchSpheres[hand.type].localPinchPos));
         } else {
             this.pinchSpheres[hand.type].visible = false;
         }
@@ -108,6 +112,11 @@ class LeapHandInput {
     /** Create the hand's meshes
      * @param {Hand} hand */
     createHand(hand) {
+        this.handGroups[hand.type] = new THREE.Mesh(new THREE.BoxBufferGeometry(40, 10, 50), new THREE.MeshPhongMaterial());
+        this.handGroups[hand.type].material.color.setRGB(0.2, 0.5, 0.5);
+        this.handGroups[hand.type].name = hand.type + " Hand";
+        this.handParent.add(this.handGroups[hand.type]);
+
         let  boneMeshes = [];
         let jointMeshes = [];
 
@@ -121,7 +130,7 @@ class LeapHandInput {
                 );
             
                 boneMesh.material.color.setHex(0xffffff);
-                this.handParent.add(boneMesh);
+                this.handGroups[hand.type].add(boneMesh);
                 boneMeshesFinger.push(boneMesh);
             });
         
@@ -131,7 +140,7 @@ class LeapHandInput {
                     new THREE.MeshPhongMaterial()
                 );
                 jointMesh.material.color.setHex(0x0088ce);
-                this.handParent.add(jointMesh);
+                this.handGroups[hand.type].add(jointMesh);
                 jointMeshesFinger.push(jointMesh);
             }
 
@@ -146,14 +155,34 @@ class LeapHandInput {
      * @param {Hand} hand */
     updateHand(hand) {
         let models = this.hands[hand.type];
+        let handGroup = this.handGroups[hand.type];
+
+        // Set Hand Palm Position
+        handGroup.position.fromArray(hand.palmPosition);
+
+        // Set Hand Palm Rotation
+        this.palmDirection.fromArray(hand.direction );
+        this.palmNormal   .fromArray(hand.palmNormal);
+        this.vec.set(0, 0, 1);
+        handGroup.quaternion.setFromUnitVectors(this.vec, this.palmDirection);
+        this.vec.set(0, -1, 0).applyQuaternion(handGroup.quaternion);
+        this.quat.setFromUnitVectors(this.vec, this.palmNormal);
+        handGroup.quaternion.premultiply(this.quat);
+        handGroup.updateWorldMatrix(true, true);
+
+        // Create a to-local-space transformation matrix
+        let toLocal = handGroup.matrix.clone().invert();
+
         hand.fingers.forEach((finger, index) => {
             models.cylinders[index].forEach((mesh, i) => {
                 let bone = finger.bones[i];
                 mesh.position.fromArray(bone.center());
-                mesh.setRotationFromMatrix(
-                    (new THREE.Matrix4).fromArray(bone.matrix())
-                );
+                
+                mesh.setRotationFromMatrix((new THREE.Matrix4).fromArray(bone.matrix()));
                 mesh.quaternion.multiply(this.baseBoneRotation);
+
+                // Transforms into the local-space of the hand group
+                mesh.applyMatrix4(toLocal);
             });
 
             models.spheres[index].forEach((mesh, i) => {
@@ -164,6 +193,10 @@ class LeapHandInput {
                     bone = finger.bones[i - 1];
                     mesh.position.fromArray(bone.nextJoint);
                 }
+                mesh.quaternion.identity();
+
+                // Transforms into the local-space of the hand group
+                mesh.applyMatrix4(toLocal);
             });
         });
         this.world.dirty = true;
