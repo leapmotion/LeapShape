@@ -36,6 +36,7 @@ class Cursor {
         this.cursor.add(this.label);
 
         this.vec1 = new THREE.Vector3(); this.vec2 = new THREE.Vector3();
+        this.quat = new THREE.Quaternion();
 
         this.world.scene.add(this.cursor);
     }
@@ -50,7 +51,7 @@ class Cursor {
             this.cursor.position.lerp(this.targetPosition, alpha);
 
             // Make the Cursor Contents Face the Camera
-            this.cursor.quaternion.slerp(this.world.camera.quaternion, alpha);
+            this.cursor.quaternion.slerp(this.world.camera.getWorldQuaternion(this.quat), alpha);
         } else {
             this.cursor.visible = false;
         }
