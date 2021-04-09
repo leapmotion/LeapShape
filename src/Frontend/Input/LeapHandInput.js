@@ -57,6 +57,10 @@ class LeapHandInput {
     update() {
         if (this.controller.lastFrame.id !== this.lastFrameNumber) {
             let handsAreTracking = false;
+            for (let type in this.hands) {
+                this.hands[type].visible = false;
+            }
+
             for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
                 let hand = this.controller.lastFrame.hands[h];
                 if (hand.type in this.hands) {
@@ -87,8 +91,10 @@ class LeapHandInput {
         let handGroup   = this.hands       [hand.type];
 
         // Check pinching with local fingertip positions
-        if (handGroup.joints[0][4].position.distanceTo(
-            handGroup.joints[1][4].position) < 40) {
+        if (handGroup.visible &&
+            handGroup.joints[0][4].position.distanceTo(
+            handGroup.joints[1][4].position) <
+                (pinchSphere.visible ? 40 : 20)) { // Use hysteresis to mitigate spurious pinches
 
             pinchSphere.visible = true;
             pinchSphere.updateWorldMatrix(true, true);
@@ -99,6 +105,7 @@ class LeapHandInput {
 
             // Keep the pinch point within a 10mm sphere in Unscaled World Space
             pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
+            handGroup.getWorldQuaternion(pinchSphere.quaternion);
         } else {
             pinchSphere.visible = false;
         }
@@ -151,6 +158,7 @@ class LeapHandInput {
      * @param {Hand} hand */
     updateHand(hand) {
         let handGroup = this.hands[hand.type];
+        handGroup.visible = true;
 
         // Set Hand Palm Position
         handGroup.position.fromArray(hand.palmPosition);
