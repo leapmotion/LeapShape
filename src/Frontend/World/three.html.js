@@ -14,15 +14,17 @@ class HTMLMesh extends THREE.Mesh {
 		super(geometry, material);
 		
 		this.texture = texture;
+		this.vec = new THREE.Vector3();
 
 	}
 
-	update() {
+	update(world) {
 		this.texture.update();
-		this.scale.set(this.texture.image.width  * 0.4,
-					   this.texture.image.height * 0.4);
-		this.position.set(this.texture.image.width  * 0.2,
-						  this.texture.image.height * 0.2, 0);
+		world.camera.getWorldScale(this.vec);
+		this.scale.set   (this.texture.image.width  * 0.4 * this.vec.x,
+					      this.texture.image.height * 0.4 * this.vec.x);
+		this.position.set(this.texture.image.width  * 0.2 * this.vec.x,
+						  this.texture.image.height * 0.2 * this.vec.x, 0);
 	}
 
 }
