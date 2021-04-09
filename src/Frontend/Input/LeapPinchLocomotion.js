@@ -67,16 +67,13 @@ class LeapPinchLocomotion {
   
         // Transform the root so the (dynamic) cur points match the (stationary) root points
         
-        /** @type {THREE.Vector3} */
         let pivot       = this.rootA.clone().add(this.rootB).multiplyScalar(0.5);
-        /** @type {THREE.Vector3} */
         let translation = pivot.clone().sub(this.curA.clone().add(this.curB).multiplyScalar(0.5));
-        /** @type {THREE.Quaternion} */
-        let rotation = new THREE.Quaternion().setFromUnitVectors(
-            this.curB .clone().sub(this.curA) .normalize(),
-            this.rootB.clone().sub(this.rootA).normalize());
-            //Vector3.Scale(new Vector3(1, horizontalRotation ? 0 : 1.0, 1.0), this.curB  - this. curA),
-            //Vector3.Scale(new Vector3(1, horizontalRotation ? 0 : 1.0, 1.0), this.rootB - this.rootA));
+        
+        let from = this. curB.clone().sub(this. curA).normalize();
+        let to   = this.rootB.clone().sub(this.rootA).normalize();
+        if(this.horizontalRotation) { from.y = 0; to.y = 0; }
+        let rotation = new THREE.Quaternion().setFromUnitVectors(from, to);
 
         let scale = (this.rootA.clone().sub(this.rootB)).length() / 
                     (this.curA .clone().sub(this. curB)).length();
