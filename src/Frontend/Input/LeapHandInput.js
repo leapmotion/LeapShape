@@ -21,9 +21,7 @@ class LeapHandInput {
         this.vec = new THREE.Vector3();
         this.quat = new THREE.Quaternion();
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
-        
-        this.handParentParent = new THREE.Group();
-        this.world.scene.add(this.handParentParent);
+
         this.handParent = new THREE.Group();
         // HMD Mode
         //this.handParent.position.z = -100;
@@ -34,7 +32,7 @@ class LeapHandInput {
         this.handParent.position.y = -300;
         this.handParent.position.z = -400;
         this.handParent.quaternion.setFromEuler(new THREE.Euler(0, 0, 0));
-        this.handParentParent.add(this.handParent);
+        this.world.camera.add(this.handParent);
 
         // Set up Pinch Related Data
         this.pinchSpheres = {};
@@ -57,11 +55,6 @@ class LeapHandInput {
 
     /** Updates visuals and regenerates the input ray */
     update() {
-        // Child the hands to the Camera
-        this.world.camera.getWorldPosition(this.handParentParent.position);
-        this.world.camera.getWorldQuaternion(this.handParentParent.quaternion);
-        this.world.camera.getWorldScale(this.handParentParent.scale);
-        
         if (this.controller.lastFrame.id !== this.lastFrameNumber) {
             let handsAreTracking = false;
             for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
@@ -76,12 +69,8 @@ class LeapHandInput {
                 }
             }
 
-            // Update the Pinch Locomotion and scripted handParentParent parenting...
+            // Update the Pinch Locomotion
             this.locomotion.update();
-            this.world.camera.getWorldPosition  (this.handParentParent.position);
-            this.world.camera.getWorldQuaternion(this.handParentParent.quaternion);
-            this.world.camera.getWorldScale     (this.handParentParent.scale);
-            this.world.camera.parent.updateWorldMatrix(true, true);
 
             this.world.handsAreTracking = handsAreTracking;
             this.lastFrameNumber = this.controller.lastFrame.id;
