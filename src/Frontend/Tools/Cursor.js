@@ -67,7 +67,7 @@ class Cursor {
         if (this.labelElem.innerText !== text) {
             this.labelElem.style.display = "block";
             this.labelElem.innerText = text;
-            this.label.update();
+            this.label.update(world);
             this.labelElem.style.display = "none";
         }
     }
