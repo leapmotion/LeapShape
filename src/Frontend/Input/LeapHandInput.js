@@ -18,8 +18,9 @@ class LeapHandInput {
         this.lastFrameNumber = 0;
         this.palmDirection = new THREE.Vector3();
         this.palmNormal = new THREE.Vector3();
-        this.vec = new THREE.Vector3();
-        this.quat = new THREE.Quaternion();
+        this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3();
+        this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion();
+        this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
         this.handParent = new THREE.Group();
@@ -103,10 +104,13 @@ class LeapHandInput {
         let pinchSphere = this.pinchSpheres[hand.type];
         let handGroup   = this.hands       [hand.type];
 
+        // Read the Index and Thumb Tip positions into vec and vec2
+        handGroup.joints.getMatrixAt(4, this.mat1); this.mat1.decompose(this.vec , this.quat, this.vec3);
+        handGroup.joints.getMatrixAt(9, this.mat1); this.mat1.decompose(this.vec2, this.quat, this.vec3);
+
         // Check pinching with local fingertip positions
         if (handGroup.visible &&
-            handGroup.joints[0][4].position.distanceTo(
-            handGroup.joints[1][4].position) <
+            this.vec.distanceTo(this.vec2) <
                 ((pinchSphere.visible || pinchSphere.invalidPinch) ? 40 : 20)) { // Use hysteresis to mitigate spurious pinches
 
             // If the hand is too young and it starts pinching... that's no good.
@@ -137,41 +141,25 @@ class LeapHandInput {
     createHand(hand) {
         let handGroup     = new THREE.Group();
         handGroup.name    = hand.type + " Hand";
-        handGroup.bones   = [];
-        handGroup.joints  = [];
         handGroup.visible = true;
         handGroup.startMs = performance.now();
         handGroup.age     = 0;
 
-        hand.fingers.forEach((finger) => {
-            let boneMeshesFinger  = [];
-            let jointMeshesFinger = [];
-            finger.bones.forEach((bone) => {
-                let boneMesh = new THREE.Mesh(
-                    new THREE.CylinderBufferGeometry(5, 5, bone.length),
-                    new THREE.MeshPhongMaterial()
-                );
-            
-                boneMesh.material.color.setHex(0xffffff);
-                boneMesh.layers.set(1);
-                handGroup.add(boneMesh);
-                boneMeshesFinger.push(boneMesh);
-            });
-        
-            for (var i = 0; i < finger.bones.length + 1; i++) {
-                let jointMesh = new THREE.Mesh(
-                    new THREE.SphereBufferGeometry(8),
-                    new THREE.MeshPhongMaterial()
-                );
-                jointMesh.material.color.setHex(0x0088ce);
-                jointMesh.layers.set(1);
-                handGroup.add(jointMesh);
-                jointMeshesFinger.push(jointMesh);
-            }
+        handGroup.bones = new THREE.InstancedMesh(
+            new THREE.CylinderBufferGeometry(5, 5, 1),
+            new THREE.MeshPhongMaterial(), 32);
+        //handGroup.bones.castShadow = true;
+        handGroup.bones.layers.set(1);
+        handGroup.add(handGroup.bones);
 
-            handGroup.bones .push( boneMeshesFinger);
-            handGroup.joints.push(jointMeshesFinger);
-        });
+        let jointMat = new THREE.MeshPhongMaterial();
+        jointMat.color = new THREE.Color(0, 0.53, 0.808);
+        handGroup.joints = new THREE.InstancedMesh(
+            new THREE.SphereBufferGeometry(1, 8, 8),
+            jointMat, 32);
+        //handGroup.joints.castShadow = true;
+        handGroup.joints.layers.set(1);
+        handGroup.add(handGroup.joints);
 
         this.handParent.add(handGroup);
         this.hands[hand.type] = handGroup;
@@ -205,32 +193,47 @@ class LeapHandInput {
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();
 
+        let boneIdx = 0, jointIdx = 0;
         hand.fingers.forEach((finger, index) => {
-            handGroup.bones[index].forEach((mesh, i) => {
-                let bone = finger.bones[i];
-                mesh.position.fromArray(bone.center());
-                
-                mesh.setRotationFromMatrix((new THREE.Matrix4).fromArray(bone.matrix()));
-                mesh.quaternion.multiply(this.baseBoneRotation);
+            finger.bones.forEach((bone, i) => {
+                // Sets up this bone's instance matrix
+                this.mat1.fromArray(bone.matrix());
+                this.mat1.decompose(this.vec, this.quat, this.vec2);
+                this.vec2.set(1, bone.length, 1);
+                this.quat.multiply (this.baseBoneRotation);
+                this.mat1.compose  (this.vec.fromArray(bone.center()), this.quat, this.vec2);
 
-                // Transforms into the local-space of the hand group
-                mesh.applyMatrix4(toLocal);
+                // Transforms into the local-space of the hand
+                this.mat1.premultiply(toLocal);
+
+                handGroup.bones.setMatrixAt(boneIdx, this.mat1);
+                boneIdx++;
             });
 
-            handGroup.joints[index].forEach((mesh, i) => {
+            for (let i = 0; i < finger.bones.length + 1; i++) {
                 let bone = finger.bones[i];
                 if (bone) {
-                    mesh.position.fromArray(bone.prevJoint);
+                    this.vec.fromArray(bone.prevJoint);
                 } else {
                     bone = finger.bones[i - 1];
-                    mesh.position.fromArray(bone.nextJoint);
+                    this.vec.fromArray(bone.nextJoint);
                 }
-                mesh.quaternion.identity();
+                this.quat.identity();
+                this.vec2.set(8, 8, 8);
 
                 // Transforms into the local-space of the hand group
-                mesh.applyMatrix4(toLocal);
-            });
+                this.mat1.compose(this.vec, this.quat, this.vec2).premultiply(toLocal);
+
+                handGroup.joints.setMatrixAt(jointIdx, this.mat1);
+                jointIdx++;
+            }
+
         });
+
+        handGroup.bones .count = boneIdx;
+        handGroup.joints.count = jointIdx;
+        handGroup.bones .instanceMatrix.needsUpdate = true;
+        handGroup.joints.instanceMatrix.needsUpdate = true;
 
         handGroup.markForHiding = false;
         this.world.dirty = true;
