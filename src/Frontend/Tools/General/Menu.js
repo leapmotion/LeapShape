@@ -54,7 +54,7 @@ class Menu {
 
         // Define a series of slot objects for the menu items to lerp towards...
         this.slots = [];
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 15; i++) {
             let slot = new THREE.Group();
             slot.name = "Slot #" + i;
             slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -25*6, (-75*6));

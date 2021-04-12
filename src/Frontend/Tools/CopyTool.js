@@ -16,7 +16,7 @@ class CopyTool {
         this.oc = oc; this.shapes = {};
 
         this.state = -1; // -1 is Deactivated
-        this.numCopys = 0;
+        this.numCopies = 0;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -30,14 +30,12 @@ class CopyTool {
     activate() {
         // Get Selected Objects
         this.selected = this.tools.tools[0].selected;
-        if (this.selected.length === 1) {
-            this.selectedShapes = [];
-            for (let i = 0; i < this.selected.length; i++) {
-                this.selectedShapes.push(this.selected[i].shapeName);
-            }
+        this.tools.tools[0].clearSelection();
 
-            this.createCopyGeometry(this.selected, [this.selectedShapes]);
-            this.numCopys += 1;
+        // Copy Each Selected Object Individually
+        for (let i = 0; i < this.selected.length; i++) {
+            this.createCopyGeometry(this.selected[i].shapeName);
+            this.numCopies += 1;
         }
 
         this.deactivate();
@@ -53,17 +51,16 @@ class CopyTool {
     update(ray) { return; }
 
     /** @param {THREE.Mesh[]} copyMeshes */
-    createCopyGeometry(copyMeshes, createCopyArgs) {
-        let shapeName = "Copy #" + this.numCopys;
-        this.engine.execute(shapeName, this.createCopy, createCopyArgs,
+    createCopyGeometry(shapeNameToCopy) {
+        let shapeName = "Copy #" + this.numCopies;
+        this.engine.execute(shapeName, this.createCopy, [shapeNameToCopy],
             (mesh) => {
                 if (mesh) {
                     mesh.name = shapeName;
                     mesh.shapeName = shapeName;
-                    this.tools.tools[0].clearSelection();
                     this.tools.tools[0].toggleSelection(mesh); // Select the copied object
 
-                    // Creation of the Final Composite Copied Object
+                    // Creation of this Copy Object
                     this.world.history.addToUndo(mesh, null, "Copy Object");
                 }
                 this.world.dirty = true;
@@ -71,15 +68,12 @@ class CopyTool {
     }
 
     /** Create a Copy in OpenCascade; to be executed on the Worker Thread */
-    createCopy(copyObjects) {
-        if (copyObjects.length >= 1) {
-            let shape = this.shapes[copyObjects[0]];
-            return shape;
-        }
+    createCopy(copyObjectName) {
+        if (copyObjectName in this.shapes) { return this.shapes[copyObjectName]; }
     }
 
     /** Whether or not to show this tool in the menu */
-    shouldShow() { return this.tools.tools[0].selected.length === 1; }
+    shouldShow() { return this.tools.tools[0].selected.length >= 1; }
 }
 
 export { CopyTool };
