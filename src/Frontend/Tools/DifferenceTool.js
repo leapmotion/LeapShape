@@ -63,11 +63,11 @@ class DifferenceTool {
                     this.tools.tools[0].clearSelection();
 
                     // Creation of the Final Subtracted Difference Object
-                    this.world.history.addToUndo(mesh);
+                    this.world.history.addToUndo(mesh, null, "Subtraction");
 
                     // Individually Undoable Removal of Cutting Tools
                     for (let s = 0; s < differenceMeshes.length; s++){
-                        this.world.history.removeShape(differenceMeshes[s]);
+                        this.world.history.removeShape(differenceMeshes[s], "Tool");
                     }
                 }
                 this.world.dirty = true;

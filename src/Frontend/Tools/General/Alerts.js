@@ -23,22 +23,22 @@ class Alerts {
         this.hitObject = null;
         this.vec1 = new THREE.Vector3(); this.vec2 = new THREE.Vector3();
         this.quat = new THREE.Quaternion();
-        this.fadeTime = 1000;
+        this.fadeTime = 2000;
 
         // Create a Text Updating Label for the General Alert Data
         this.labels = [];
         for (let i = 0; i < 5; i++) {
-            this.label = new HTMLMesh(this.cursor.labelElem);
-            this.label.layers.set(1); // Ignore Raycasts
-            this.alerts.add (this.label);
-            this.labels.push(this.label);
+            let label = new HTMLMesh(this.cursor.labelElem);
+            label.layers.set(1); // Ignore Raycasts
+            this.alerts.add (label);
+            this.labels.push(label);
         }
 
         this.world.scene.add(this.alerts);
     }
 
     update() {
-        if (performance.now() - this.lastTimeTargetUpdated < 100) {
+        if (performance.now() - this.lastTimeTargetUpdated < this.fadeTime) {
             let alpha = this.alerts.visible ? 0.25 : 1.0;
 
             this.alerts.visible = true;
@@ -51,14 +51,14 @@ class Alerts {
 
             // Lerp the Alerts to Stack on top of each other
             for (let i = 0; i < this.labels.length; i++){
-                this.labels[i].position.y =
-                    (this.labels[i].position.y   * 1 - alpha) +
-                    (this.labels[i].targetHeight *     alpha);
-                
-                let age = performance.now() - this.labels[0].lastUpdated;
+                let age = performance.now() - this.labels[i].lastUpdated;
                 if (age < this.fadeTime) {
                     this.labels[i].visible = true;
-                    this.labels[i].material.opacity = (this.fadeTime - age)/this.fadeTime;
+                    this.labels[i].material.opacity = (this.fadeTime - age) / this.fadeTime;
+                    
+                    this.labels[i].position.y =
+                        (this.labels[i].position.y   * (1.0 - 0.25)) +
+                        (this.labels[i].targetHeight * (      0.25));
                 } else {
                     this.labels[i].visible = false;
                 }
@@ -85,7 +85,7 @@ class Alerts {
         }
 
         // Update the target height to stack the labels on top of eachother
-        let curTargetHeight = 0;
+        let curTargetHeight = this.labels[0].canonicalPosition.y;
         for (let i = 0; i < this.labels.length; i++){
             this.labels[i].targetHeight = curTargetHeight;
             curTargetHeight += this.labels[i].scale.y;

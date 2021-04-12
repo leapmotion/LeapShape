@@ -128,10 +128,10 @@ class SphereTool {
                     mesh.name = sphereMesh.name;
                     mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(mesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject, "Sphere CSG");
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(mesh);
+                        this.world.history.addToUndo(mesh, null, "Sphere");
                     }
                 }
 

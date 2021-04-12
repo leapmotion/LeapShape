@@ -148,11 +148,12 @@ class OffsetTool {
 
                     mesh.name = offsetMesh.name;
                     mesh.shapeName = shapeName;
+                    let friendlyName = (createOffsetArgs[1] > 0) ? "Expansion" : "Hollowing";
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(mesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject, friendlyName);
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(mesh);
+                        this.world.history.addToUndo(mesh, null, friendlyName);
                     }
                 }
 

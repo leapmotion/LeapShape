@@ -103,7 +103,7 @@ class History {
     /** Store this item's current state in the Undo Queue 
      * @param {THREE.Object3D} item Object to add into the scene
      * @param {THREE.Object3D} toReplace Object to replace with item */
-    addToUndo(item, toReplace) {
+    addToUndo(item, toReplace, friendlyName) {
         if (toReplace) {
             this.undoObjects.add(toReplace);
             item.name = toReplace.name;
@@ -117,13 +117,18 @@ class History {
 
         this.curState += 1;
         window.history.pushState(this.curState, null, null);
+        if (friendlyName) {
+            this.world.parent.tools.alerts.displayInfo("+ "+friendlyName);
+        } else {
+            this.world.parent.tools.alerts.displayInfo("Action Complete!");
+        }
 
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
     }
 
     /** Removes this shape from the scene */
-    removeShape(item) {
+    removeShape(item, friendlyName) {
         this.undoObjects.add(item);
 
         let removeCommand = new THREE.Group();
@@ -132,6 +137,7 @@ class History {
 
         this.curState += 1;
         window.history.pushState(this.curState, null, null);
+        this.world.parent.tools.alerts.displayInfo("- " + (friendlyName||"Object"));
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
     }

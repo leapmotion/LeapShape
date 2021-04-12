@@ -62,6 +62,7 @@ class Tools {
         }
         this.activeTool.update(ray);
         this.cursor.update();
+        this.alerts.update();
     }
 
 }
