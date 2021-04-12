@@ -2,9 +2,9 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
-import { hasFragmentDepth, createDitherDepthFragmentShader } from "./ToolUtils.js";
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
+import { hasFragmentDepth, createDitherDepthFragmentShader } from "./General/ToolUtils.js";
 
 /** This class controls all of the OffsetTool behavior */
 class OffsetTool {

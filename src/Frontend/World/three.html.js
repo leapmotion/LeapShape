@@ -15,6 +15,7 @@ class HTMLMesh extends THREE.Mesh {
 		
 		this.texture = texture;
 		this.vec = new THREE.Vector3();
+		this.canonicalPosition = new THREE.Vector3();
 
 	}
 
@@ -24,7 +25,8 @@ class HTMLMesh extends THREE.Mesh {
 		this.scale.set   (this.texture.image.width  * 0.4 * this.vec.x,
 					      this.texture.image.height * 0.4 * this.vec.x);
 		this.position.set(this.texture.image.width  * 0.2 * this.vec.x,
-						  this.texture.image.height * 0.2 * this.vec.x, 0);
+			this.texture.image.height * 0.2 * this.vec.x, 0);
+		this.canonicalPosition.copy(this.position);
 	}
 
 }

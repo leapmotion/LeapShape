@@ -1,6 +1,6 @@
-import * as THREE from '../../../node_modules/three/build/three.module.js';
-import { World } from '../World/World.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as THREE from '../../../../node_modules/three/build/three.module.js';
+import { World } from '../../World/World.js';
+import oc from  '../../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 
 /** Returns whether Fragment Depth Buffers Exist on this hardware
  * @param {World} world */

@@ -1,9 +1,10 @@
 import { LeapShapeEngine } from '../../Backend/main.js';
-import { Menu } from './Menu.js';
+import { Menu } from './General/Menu.js';
 import { World } from '../World/World.js';
 
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
+import { Alerts } from './General/Alerts.js';
 
 import { DefaultTool } from './DefaultTool.js';
 import { UnionTool } from './UnionTool.js';
@@ -26,6 +27,7 @@ class Tools {
 
         this.grid = new Grid(this);
         this.cursor = new Cursor(this);
+        this.alerts = new Alerts(this);
 
         this.tools = [
             new DefaultTool   (this),

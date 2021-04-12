@@ -2,7 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './ToolUtils.js';
+import { snapToGrid } from './General/ToolUtils.js';
 
 /** This class controls all of the UnionTool behavior */
 class UnionTool {
