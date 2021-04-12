@@ -9,6 +9,8 @@ import { Alerts } from './General/Alerts.js';
 import { DefaultTool } from './DefaultTool.js';
 import { UnionTool } from './UnionTool.js';
 import { DifferenceTool } from './DifferenceTool.js';
+import { CopyTool } from './CopyTool.js';
+import { RemoveTool } from './RemoveTool.js';
 import { BoxTool } from './BoxTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
@@ -33,6 +35,8 @@ class Tools {
             new DefaultTool   (this),
             new UnionTool     (this),
             new DifferenceTool(this),
+            new CopyTool      (this),
+            new RemoveTool    (this),
             new BoxTool       (this),
             new SphereTool    (this),
             new CylinderTool  (this),

@@ -17,7 +17,7 @@ Use simple gestures with your mouse or hands* to model 3D shapes in your browser
  - Powerful CSG Operations allow for infinite configurability
  - Modify Objects via Movement, Extrusion, Filleting/Chamfering, and Dilation/Hollowing
  - Snapping and Coordinate Previews for Precision Assembly
- - Export Models as .obj, .stl, or .gltf
+ - Export Models as .obj, .stl, .gltf, or .step
  - Clean and Modular ES6 codebase for extreme extensibility
  - **Free and Open Source under the Apache V2 License**
 
