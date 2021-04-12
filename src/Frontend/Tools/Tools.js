@@ -11,6 +11,7 @@ import { UnionTool } from './UnionTool.js';
 import { DifferenceTool } from './DifferenceTool.js';
 import { CopyTool } from './CopyTool.js';
 import { RemoveTool } from './RemoveTool.js';
+import { CleanEdgesTool } from './CleanEdgesTool.js';
 import { BoxTool } from './BoxTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
@@ -37,6 +38,7 @@ class Tools {
             new DifferenceTool(this),
             new CopyTool      (this),
             new RemoveTool    (this),
+            new CleanEdgesTool(this),
             new BoxTool       (this),
             new SphereTool    (this),
             new CylinderTool  (this),
