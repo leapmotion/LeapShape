@@ -36,13 +36,13 @@ class History {
         // Handle Browser Back/Forth Events
         window.onpopstate = (event) => {
             // Check to see if this state comes from the past or future
-            while (typeof event.state.state === "number" && event.state.state < this.curState && (this.undoObjects.children.length > 0)) {
+            while (event.state && typeof event.state.state === "number" && event.state.state < this.curState && (this.undoObjects.children.length > 0)) {
                 this.InternalUndo();
 
                 this.world.parent.tools.alerts.displayInfo("- " + this.curFriendlyName);
                 this.curFriendlyName = event.state.title || "Action";
             }
-            while (typeof event.state.state === "number" && event.state.state > this.curState && (this.redoObjects.children.length > 0)) {
+            while (event.state && typeof event.state.state === "number" && event.state.state > this.curState && (this.redoObjects.children.length > 0)) {
                 this.InternalRedo();
 
                 this.world.parent.tools.alerts.displayInfo("+ " + (event.state.title || "Action"));
