@@ -70,19 +70,17 @@ class Alerts {
     }
 
     displayInfo(text) {
-        if (this.cursor.labelElem.innerText !== text) {
-            // Display HTML Element
-            this.cursor.labelElem.style.display = "block";
-            // Set HTML Element's Text
-            this.cursor.labelElem.innerText = text;
-            // Move end label to the beginning
-            this.labels.splice(0, 0, this.labels.splice(this.labels.length - 1, 1)[0]); 
-            // Render HTML Element's Text to the Mesh
-            this.labels[0].update(world);
-            this.labels[0].lastUpdated = performance.now();
-            // Hide HTML Element
-            this.cursor.labelElem.style.display = "none";
-        }
+        // Display HTML Element
+        this.cursor.labelElem.style.display = "block";
+        // Set HTML Element's Text
+        this.cursor.labelElem.innerText = text;
+        // Move end label to the beginning
+        this.labels.splice(0, 0, this.labels.splice(this.labels.length - 1, 1)[0]); 
+        // Render HTML Element's Text to the Mesh
+        this.labels[0].update(world);
+        this.labels[0].lastUpdated = performance.now();
+        // Hide HTML Element
+        this.cursor.labelElem.style.display = "none";
 
         // Update the target height to stack the labels on top of eachother
         let curTargetHeight = this.labels[0].canonicalPosition.y;

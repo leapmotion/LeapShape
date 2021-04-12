@@ -67,7 +67,7 @@ class DifferenceTool {
 
                     // Individually Undoable Removal of Cutting Tools
                     for (let s = 0; s < differenceMeshes.length; s++){
-                        this.world.history.removeShape(differenceMeshes[s], "Tool");
+                        this.world.history.removeShape(differenceMeshes[s], "Original Shape");
                     }
                 }
                 this.world.dirty = true;

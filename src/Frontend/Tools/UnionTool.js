@@ -67,7 +67,7 @@ class UnionTool {
 
                     // Individually Undoable Removal of Union Constituents
                     for (let s = 0; s < unionMeshes.length; s++){
-                        this.world.history.removeShape(unionMeshes[s], "Tool");
+                        this.world.history.removeShape(unionMeshes[s], "Original Shape");
                     }
                 }
                 this.world.dirty = true;

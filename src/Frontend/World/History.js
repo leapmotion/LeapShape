@@ -19,8 +19,8 @@ class History {
         this.redoObjects  = new THREE.Group();
         this.removeCmd = "Remove-";
 
-        this.curState = 0;
-        window.history.pushState(this.curState, null, null);
+        this.curState = 0; this.curFriendlyName = '';
+        window.history.pushState({ state: this.curState, title: "Cleared!" }, null, null);
 
         this.world.scene.add(this.shapeObjects);
 
@@ -36,12 +36,19 @@ class History {
         // Handle Browser Back/Forth Events
         window.onpopstate = (event) => {
             // Check to see if this state comes from the past or future
-            while (typeof event.state === "number" && event.state < this.curState && (this.undoObjects.children.length > 0)) {
+            while (typeof event.state.state === "number" && event.state.state < this.curState && (this.undoObjects.children.length > 0)) {
                 this.InternalUndo();
+
+                this.world.parent.tools.alerts.displayInfo("- " + this.curFriendlyName);
+                this.curFriendlyName = event.state.title || "Action";
             }
-            while (typeof event.state === "number" && event.state > this.curState && (this.redoObjects.children.length > 0)) {
+            while (typeof event.state.state === "number" && event.state.state > this.curState && (this.redoObjects.children.length > 0)) {
                 this.InternalRedo();
+
+                this.world.parent.tools.alerts.displayInfo("+ " + (event.state.title || "Action"));
+                this.curFriendlyName = event.state.title || "Action";
             }
+
             this.world.dirty = true;
         };
     }
@@ -105,19 +112,27 @@ class History {
      * @param {THREE.Object3D} toReplace Object to replace with item */
     addToUndo(item, toReplace, friendlyName) {
         if (toReplace) {
+            if (friendlyName) { toReplace.friendlyName = friendlyName; }
             this.undoObjects.add(toReplace);
             item.name = toReplace.name;
         }else{
             let removeCommand = new THREE.Group();
             removeCommand.name = this.removeCmd + item.name;
+            if (friendlyName) {
+                removeCommand.friendlyName = friendlyName;
+                item.friendlyName = friendlyName;
+            }
             this.undoObjects.add(removeCommand);
         }
 
         this.shapeObjects.add(item);
 
         this.curState += 1;
-        window.history.pushState(this.curState, null, null);
+        window.history.pushState({ state: this.curState, title: (friendlyName||"Action") }, null, null);
+
         if (friendlyName) {
+            item.friendlyName = friendlyName;
+            this.curFriendlyName = friendlyName;
             this.world.parent.tools.alerts.displayInfo("+ "+friendlyName);
         } else {
             this.world.parent.tools.alerts.displayInfo("Action Complete!");
@@ -136,7 +151,7 @@ class History {
         this.redoObjects.add(removeCommand);
 
         this.curState += 1;
-        window.history.pushState(this.curState, null, null);
+        window.history.pushState({ state: this.curState, title: "Removed " + (friendlyName||"Object") }, null, null);
         this.world.parent.tools.alerts.displayInfo("- " + (friendlyName||"Object"));
         // Clear the redo "history" (it's technically invalid now...)
         this.ClearRedoHistory();
