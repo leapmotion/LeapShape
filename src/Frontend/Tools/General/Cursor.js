@@ -1,5 +1,5 @@
-import * as THREE from '../../../node_modules/three/build/three.module.js';
-import { HTMLMesh } from '../World/three.html.js';
+import * as THREE from '../../../../node_modules/three/build/three.module.js';
+import { HTMLMesh } from '../../World/three.html.js';
 
 /** This is an in-scene helper for measurements and precision placement. */
 class Cursor {
@@ -66,6 +66,7 @@ class Cursor {
     updateLabel(text) {
         if (this.labelElem.innerText !== text) {
             this.labelElem.style.display = "block";
+            this.labelElem.style.color = "black";
             this.labelElem.innerText = text;
             this.label.update(world);
             this.labelElem.style.display = "none";

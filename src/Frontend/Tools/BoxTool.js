@@ -2,8 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
 
 /** This class controls all of the BoxTool behavior */
 class BoxTool {
@@ -205,6 +205,14 @@ class BoxTool {
 
     /** @param {THREE.Mesh} boxMesh */
     createBoxGeometry(boxMesh, createBoxArgs) {
+        // Early Exit if the Box is Trivially Invalid
+        if (createBoxArgs[9] * createBoxArgs[10] * createBoxArgs[11] === 0.0) {
+            this.tools.alerts.displayError("Zero Volume Box is Invalid!");
+            boxMesh.parent.remove(boxMesh);
+            this.world.dirty = true;
+            return;
+        }
+
         let shapeName = "Box #" + this.numBoxs;
         this.engine.execute(shapeName, this.createBox, createBoxArgs,
             (mesh) => {
@@ -212,10 +220,10 @@ class BoxTool {
                     mesh.name = boxMesh.name;
                     mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(mesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject, "Box Extrusion");
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(mesh);
+                        this.world.history.addToUndo(mesh, null, "Box");
                     }
                 }
 

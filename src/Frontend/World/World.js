@@ -5,7 +5,7 @@ import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButto
 import { History } from "./History.js";
 import { InteractionRay } from "../Input/Input.js";
 import { LeapShapeRenderer } from "../main.js";
-import { createDitherDepthMaterial } from '../Tools/ToolUtils.js';
+import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {

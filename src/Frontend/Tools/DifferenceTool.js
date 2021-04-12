@@ -2,7 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './ToolUtils.js';
+import { snapToGrid } from './General/ToolUtils.js';
 
 /** This class controls all of the DifferenceTool behavior */
 class DifferenceTool {
@@ -63,11 +63,11 @@ class DifferenceTool {
                     this.tools.tools[0].clearSelection();
 
                     // Creation of the Final Subtracted Difference Object
-                    this.world.history.addToUndo(mesh);
+                    this.world.history.addToUndo(mesh, null, "Subtraction");
 
                     // Individually Undoable Removal of Cutting Tools
                     for (let s = 0; s < differenceMeshes.length; s++){
-                        this.world.history.removeShape(differenceMeshes[s]);
+                        this.world.history.removeShape(differenceMeshes[s], "Original Shape");
                     }
                 }
                 this.world.dirty = true;

@@ -1,13 +1,16 @@
 import { LeapShapeEngine } from '../../Backend/main.js';
-import { Menu } from './Menu.js';
+import { Menu } from './General/Menu.js';
 import { World } from '../World/World.js';
 
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
+import { Alerts } from './General/Alerts.js';
 
 import { DefaultTool } from './DefaultTool.js';
 import { UnionTool } from './UnionTool.js';
 import { DifferenceTool } from './DifferenceTool.js';
+import { CopyTool } from './CopyTool.js';
+import { RemoveTool } from './RemoveTool.js';
 import { BoxTool } from './BoxTool.js';
 import { SphereTool } from './SphereTool.js';
 import { CylinderTool } from './CylinderTool.js';
@@ -26,11 +29,14 @@ class Tools {
 
         this.grid = new Grid(this);
         this.cursor = new Cursor(this);
+        this.alerts = new Alerts(this);
 
         this.tools = [
             new DefaultTool   (this),
             new UnionTool     (this),
             new DifferenceTool(this),
+            new CopyTool      (this),
+            new RemoveTool    (this),
             new BoxTool       (this),
             new SphereTool    (this),
             new CylinderTool  (this),
@@ -60,6 +66,7 @@ class Tools {
         }
         this.activeTool.update(ray);
         this.cursor.update();
+        this.alerts.update();
     }
 
 }

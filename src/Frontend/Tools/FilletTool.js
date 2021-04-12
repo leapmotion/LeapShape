@@ -133,7 +133,7 @@ class FilletTool {
                 if (mesh) {
                     mesh.shapeName = shapeName;
                     mesh.name = originalMesh.name;
-                    this.world.history.addToUndo(mesh, originalMesh);
+                    this.world.history.addToUndo(mesh, originalMesh, "Fillet");
                 }
                 this.world.dirty = true;
             });

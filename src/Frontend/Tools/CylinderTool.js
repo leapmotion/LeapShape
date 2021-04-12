@@ -2,8 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
 
 /** This class controls all of the CylinderTool behavior */
 class CylinderTool {
@@ -182,10 +182,10 @@ class CylinderTool {
                     mesh.name = cylinderMesh.name;
                     mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(mesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject, "Cylinder Extrusion");
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(mesh);
+                        this.world.history.addToUndo(mesh, null, "Cylinder");
                     }
                 }
 

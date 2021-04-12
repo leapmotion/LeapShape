@@ -1,6 +1,6 @@
-import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
-import { safeQuerySurface, snapToGrid } from '../Tools/ToolUtils.js';
+import * as THREE from '../../../../node_modules/three/build/three.module.js';
+import oc from '../../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import { safeQuerySurface, snapToGrid } from './ToolUtils.js';
 
 /** This is an in-scene helper for measurements and precision placement. */
 class Grid {

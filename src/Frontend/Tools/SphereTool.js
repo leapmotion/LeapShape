@@ -2,8 +2,8 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { Grid } from './Grid.js';
-import { Cursor } from './Cursor.js';
+import { Grid } from './General/Grid.js';
+import { Cursor } from './General/Cursor.js';
 
 /** This class controls all of the SphereTool behavior */
 class SphereTool {
@@ -121,6 +121,14 @@ class SphereTool {
 
     /** @param {THREE.Mesh} sphereMesh */
     createSphereGeometry(sphereMesh, createSphereArgs) {
+        // Early Exit if the Sphere is Trivially Invalid
+        if (createSphereArgs[3] === 0.0) {
+            this.tools.alerts.displayError("Zero Volume Sphere is Invalid!");
+            sphereMesh.parent.remove(sphereMesh);
+            this.world.dirty = true;
+            return;
+        }
+
         let shapeName = "Sphere #" + this.numSpheres;
         this.engine.execute(shapeName, this.createSphere, createSphereArgs,
             (mesh) => {
@@ -128,10 +136,10 @@ class SphereTool {
                     mesh.name = sphereMesh.name;
                     mesh.shapeName = shapeName;
                     if (this.hitObject.name.includes("#")) {
-                        this.world.history.addToUndo(mesh, this.hitObject);
+                        this.world.history.addToUndo(mesh, this.hitObject, "Sphere CSG");
                         this.hitObject = null;
                     } else {
-                        this.world.history.addToUndo(mesh);
+                        this.world.history.addToUndo(mesh, null, "Sphere");
                     }
                 }
 
@@ -142,7 +150,6 @@ class SphereTool {
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius, hitObjectName) {
-        if (radius === 0) { radius = 1.0; }
         if (radius != 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
             let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, Math.abs(radius)).Shape();

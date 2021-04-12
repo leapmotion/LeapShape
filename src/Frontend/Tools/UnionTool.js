@@ -2,7 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './ToolUtils.js';
+import { snapToGrid } from './General/ToolUtils.js';
 
 /** This class controls all of the UnionTool behavior */
 class UnionTool {
@@ -63,11 +63,11 @@ class UnionTool {
                     this.tools.tools[0].clearSelection();
 
                     // Creation of the Final Composite Unioned Object
-                    this.world.history.addToUndo(mesh);
+                    this.world.history.addToUndo(mesh, null, "Union Object");
 
                     // Individually Undoable Removal of Union Constituents
                     for (let s = 0; s < unionMeshes.length; s++){
-                        this.world.history.removeShape(unionMeshes[s]);
+                        this.world.history.removeShape(unionMeshes[s], "Original Shape");
                     }
                 }
                 this.world.dirty = true;

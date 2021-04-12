@@ -1,6 +1,7 @@
 import { LeapShapeEngine } from '../../Backend/main.js';
 import { World } from './World.js';
 import * as THREE from '../../../node_modules/three/build/three.module.js';
+import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { OBJExporter } from '../../../node_modules/three/examples/jsm/exporters/OBJExporter.js';
 import { STLExporter } from '../../../node_modules/three/examples/jsm/exporters/STLExporter.js';
 import { GLTFExporter } from '../../../node_modules/three/examples/jsm/exporters/GLTFExporter.js';
@@ -16,6 +17,7 @@ class FileIO {
         // Store a reference to the CAD Engine and World
         this.engine = engine;
         this.world = world;
+        this.oc = oc;
 
         // Record browser metadata...
         this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
@@ -27,7 +29,8 @@ class FileIO {
             this.arLink = this.createNavLink("AR Preview", this.launchARiOS);
         } else {
             this.createNavLink("Export to .obj" , this.saveShapesOBJ );
-            this.createNavLink("Export to .stl" , this.saveShapesSTL );
+            this.createNavLink("Export to .stl", this.saveShapesSTL);
+            this.createNavLink("Export to .step" , this.saveShapesSTEP );
         }
 
         window.addEventListener("keydown", event => {
@@ -127,6 +130,51 @@ class FileIO {
         // Scale back to 1:1 for Editing
         this.objectToSave().scale.set(1.0, 1.0, 1.0);
         this.objectToSave().updateWorldMatrix(true, true);
+    }
+
+    /**  Save the current scene or shape */
+    async saveShapesSTEP() {
+        let toSave = this.objectToSave(); let shapeNames = [];
+        if (toSave.shapeName) {
+            shapeNames.push(toSave.shapeName);
+        } else {
+            for (let i = 0; i < toSave.children.length; i++){
+                shapeNames.push(toSave.children[i].shapeName);
+            }
+        }
+
+        this.engine.execute("SaveSTEP", this.saveShapeSTEPBackend, [shapeNames], (metadata) => {
+            if (metadata && metadata.stepFileText) {
+                this.writeFile(metadata.stepFileText, "step", "application/STEP", "STEP files").then(() => {
+                    console.log("Saved STEP");
+                });
+            } else {
+                console.error("Returned metadata does not contain the STEP File!");
+            }
+        });
+    }
+
+    /** This function returns the `.STEP` file content of the shapeNames array.  */
+    saveShapeSTEPBackend(shapeNames) {
+        let toReturn = { isMetadata: true };
+        let writer = new this.oc.STEPControl_Writer();
+        let filename = "LeapShapePart - "+Math.random()+".step";
+        // Convert to a .STEP File
+        let transferResult = writer.Transfer(this.shapes[shapeNames[0]], 0);
+        if (transferResult === 1) {
+            // Write the STEP File to the virtual Emscripten Filesystem Temporarily
+            let writeResult = writer.Write(filename);
+            if (writeResult === 1) {
+                // Read the STEP File from the filesystem and clean up
+                toReturn.stepFileText = this.oc.FS.readFile("/" + filename, { encoding: "utf8" });
+                this.oc.FS.unlink("/" + filename);
+            }else{
+                console.error("WRITE STEP FILE FAILED.");
+            }
+        }else{
+            console.error("TRANSFER TO STEP WRITER FAILED.");
+        }
+        return toReturn;
     }
 }
 

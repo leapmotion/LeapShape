@@ -28,7 +28,7 @@ class LeapShapeRenderer {
         // Create the menu system, which is populated from the List of Tools
         this.tools = new Tools(this.world, engine);
 
-        this.debug = new Debug(engine); // Print Errors to screen for iOS Debugging
+        this.debug = new Debug(this.world, engine); // Print Errors to screen for iOS Debugging
     }
 
     update() {

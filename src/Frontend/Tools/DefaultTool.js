@@ -140,7 +140,7 @@ class DefaultTool {
                 if (mesh) {
                     mesh.shapeName = shapeName;
                     mesh.name = originalMesh.name;
-                    this.world.history.addToUndo(mesh, originalMesh);
+                    this.world.history.addToUndo(mesh, originalMesh, "Movement");
                     this.clearSelection(originalMesh);
                     this.toggleSelection(mesh);
                 }
