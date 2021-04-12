@@ -141,11 +141,11 @@ class OffsetTool {
         let shapeName = "Offset " + offsetMesh.shapeName;
         this.engine.execute(shapeName, this.createOffset, createOffsetArgs,
             (mesh) => {
-                if (mesh) {
-                    if (this.currentOffset) {
-                        this.world.scene.remove(this.currentOffset);
-                    }
+                if (this.currentOffset) {
+                    this.world.scene.remove(this.currentOffset);
+                }
 
+                if (mesh) {
                     mesh.name = offsetMesh.name;
                     mesh.shapeName = shapeName;
                     let friendlyName = (createOffsetArgs[1] > 0) ? "Expansion" : "Hollowing";
@@ -184,7 +184,7 @@ class OffsetTool {
     /** Create a Offset in OpenCascade; to be executed on the Worker Thread */
     createOffset(hitObjectName, offsetDistance) {
         let inShape = this.shapes[hitObjectName];
-        if (offsetDistance === 0) { return inShape; }
+        //if (offsetDistance === 0) { return inShape; }
         if (offsetDistance !== 0) {
             let offsetOp = new this.oc.BRepOffsetAPI_MakeOffsetShape();
             offsetOp.PerformByJoin(inShape, offsetDistance, 0.00001);

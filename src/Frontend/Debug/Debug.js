@@ -5,17 +5,17 @@ class Debug {
 
     /** Reroute Console Errors to the Main Screen (for mobile) 
      * @param {LeapShapeEngine} engine */
-    constructor(engine) {
+    constructor(world, engine) {
+        this.world = world;
+
         // Route Worker Errors Here
         engine.registerCallback("error", this.fakeError.bind(this));
 
         // Intercept Main Window Errors as well
         window.realConsoleError = console.error;
-        window.addEventListener('error', function (event) {
-            let errorNode = window.document.createElement("div");
+        window.addEventListener('error', (event) => {
             let path = event.filename.split("/");
-            errorNode.innerHTML = (path[path.length-1] + ":"+ event.lineno + " - " + event.message).fontcolor("red");
-            window.document.getElementById("info").appendChild(errorNode);
+            this.display((path[path.length - 1] + ":" + event.lineno + " - " + event.message));
         });
         console.error = this.fakeError.bind(this);
         
@@ -26,12 +26,17 @@ class Debug {
 
     // Log Errors as <div>s over the main viewport
     fakeError(...args) {
-        if (args.length > 0 && args[0]) {
+        if (args.length > 0 && args[0]) { this.display(JSON.stringify(args[0])); }
+        window.realConsoleError.apply(console, arguments);
+    }
+
+    display(text) {
+        this.world.parent.tools.alerts.displayError(text);
+        if (this.mobile) {
             let errorNode = window.document.createElement("div");
-            errorNode.innerHTML = JSON.stringify(args[0]).fontcolor("red");
+            errorNode.innerHTML = text.fontcolor("red");
             window.document.getElementById("info").appendChild(errorNode);
         }
-        window.realConsoleError.apply(console, arguments);
     }
 
 }

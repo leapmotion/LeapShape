@@ -205,6 +205,14 @@ class BoxTool {
 
     /** @param {THREE.Mesh} boxMesh */
     createBoxGeometry(boxMesh, createBoxArgs) {
+        // Early Exit if the Box is Trivially Invalid
+        if (createBoxArgs[9] * createBoxArgs[10] * createBoxArgs[11] === 0.0) {
+            this.tools.alerts.displayError("Zero Volume Box is Invalid!");
+            boxMesh.parent.remove(boxMesh);
+            this.world.dirty = true;
+            return;
+        }
+
         let shapeName = "Box #" + this.numBoxs;
         this.engine.execute(shapeName, this.createBox, createBoxArgs,
             (mesh) => {

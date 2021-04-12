@@ -121,6 +121,14 @@ class SphereTool {
 
     /** @param {THREE.Mesh} sphereMesh */
     createSphereGeometry(sphereMesh, createSphereArgs) {
+        // Early Exit if the Sphere is Trivially Invalid
+        if (createSphereArgs[3] === 0.0) {
+            this.tools.alerts.displayError("Zero Volume Sphere is Invalid!");
+            sphereMesh.parent.remove(sphereMesh);
+            this.world.dirty = true;
+            return;
+        }
+
         let shapeName = "Sphere #" + this.numSpheres;
         this.engine.execute(shapeName, this.createSphere, createSphereArgs,
             (mesh) => {
@@ -142,7 +150,6 @@ class SphereTool {
 
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius, hitObjectName) {
-        if (radius === 0) { radius = 1.0; }
         if (radius != 0) {
             let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
             let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, Math.abs(radius)).Shape();

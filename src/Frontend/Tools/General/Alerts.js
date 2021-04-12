@@ -23,7 +23,7 @@ class Alerts {
         this.hitObject = null;
         this.vec1 = new THREE.Vector3(); this.vec2 = new THREE.Vector3();
         this.quat = new THREE.Quaternion();
-        this.fadeTime = 2000;
+        this.fadeTime = 5000;
 
         // Create a Text Updating Label for the General Alert Data
         this.labels = [];
@@ -52,9 +52,9 @@ class Alerts {
             // Lerp the Alerts to Stack on top of each other
             for (let i = 0; i < this.labels.length; i++){
                 let age = performance.now() - this.labels[i].lastUpdated;
-                if (age < this.fadeTime) {
+                if (age < this.labels[i].displayTime) {
                     this.labels[i].visible = true;
-                    this.labels[i].material.opacity = (this.fadeTime - age) / this.fadeTime;
+                    this.labels[i].material.opacity = (this.labels[i].displayTime - age) / this.labels[i].displayTime;
                     
                     this.labels[i].position.y =
                         (this.labels[i].position.y   * (1.0 - 0.25)) +
@@ -69,16 +69,18 @@ class Alerts {
         }
     }
 
-    displayInfo(text) {
+    displayInfo(text, colorName, time) {
         // Display HTML Element
         this.cursor.labelElem.style.display = "block";
         // Set HTML Element's Text
         this.cursor.labelElem.innerText = text;
+        this.cursor.labelElem.style.color = colorName||"black";
         // Move end label to the beginning
         this.labels.splice(0, 0, this.labels.splice(this.labels.length - 1, 1)[0]); 
         // Render HTML Element's Text to the Mesh
         this.labels[0].update(world);
         this.labels[0].lastUpdated = performance.now();
+        this.labels[0].displayTime = time||2000;
         // Hide HTML Element
         this.cursor.labelElem.style.display = "none";
 
@@ -90,6 +92,10 @@ class Alerts {
         }
 
         this.lastTimeTargetUpdated = performance.now();
+    }
+
+    displayError(text) {
+        this.displayInfo(text, "red", 5000);
     }
 }
 

@@ -66,6 +66,7 @@ class Cursor {
     updateLabel(text) {
         if (this.labelElem.innerText !== text) {
             this.labelElem.style.display = "block";
+            this.labelElem.style.color = "black";
             this.labelElem.innerText = text;
             this.label.update(world);
             this.labelElem.style.display = "none";
