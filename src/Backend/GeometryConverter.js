@@ -34,6 +34,7 @@ export default function ConvertGeometry(meshData) {
         faceMeta.is_planar = face.is_planar;
         faceMeta.average = face.average;
         faceMeta.normal = [face.normal_coord[0], face.normal_coord[1], face.normal_coord[2]];
+        faceMeta.uvBounds = [face.UMin, face.UMax, face.VMin, face.VMax];
         faceMetaData.push(faceMeta);
     });
 

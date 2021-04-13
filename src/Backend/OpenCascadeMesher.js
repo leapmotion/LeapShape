@@ -88,7 +88,9 @@ class OpenCascadeMesher {
                     number_of_triangles: 0,
                     face_index: faceIndex,
                     is_planar: false,
-                    average: [0, 0, 0]
+                    average: [0, 0, 0],
+                    UMin: 0, UMax: 0,
+                    VMin: 0, VMax: 0
                 };
     
                 if (!this.pc) { this.pc = new this.oc.Poly_Connect(myT); } else { this.pc.Load(myT); }
@@ -128,7 +130,11 @@ class OpenCascadeMesher {
                         if (x < UMin) { UMin = x; } else if (x > UMax) { UMax = x; }
                         if (y < VMin) { VMin = y; } else if (y > VMax) { VMax = y; }
                     }
-    
+
+                    // Save the OCCT UV Bounds because they're impossible to get elsewise
+                    this_face.UMin = UMin; this_face.UMax = UMax;
+                    this_face.VMin = VMin; this_face.VMax = VMax;
+
                     // Compute the Arclengths of the Isoparametric Curves of the face
                     let surfaceHandle = this.oc.BRep_Tool.prototype.Surface(myFace);
                     let surface = surfaceHandle.get();

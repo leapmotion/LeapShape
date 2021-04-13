@@ -100,7 +100,6 @@ class LeapPinchLocomotion {
             object.scale.multiplyScalar(scale);
           }
         }
-        
 
     }
 

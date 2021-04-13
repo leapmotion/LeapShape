@@ -191,6 +191,9 @@ class SphereTool {
         this.tools.grid.setVisible(false);
     }
 
+    /** Whether or not to show this tool in the menu 
+     * Only Show when no objects are selected */
+    shouldShow() { return this.tools.tools[0].selected.length == 0; }
 }
 
 export { SphereTool };
