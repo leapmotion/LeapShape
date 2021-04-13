@@ -16,6 +16,7 @@ class Grid {
         this.vec1 = new THREE.Vector3();
         this.vec2 = new THREE.Vector3();
         this.normal = new THREE.Vector3();
+        this.color = new THREE.Color();
         this.needsUpdate = true;
         this.updateCount = 0;
 
@@ -32,7 +33,7 @@ class Grid {
         //this.space.add(this.gridMesh);
 
         this.sphereGeometry = new THREE.SphereBufferGeometry(1, 5, 5);
-        this.gridSpheres = new THREE.InstancedMesh(this.sphereGeometry, new THREE.MeshStandardMaterial(), this.gridCells * (this.gridCells + 3));
+        this.gridSpheres = new THREE.InstancedMesh(this.sphereGeometry, new THREE.MeshBasicMaterial(), this.gridCells * (this.gridCells + 3) + 10);
         this.gridSpheres.castShadow = true;
         this.gridSpheres.layers.set(1);
         this.radius = 2; this.mat = new THREE.Matrix4(); this.gridCenter = new THREE.Vector3(); this.tempVec = new THREE.Vector3();
@@ -46,6 +47,15 @@ class Grid {
 
     updateWithHit(raycastHit) {
         if (raycastHit.object.shapeName) {
+            // Append the UV Bounds to the query since they're impossible to get in the query
+            let index = raycastHit.faceIndex;
+            for (let i = 0; i < raycastHit.object.faceMetadata.length; i++){
+                let curFace = raycastHit.object.faceMetadata[i];
+                if (curFace.start <= index && index < curFace.end) {
+                    raycastHit.uvBounds = curFace.uvBounds; break;
+                }
+            }
+
             safeQuerySurface(this.world.parent.engine, raycastHit, (queryResult) => {
                 this.updateWithQuery(queryResult);
             });
@@ -75,7 +85,8 @@ class Grid {
         if (this.queryResult.hasOwnProperty("nX")) {
             if (this.queryResult.faceType == 0) {
                 // If face is a plane, set the origin to the plane origin
-                this.space.position.set(this.queryResult.midX, this.queryResult.midY, this.queryResult.midZ);
+                let origin = this.queryResult.grid[this.queryResult.grid.length - 1];
+                this.space.position.set(origin[0], origin[1], origin[2]);
             } else {
                 // If face is curved, set the origin to the current point on the curve
                 this.space.position.set(this.queryResult.x, this.queryResult.y, this.queryResult.z);
@@ -86,14 +97,14 @@ class Grid {
             this.space.quaternion.setFromUnitVectors(this.vec1, this.normal);
 
             // Set the dot center
-            this.updateGridVisual(this.tempVec.set(this.queryResult.x, this.queryResult.y, this.queryResult.z));
+            this.updateGridVisual(this.tempVec.set(this.queryResult.x, this.queryResult.y, this.queryResult.z), this.queryResult.grid);
 
             this.needsUpdate = false;
             this.updateCount += 1;
         }
     }
 
-    updateGridVisual(worldCenter) {
+    updateGridVisual(worldCenter, grid) {
         this.space.updateWorldMatrix(true, true);
         this.gridSpheres.position.copy(this.space.worldToLocal(this.snapToGrid(worldCenter.clone())));
         this.gridSpheres.updateWorldMatrix(true, true);
@@ -112,7 +123,19 @@ class Grid {
                 this.mat.makeRotationFromQuaternion(this.rot)
                     .scale(this.scale.set(this.radius, this.radius, this.radius)).setPosition(this.pos);
                 this.gridSpheres.setMatrixAt(i, this.mat);
-                //this.gridSpheres.setColorAt (i, temp_color.setRGB(color[0], color[1], color[2]));
+                this.gridSpheres.setColorAt (i, this.color.setRGB(0.7, 0.7, 0.7));
+                i++;
+            }
+        }
+
+        if (grid) {
+            for (let g = 0; g < grid.length; g++) {
+                this.pos.set(grid[g][0], grid[g][1], grid[g][2]);
+                this.gridSpheres.worldToLocal(this.pos);
+                this.mat.makeRotationFromQuaternion(this.rot)
+                    .scale(this.scale.set(2.5, 2.5, 2.5)).setPosition(this.pos);
+                this.gridSpheres.setMatrixAt(i, this.mat);
+                this.gridSpheres.setColorAt (i, this.color.setRGB(0.0, 1.0, 1.0));
                 i++;
             }
         }

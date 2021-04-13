@@ -87,7 +87,8 @@ export function querySurface(engine, raycastHit, callback) {
 
     let queryArgs = [raycastHit.object.shapeName, faceID,
                         raycastHit.uv2.x, raycastHit.uv2.y,
-                        raycastHit.point.x, raycastHit.point.y, raycastHit.point.z];
+                        raycastHit.point.x, raycastHit.point.y, raycastHit.point.z,
+                        raycastHit.uvBounds];
 
     // Query the CAD Engine Thread for Info
     engine.execute("SurfaceQuery", BackendFunctions.querySurfaceBackend, queryArgs, callback);
@@ -106,7 +107,7 @@ class BackendFunctions {
 
     /** This function is called in the backend and returns information about the surface.
      * @param {string} shapeName @param {number} faceIndex @param {number} u @param {number} v */
-    static querySurfaceBackend(shapeName, faceIndex, u, v, x, y, z) {
+    static querySurfaceBackend(shapeName, faceIndex, u, v, x, y, z, uvBounds) {
         if (false) { this.oc = oc; } // This fools the intellisense into working
 
         let toReturn = { isMetadata: true };
@@ -130,6 +131,7 @@ class BackendFunctions {
             // Cache the Adapter Surface in surfaces
             this.surfaces[faceName] = new this.oc.BRepAdaptor_Surface(face, false);
         }
+        /** @type {oc.BRepAdaptor_Surface} */
         let adapter = this.surfaces[faceName];
 
         // Get the true implicit point
@@ -141,11 +143,32 @@ class BackendFunctions {
         toReturn.faceType = adapter.GetType(); // https://dev.opencascade.org/doc/occt-7.4.0/refman/html/_geom_abs___surface_type_8hxx.html
 
         // Get the point in the middle of the face if it's flat
-        let UMiddle = (adapter.LastUParameter() + adapter.FirstUParameter()) * 0.5;
-        let VMiddle = (adapter.LastVParameter() + adapter.FirstVParameter()) * 0.5;
-        let Middle  = adapter.Value(UMiddle, VMiddle);
-        toReturn.midX = Middle.X(); toReturn.midY = Middle.Y(); toReturn.midZ = Middle.Z();
-        this.oc._free(Middle);
+        let UMin = 0.0, UMax = 0.0;
+        let VMin = 0.0, VMax = 0.0;
+        if (uvBounds) {
+            UMin = uvBounds[0]; UMax = uvBounds[1];
+            VMin = uvBounds[2]; VMax = uvBounds[3];
+        }
+        let UMid = (UMax + UMin) * 0.5, VMid = (VMax + VMin) * 0.5;
+        let UMinMidMax = [UMin, UMid, UMax];
+        let VMinMidMax = [VMin, VMid, VMax];
+        let grid = [], uvs = [];
+        for (let u = 0; u < 3; u++){
+            for (let v = 0; v < 3; v++){
+                uvs.push([UMinMidMax[u], VMinMidMax[v]]);
+                let pnt = adapter.Value(UMinMidMax[u], VMinMidMax[v]);
+                grid.push([pnt.X(), pnt.Y(), pnt.Z()]);
+                this.oc._free(pnt);
+            }
+        }
+
+        // Add the UV origin at the end for good measure
+        let pnt = adapter.Value(0, 0);
+        grid.push([pnt.X(), pnt.Y(), pnt.Z()]);
+        this.oc._free(pnt);
+
+        toReturn.grid = grid;
+        toReturn.uvs = uvs;
 
         // Get Surface Normal, Tangent, and Curvature Info
         let surfaceHandle = this.oc.BRep_Tool.prototype.Surface(this.surfaces[faceName].Face());
