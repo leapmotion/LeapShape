@@ -26,6 +26,13 @@ class World {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
         this.scene.fog = new THREE.Fog(0xffffff, 500, 1300);
+        this.scene.onBeforeRender = function(renderer, scene, camera) {
+            if (camera.cameras && camera.cameras.length) {
+                for (let i = 0; i < camera.cameras.length; i++) {
+                    camera.cameras[i].layers.enableAll();
+                }
+            }
+        }
 
         this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
         this.camera.position.set( 100, 200, 300 );
@@ -138,8 +145,9 @@ class World {
             this.lastTimeInteractedWith = performance.now();
         }
 
-        // If the scene is dirty, or it's been a while...
-        if (performance.now() - this.lastTimeInteractedWith < 2000) {
+        // If the scene is dirty, it's been a while, or we're in VR...
+        if (performance.now() - this.lastTimeInteractedWith < 2000 ||
+            (this.renderer.xr && this.renderer.xr.enabled)) {
             // Manage Camera Control Schemes
             let cameraControl = !ray.alreadyActivated;
             if (this.handsAreTracking) {
