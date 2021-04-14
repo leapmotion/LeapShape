@@ -6,6 +6,7 @@ import { History } from "./History.js";
 import { InteractionRay } from "../Input/Input.js";
 import { LeapShapeRenderer } from "../main.js";
 import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
+import { LeapPinchLocomotion } from '../Input/LeapPinchLocomotion.js';
 
 /** The fundamental set up and animation structures for 3D Visualization */
 class World {
@@ -84,6 +85,9 @@ class World {
         window.addEventListener('resize', this._onWindowResize.bind(this), false);
         window.addEventListener('orientationchange', this._onWindowResize.bind(this), false);
         this._onWindowResize();
+
+        // pinch controls (initialize at runtime; see LeapHandInput.js)
+        this.leftPinch = null, this.rightPinch = null, this.locomotion = null;
         
         // raycaster
         this.raycaster = new THREE.Raycaster();
@@ -121,7 +125,7 @@ class World {
         this.noDepthPreviewMaterial = this.selectedMaterial.clone();
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
-            color: 0xffffff, linewidth: 1.5, vertexColors: true });
+            color: 0xffffff, linewidth: 1.5, vertexColors: true  });
         this.selectedLineMaterial = new THREE.LineBasicMaterial({
             color: 0x00ffff, linewidth: 1.5, vertexColors: false });
     }
@@ -133,31 +137,29 @@ class World {
         if (ray.active || this.dirty) {
             this.lastTimeInteractedWith = performance.now();
         }
+
+        // If the scene is dirty, or it's been a while...
         if (performance.now() - this.lastTimeInteractedWith < 2000) {
-            this.controls.enabled = !ray.alreadyActivated && !this.handsAreTracking;
+            // Manage Camera Control Schemes
+            let cameraControl = !ray.alreadyActivated;
+            if (this.handsAreTracking) {
+                if (!this.locomotion) { this.locomotion = new LeapPinchLocomotion(this, this.leftPinch, this.rightPinch); }
+                if (cameraControl) { this.locomotion.update(); }
+            }
+            this.controls.enabled = cameraControl && !this.handsAreTracking;
             if (this.controls.enabled) { this.controls.update(); }
+
+            // Render the scene
             this.renderer.render(this.scene, this.camera);
             this.dirty = false;
             //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
-            this.lastTimeInteractedWith += 1020; // Update once per second...
+            this.lastTimeInteractedWith += 1020; // Otherwise Update once per ~second...
         }
-
-        // Just activaterd, cast a ray from the center of the camera and set the center there...
-        // This could be annoying...
-        //if (!ray.alreadyActivated && ray.justActivated) {
-        //    this.raycaster.ray.origin.copy(this.camera.position);
-        //    this.camera.getWorldDirection(this.raycaster.ray.direction);
-        //    let intersections = this.raycaster.intersectObjects([this.scene], true);
-        //    if (intersections.length > 0) {
-        //        this.controls.target.copy(intersections[0].point);
-        //    }
-        //}
 
     }
 
-    /** **INTERNAL**: This function recalculates the viewport 
-     * based on the new window size. */
+    /** **INTERNAL**: This function recalculates the viewport based on the new window size. */
     _onWindowResize() {
         let rect = this.container.getBoundingClientRect();
         let width = rect.width, height = window.innerHeight - rect.y;

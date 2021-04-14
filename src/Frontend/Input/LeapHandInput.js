@@ -1,17 +1,14 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import "../../../node_modules/leapjs/leap-1.1.0.js";
 import { World } from '../World/World.js';
-import { LeapPinchLocomotion } from './LeapPinchLocomotion.js';
+import { InteractionRay } from './Input.js';
 
-/**
- * This is the Leap Hand Tracking-based Input
- */
+/** This is the Leap Hand Tracking-based Input */
 class LeapHandInput {
     /** Initialize Mouse Capture
      * @param {World} world */
     constructor(world) {
         this.world = world;
-        this.ray = null;
         this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
 
         this.hands = {};
@@ -49,9 +46,15 @@ class LeapHandInput {
         this.pinchSpheres['right'].visible = false;
         this.pinchSpheres['right'].localPinchPos = new THREE.Vector3(32, -50, 20);
         this.pinchSpheres['right'].layers.set(1);
+        this.world.leftPinch  = this.pinchSpheres['left' ];
+        this.world.rightPinch = this.pinchSpheres['right'];
         this.world.scene.add(this.pinchSpheres['left']);
         this.world.scene.add(this.pinchSpheres['right']);
-        this.locomotion = new LeapPinchLocomotion(world, this.pinchSpheres['left'], this.pinchSpheres['right']);
+
+        this.ray = new InteractionRay(new THREE.Ray());
+        this.lastTimestep = performance.now();
+        this.activeTime = 0; this.prevActive = false;
+        this.mainHand = null;
     }
 
     /** Updates visuals and regenerates the input ray */
@@ -68,6 +71,9 @@ class LeapHandInput {
                     handsAreTracking = true;
                     this.updateHand(hand);
                     this.updatePinching(hand);
+
+                    // First Hand that shows up becomes "the main hand"
+                    if (!this.mainHand) { this.mainHand = hand.type; }
                 } else {
                     this.createHand(hand);
                 }
@@ -78,8 +84,25 @@ class LeapHandInput {
                 }
             }
 
-            // Update the Pinch Locomotion
-            this.locomotion.update();
+            if (this.isActive()) {
+                // Set Ray Origin and Direction
+                let curSphere = this.pinchSpheres[this.mainHand];
+                if (curSphere) {
+                    this.world.camera.getWorldPosition(this.ray.ray.origin);
+                    this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
+                }
+
+                // Add Extra Fields for the active state
+                this.ray.justActivated = false; this.ray.justDeactivated = false;
+                this.ray.active = curSphere.visible;
+                if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
+                if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
+                this.ray.alreadyActivated = false;
+                this.prevActive = this.ray.active;
+                if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
+                this.ray.activeMS = this.activeTime;
+                this.lastTimestep = performance.now();
+            }
 
             // HACK: Reset the world's camera parenting scheme so orbit controls still work
             if (!handsAreTracking && this.world.handsAreTracking) {
@@ -91,12 +114,13 @@ class LeapHandInput {
                 this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
             }
             this.world.handsAreTracking = handsAreTracking;
+            if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
             this.lastFrameNumber = this.controller.lastFrame.id;
         }
     }
 
     /** Does this input want to take control? */
-    isActive() { return false; }
+    isActive() { return this.world.handsAreTracking; }
 
     /** Update the pinch state of the hands 
      * @param {Hand} hand */
@@ -120,30 +144,32 @@ class LeapHandInput {
             
             // This hand is pinching in a valid way, push it through
             pinchSphere.visible = true;
-            pinchSphere.updateWorldMatrix(true, true);
-            let worldScale = handGroup.getWorldScale(this.vec).x;
+            //
 
-            // Unfiltered Palm-Relative Pinching position
-            handGroup.localToWorld(this.vec.copy(pinchSphere.localPinchPos));
-
-            // Keep the pinch point within a 10mm sphere in Unscaled World Space
-            pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
-            //pinchSphere.position.lerp(this.vec, 0.01);
-            handGroup.getWorldQuaternion(pinchSphere.quaternion);
         } else {
             pinchSphere.visible = false;
             pinchSphere.invalidPinch = false;
         }
+
+        let worldScale = handGroup.getWorldScale(this.vec).x;
+        // Unfiltered Palm-Relative Pinching position
+        handGroup.localToWorld(this.vec.copy(pinchSphere.localPinchPos));
+        // Keep the pinch point within a 10mm sphere in Unscaled World Space
+        pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
+        //pinchSphere.position.lerp(this.vec, 0.01);
+        handGroup.getWorldQuaternion(pinchSphere.quaternion);
+        pinchSphere.updateWorldMatrix(true, true);
     }
 
     /** Create the hand's meshes
      * @param {Hand} hand */
     createHand(hand) {
-        let handGroup     = new THREE.Group();
-        handGroup.name    = hand.type + " Hand";
-        handGroup.visible = true;
-        handGroup.startMs = performance.now();
-        handGroup.age     = 0;
+        let handGroup      = new THREE.Group();
+        handGroup.name     = hand.type + " Hand";
+        handGroup.handType = hand.type; 
+        handGroup.visible  = true;
+        handGroup.startMs  = performance.now();
+        handGroup.age      = 0;
 
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
@@ -160,6 +186,14 @@ class LeapHandInput {
         //handGroup.joints.castShadow = true;
         handGroup.joints.layers.set(1);
         handGroup.add(handGroup.joints);
+
+        handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
+        handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 0, 0x00ffff, 10, 10);
+        //handGroup.arrow.visible = false;
+        handGroup.arrow.layers.set(1);
+        handGroup.arrow.cone.layers.set(1);
+        handGroup.arrow.line.layers.set(1);
+        handGroup.add(handGroup.arrow);
 
         this.handParent.add(handGroup);
         this.hands[hand.type] = handGroup;
@@ -189,6 +223,11 @@ class LeapHandInput {
         this.quat.setFromUnitVectors(this.vec, this.palmNormal);
         handGroup.quaternion.premultiply(this.quat);
         handGroup.updateMatrix();
+
+        // Update the Hand Ray Arrow Helper...
+        handGroup.arrow.visible = handGroup.handType === this.mainHand;
+        handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
+            applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();
