@@ -145,7 +145,7 @@ class ExtrusionTool {
                 if (mesh) {
                     mesh.name = extrusionMesh.name;
                     mesh.shapeName = shapeName;
-                    if (this.hit.parentObject.name.includes("#")) {
+                    if (this.hit.parentObject.shapeName) {
                         this.world.history.addToUndo(mesh, this.hit.parentObject, "Extrusion");
                         this.hitObject = null;
                     } else {

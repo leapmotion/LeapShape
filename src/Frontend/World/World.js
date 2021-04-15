@@ -60,6 +60,7 @@ class World {
                                    new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false, opacity: 0 }));
         this.mesh.rotation.x = - Math.PI / 2;
         this.mesh.receiveShadow = true;
+        this.mesh.isGround = true;
         this.scene.add( this.mesh );
         this.grid = new THREE.GridHelper( 2, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
