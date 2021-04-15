@@ -186,9 +186,25 @@ class World {
     _onWindowResize() {
         let rect = this.container.getBoundingClientRect();
         let width = rect.width, height = window.innerHeight - rect.y;
+
+        let oldFramebuffer = this.renderer._framebuffer;
+        let oldPresenting = this.renderer.xr.isPresenting;
+        if (oldPresenting) {
+            this.renderer.xr.enabled = false;
+            this.renderer.state.bindXRFramebuffer( null );
+            this.renderer.xr.isPresenting = false;
+        }
+
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
+
+        if (oldPresenting) {
+            this.renderer.xr.enabled = true;
+            this.renderer.state.bindXRFramebuffer(oldFramebuffer);
+            this.renderer.xr.isPresenting = oldPresenting;
+        }
+
         this.dirty = true;
     }
 
