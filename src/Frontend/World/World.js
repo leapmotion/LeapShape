@@ -160,8 +160,20 @@ class World {
             this.controls.enabled = cameraControl && !this.handsAreTracking;
             if (this.controls.enabled) { this.controls.update(); }
 
-            // Render the scene
+            // Render the scene (Normally or in WebXR)
             this.renderer.render(this.scene, this.camera);
+
+            // Also Render the scene to the Canvas if in WebXR
+            if (this.renderer.xr.isPresenting) {
+                this.renderer.xr.enabled = false;
+                let oldFramebuffer = this.renderer._framebuffer;
+                this.renderer.state.bindXRFramebuffer( null );
+                //this.renderer.setRenderTarget( this.renderer.getRenderTarget() ); // Hack #15830
+                this.renderer.render(this.scene, this.camera);
+                this.renderer.xr.enabled = true;
+                this.renderer.state.bindXRFramebuffer(oldFramebuffer);
+            }
+
             this.dirty = false;
             //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
