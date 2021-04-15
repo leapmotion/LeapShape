@@ -63,6 +63,8 @@ class LeapHandInput {
     /** Fills toFill with the interpolation alpha between aFrame and bFrame 
      * @param {number} alpha */
     lerpFrame(toFill, a, b, alpha) {
+        if (!a.handsMap || !b.handsMap) { return toFill;}
+
         // Fill with interpolated information
         toFill.id = b.id;
         toFill.currentFrameRate = this.lerp(a.currentFrameRate, b.currentFrameRate, alpha);
@@ -71,7 +73,7 @@ class LeapHandInput {
         // Loop through the newer frame's hands
         for (let h = 0; h < b.hands.length; h++) {
             let bHand = b.hands[h];
-            let aHand = a.handsMap(bHand.id);
+            let aHand = a.handsMap[bHand.id];
             let toFillHand = bHand.type === toFill.hands[0].type ? toFill.hands[0] : toFill.hands[1];
             // If hand is also in a, begin lerping the relevant parameters
             if (aHand) {
@@ -90,9 +92,9 @@ class LeapHandInput {
                 toFillHand.direction   [0] = this.lerp(aHand.direction   [0], bHand.direction   [0], alpha);
                 toFillHand.direction   [1] = this.lerp(aHand.direction   [1], bHand.direction   [1], alpha);
                 toFillHand.direction   [2] = this.lerp(aHand.direction   [2], bHand.direction   [2], alpha);
-                toFillHand.elbow       [0] = this.lerp(aHand.elbow       [0], bHand.elbow       [0], alpha);
-                toFillHand.elbow       [1] = this.lerp(aHand.elbow       [1], bHand.elbow       [1], alpha);
-                toFillHand.elbow       [2] = this.lerp(aHand.elbow       [2], bHand.elbow       [2], alpha);
+                //toFillHand.elbow       [0] = this.lerp(aHand.elbow       [0], bHand.elbow       [0], alpha);
+                //toFillHand.elbow       [1] = this.lerp(aHand.elbow       [1], bHand.elbow       [1], alpha);
+                //toFillHand.elbow       [2] = this.lerp(aHand.elbow       [2], bHand.elbow       [2], alpha);
                 toFillHand.palmNormal  [0] = this.lerp(aHand.palmNormal  [0], bHand.palmNormal  [0], alpha);
                 toFillHand.palmNormal  [1] = this.lerp(aHand.palmNormal  [1], bHand.palmNormal  [1], alpha);
                 toFillHand.palmNormal  [2] = this.lerp(aHand.palmNormal  [2], bHand.palmNormal  [2], alpha);
@@ -102,19 +104,57 @@ class LeapHandInput {
                 toFillHand.palmVelocity[0] = this.lerp(aHand.palmVelocity[0], bHand.palmVelocity[0], alpha);
                 toFillHand.palmVelocity[1] = this.lerp(aHand.palmVelocity[1], bHand.palmVelocity[1], alpha);
                 toFillHand.palmVelocity[2] = this.lerp(aHand.palmVelocity[2], bHand.palmVelocity[2], alpha);
-                toFillHand.wrist       [0] = this.lerp(aHand.wrist       [0], bHand.wrist       [0], alpha);
-                toFillHand.wrist       [1] = this.lerp(aHand.wrist       [1], bHand.wrist       [1], alpha);
-                toFillHand.wrist       [2] = this.lerp(aHand.wrist       [2], bHand.wrist       [2], alpha);
+                //toFillHand.wrist       [0] = this.lerp(aHand.wrist       [0], bHand.wrist       [0], alpha);
+                //toFillHand.wrist       [1] = this.lerp(aHand.wrist       [1], bHand.wrist       [1], alpha);
+                //toFillHand.wrist       [2] = this.lerp(aHand.wrist       [2], bHand.wrist       [2], alpha);
 
                 // Ignore the 3x3 `armBasis` for now
 
                 // Lerp the Finger Parameters
-                toFillHand.fingers.forEach((finger, index) => {
+                toFillHand.fingers.forEach((finger, f) => {
                     // Lerp the Single Value Finger Parameters
+                    finger.id          = bHand.fingers[f].id;
+                    finger.handId      = bHand.fingers[f].handId;
+                    finger.type        = bHand.fingers[f].type;
+                    finger.valid       = bHand.fingers[f].valid
+                    finger.extended    = bHand.fingers[f].extended;
+                    finger.finger      = bHand.fingers[f].finger;
+
+                    finger.length      = this.lerp(aHand.fingers[f].length     , bHand.fingers[f].length     , alpha);
+                    finger.timeVisible = this.lerp(aHand.fingers[f].timeVisible, bHand.fingers[f].timeVisible, alpha);
+                    finger.width       = this.lerp(aHand.fingers[f].width      , bHand.fingers[f].width      , alpha);
+
+                    // Lerp the three-value parameters - Unneeded for now...
+                    //carpPosition, dipPosition, mcpPosition, pipPosition, tipPosition
 
                     // Lerp the Bones
-                    finger.bones.forEach((bone, i) => {
-                        //bone.center(), bone.length, bone.matrix(), bone.prevJoint, bone.nextJoint
+                    finger.bones.forEach((bone, bi) => {
+                        bone.length = this.lerp(aHand.fingers[f].bones[bi].length, bHand.fingers[f].bones[bi].length, alpha);
+
+                        bone.prevJoint[0] = this.lerp(aHand.fingers[f].bones[bi].prevJoint[0], bHand.fingers[f].bones[bi].prevJoint[0], alpha);
+                        bone.prevJoint[1] = this.lerp(aHand.fingers[f].bones[bi].prevJoint[1], bHand.fingers[f].bones[bi].prevJoint[1], alpha);
+                        bone.prevJoint[2] = this.lerp(aHand.fingers[f].bones[bi].prevJoint[2], bHand.fingers[f].bones[bi].prevJoint[2], alpha);
+                        bone.nextJoint[0] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[0], bHand.fingers[f].bones[bi].nextJoint[0], alpha);
+                        bone.nextJoint[1] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[1], bHand.fingers[f].bones[bi].nextJoint[1], alpha);
+                        bone.nextJoint[2] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[2], bHand.fingers[f].bones[bi].nextJoint[2], alpha);
+                        bone._center  [0] = this.lerp(bone.prevJoint[0], bone.nextJoint[0], 0.5);
+                        bone._center  [1] = this.lerp(bone.prevJoint[1], bone.nextJoint[1], 0.5);
+                        bone._center  [2] = this.lerp(bone.prevJoint[2], bone.nextJoint[2], 0.5);
+                        
+                        // Lerping Matrices haha; Ideally the rotation would be slerped, but small differences.
+                        bone.basis[0][0] = this.lerp(aHand.fingers[f].bones[bi].basis[0][0], bHand.fingers[f].bones[bi].basis[0][0], alpha);
+                        bone.basis[0][1] = this.lerp(aHand.fingers[f].bones[bi].basis[0][1], bHand.fingers[f].bones[bi].basis[0][1], alpha);
+                        bone.basis[0][2] = this.lerp(aHand.fingers[f].bones[bi].basis[0][2], bHand.fingers[f].bones[bi].basis[0][2], alpha);
+                        bone.basis[1][0] = this.lerp(aHand.fingers[f].bones[bi].basis[1][0], bHand.fingers[f].bones[bi].basis[1][0], alpha);
+                        bone.basis[1][1] = this.lerp(aHand.fingers[f].bones[bi].basis[1][1], bHand.fingers[f].bones[bi].basis[1][1], alpha);
+                        bone.basis[1][2] = this.lerp(aHand.fingers[f].bones[bi].basis[1][2], bHand.fingers[f].bones[bi].basis[1][2], alpha);
+                        bone.basis[2][0] = this.lerp(aHand.fingers[f].bones[bi].basis[2][0], bHand.fingers[f].bones[bi].basis[2][0], alpha);
+                        bone.basis[2][1] = this.lerp(aHand.fingers[f].bones[bi].basis[2][1], bHand.fingers[f].bones[bi].basis[2][1], alpha);
+                        bone.basis[2][2] = this.lerp(aHand.fingers[f].bones[bi].basis[2][2], bHand.fingers[f].bones[bi].basis[2][2], alpha);
+                    
+                        for (let m = 0; m < 16; m++) {
+                            bone._matrix[m] = this.lerp(aHand.fingers[f].bones[bi].matrix()[m], bHand.fingers[f].bones[bi].matrix()[m], alpha);
+                        }
                     });
                 });
             }
@@ -125,131 +165,138 @@ class LeapHandInput {
      * @param {number} timestamp */
     getInterpolatedFrame(frame, controller, timestamp) {
         // Step through time until we have the two frames we'd like to interpolate between.
-        let back = 0;
-        let aFrame = controller.frame(back+1);
-        let bFrame = controller.frame(back  );
-        while (!(timestamp > bFrame.timestamp ||
+        let back = 0, doubleBack = 1;
+        let aFrame = controller.frame(back+doubleBack);
+        let bFrame = controller.frame(back);
+        while (aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
+            doubleBack += 1; aFrame = controller.frame(back + doubleBack);
+        }
+        while (!(bFrame.timestamp < timestamp ||
                 (aFrame.timestamp < timestamp && bFrame.timestamp > timestamp) ||
                 back == 198)) { // Only 200 entries in the history buffer
             back++;
-            aFrame = controller.frame(back+1);
+            doubleBack = 1;
+            aFrame = controller.frame(back+doubleBack);
             bFrame = controller.frame(back  );
+            while (aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
+                doubleBack += 1; aFrame = controller.frame(back + doubleBack);
+            }
         }
 
         let aTimestamp = aFrame.timestamp, bTimestamp = bFrame.timestamp;
-        let alpha = timestamp - aTimestamp / (bTimestamp - aTimestamp);
-        return lerpFrame(frame, aFrame, bFrame, alpha);
+        let alpha = (timestamp - aTimestamp) / (bTimestamp - aTimestamp);
+
+        // Debug visualize the temporal offset
+        //this.world.parent.tools.cursor.updateTarget(this.vec.set(0,0,0)); 
+        //this.world.parent.tools.cursor.updateLabel(alpha);//this.nowToLeapOffsetUS);
+
+        return this.lerpFrame(frame, aFrame, bFrame, Math.max(0, alpha));
     }
 
     /** Updates visuals and regenerates the input ray */
     update() {
         // Set up Interpolation
         let latestFrame = this.controller.lastFrame;
-        if (latestFrame.hands.length == 2) {
-            console.log(latestFrame.dump());
-        }
 
+        // Rebase performance.now() and the leap timestamps together
+        let nowTimestamp  = performance.now() * 1000;  // us
         if (latestFrame.timestamp !== this.lastFrameTimestamp && latestFrame.timestamp) {
-            let leapTimestamp = latestFrame.timestamp;    // us
-            let nowTimestamp  = performance.now() * 1000; // us
+            let leapTimestamp = latestFrame.timestamp; // us
     
             // Solve for the rough offset between performance.now() and the leap timestamp
             let rawOffset = leapTimestamp - nowTimestamp;
             let offsetCorrection = rawOffset - this.nowToLeapOffsetUS;
-            if (this.nowToLeapOffsetUS === 0 || Math.abs(offsetCorrection) > 10000) {
+            if (this.nowToLeapOffsetUS === 0 || Math.abs(offsetCorrection) > 2000) {
                 this.nowToLeapOffsetUS = rawOffset;
             }
-            this.nowToLeapOffsetUS += offsetCorrection / 100;
-            this.world.parent.tools.cursor.updateTarget(this.vec.set(0,0,0)); // Debug visualize the temporal offset
-            this.world.parent.tools.cursor.updateLabel(this.nowToLeapOffsetUS);
-
-            let interpolatedFrameTimestamp = nowTimestamp + this.nowToLeapOffsetUS;
-            //this.getInterpolatedFrame(this.interpolatedFrame, this.controller, interpolatedFrameTimestamp);
-            this.interpolatedFrame = latestFrame;
-
-            if (this.world.inVR != this.curInVR) {
-                this.controller.setOptimizeHMD(this.world.inVR);
-                if (this.world.inVR) {
-                    // HMD Mode
-                    this.handParent.position.y = 0;
-                    this.handParent.position.z = -0.100;
-                    this.handParent.quaternion.setFromEuler(this.hmdEuler);
-                } else {
-                    // Desktop Mode
-                    this.handParent.position.y = -0.300;
-                    this.handParent.position.z = -0.400;
-                    this.handParent.quaternion.identity();
-                }
-                this.curInVR = this.world.inVR;
-            }
-
-            let handsAreTracking = false;
-            for (let type in this.hands) {
-                this.hands[type].markForHiding = true;
-            }
-            for (let h = 0; h < this.interpolatedFrame.hands.length; h++) {
-                let hand = this.interpolatedFrame.hands[h];
-                if (hand.type in this.hands) {
-                    handsAreTracking = true;
-                    this.updateHand(hand);
-                    this.updatePinching(hand);
-
-                    // First Hand that shows up becomes "the main hand"
-                    if (!this.mainHand) { this.mainHand = hand.type; }
-                } else {
-                    this.createHand(hand);
-                }
-            }
-            for (let type in this.hands) {
-                if (this.hands[type].markForHiding) {
-                    this.hands[type].visible = false;
-                }
-            }
-
-            if (this.isActive()) {
-                // Set Ray Origin and Direction
-                let curSphere = this.pinchSpheres[this.mainHand];
-                if (curSphere) {
-
-                    this.world.camera.getWorldPosition(this.ray.ray.origin);
-
-                    // Approximate shoulder position with magic values.
-                    // TODO: Port to three.js
-                    //this.world.camera.getWorldPosition(this.vec);
-                    //let shoulderYaw      = Quaternion.Euler(0, headTransform.quaternion.eulerAngles.y, 0);
-                    //let ProjectionOrigin = this.vec
-                    //                        + (shoulderYaw * (new THREE.Vector3(0, -0.13, -0.1)
-                    //                        + this.vec2((hand.IsLeft ? 1 : -1), 0, 0) * 0.15));
-                    //let ProjectionDirection = hand.Fingers[1].bones[0].NextJoint.ToVector3() - ProjectionOrigin;
-
-                    this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
-                }
-
-                // Add Extra Fields for the active state
-                this.ray.justActivated = false; this.ray.justDeactivated = false;
-                this.ray.active = curSphere.visible;
-                if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
-                if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-                this.ray.alreadyActivated = false;
-                this.prevActive = this.ray.active;
-                if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
-                this.ray.activeMS = this.activeTime;
-                this.lastTimestep = performance.now();
-            }
-
-            // HACK: Reset the world's camera parenting scheme so orbit controls still work
-            if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
-                this.world.scene.attach(this.world.camera);
-                this.world.cameraParent.position  .set(0, 0, 0);
-                this.world.cameraParent.quaternion.identity();
-                this.world.cameraParent.scale     .set(1, 1, 1);
-                this.world.cameraParent.attach(this.world.camera);
-                this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
-            }
-            this.world.handsAreTracking = handsAreTracking;
-            if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
+            this.nowToLeapOffsetUS += offsetCorrection / 1000;
             this.lastFrameTimestamp = latestFrame.timestamp;
         }
+
+        let interpolatedFrameTimestamp = nowTimestamp + this.nowToLeapOffsetUS;
+        this.getInterpolatedFrame(this.interpolatedFrame, this.controller, interpolatedFrameTimestamp - 5000);//interpolatedFrameTimestamp);
+
+        if (this.world.inVR != this.curInVR) {
+            this.controller.setOptimizeHMD(this.world.inVR);
+            if (this.world.inVR) {
+                // HMD Mode
+                this.handParent.position.y = 0;
+                this.handParent.position.z = -0.100;
+                this.handParent.quaternion.setFromEuler(this.hmdEuler);
+            } else {
+                // Desktop Mode
+                this.handParent.position.y = -0.300;
+                this.handParent.position.z = -0.400;
+                this.handParent.quaternion.identity();
+            }
+            this.curInVR = this.world.inVR;
+        }
+
+        let handsAreTracking = false;
+        for (let type in this.hands) {
+            this.hands[type].markForHiding = true;
+        }
+        for (let h = 0; h < this.interpolatedFrame.hands.length; h++) {
+            let hand = this.interpolatedFrame.hands[h];
+            if (hand.type in this.hands) {
+                handsAreTracking = true;
+                this.updateHand(hand);
+                this.updatePinching(hand);
+
+                // First Hand that shows up becomes "the main hand"
+                if (!this.mainHand) { this.mainHand = hand.type; }
+            } else {
+                this.createHand(hand);
+            }
+        }
+        for (let type in this.hands) {
+            if (this.hands[type].markForHiding) {
+                this.hands[type].visible = false;
+            }
+        }
+
+        if (this.isActive()) {
+            // Set Ray Origin and Direction
+            let curSphere = this.pinchSpheres[this.mainHand];
+            if (curSphere) {
+
+                this.world.camera.getWorldPosition(this.ray.ray.origin);
+
+                // Approximate shoulder position with magic values.
+                // TODO: Port to three.js
+                //this.world.camera.getWorldPosition(this.vec);
+                //let shoulderYaw      = Quaternion.Euler(0, headTransform.quaternion.eulerAngles.y, 0);
+                //let ProjectionOrigin = this.vec
+                //                        + (shoulderYaw * (new THREE.Vector3(0, -0.13, -0.1)
+                //                        + this.vec2((hand.IsLeft ? 1 : -1), 0, 0) * 0.15));
+                //let ProjectionDirection = hand.Fingers[1].bones[0].NextJoint.ToVector3() - ProjectionOrigin;
+
+                this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
+            }
+
+            // Add Extra Fields for the active state
+            this.ray.justActivated = false; this.ray.justDeactivated = false;
+            this.ray.active = curSphere.visible;
+            if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
+            if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
+            this.ray.alreadyActivated = false;
+            this.prevActive = this.ray.active;
+            if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
+            this.ray.activeMS = this.activeTime;
+            this.lastTimestep = performance.now();
+        }
+
+        // HACK: Reset the world's camera parenting scheme so orbit controls still work
+        if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
+            this.world.scene.attach(this.world.camera);
+            this.world.cameraParent.position  .set(0, 0, 0);
+            this.world.cameraParent.quaternion.identity();
+            this.world.cameraParent.scale     .set(1, 1, 1);
+            this.world.cameraParent.attach(this.world.camera);
+            this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
+        }
+        this.world.handsAreTracking = handsAreTracking;
+        if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
     }
 
     /** Does this input want to take control? */
@@ -324,7 +371,7 @@ class LeapHandInput {
         // At Pinch Point
         //handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
         // Outside of Pinch Point
-        handGroup.localPinchPos = new THREE.Vector3(10 * (hand.type==='left'?-1:1), -60, 40);
+        handGroup.localPinchPos = new THREE.Vector3(40 * (hand.type==='left'?-1:1), -60, 40);
         handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 0, 0x00ffff, 10, 10);
         //handGroup.arrow.visible = false;
         handGroup.arrow.layers.set(1);
