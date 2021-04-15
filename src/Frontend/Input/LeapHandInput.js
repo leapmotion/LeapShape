@@ -21,6 +21,7 @@ class LeapHandInput {
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
         this.handParent = new THREE.Group();
+        this.handParent.scale.set(0.001, 0.001, 0.001);
         this.world.camera.add(this.handParent);
         this.hmdEuler = new THREE.Euler(Math.PI / 2, 0, Math.PI);
 
@@ -59,12 +60,12 @@ class LeapHandInput {
                 if (this.world.inVR) {
                     // HMD Mode
                     this.handParent.position.y = 0;
-                    this.handParent.position.z = -100;
+                    this.handParent.position.z = -0.100;
                     this.handParent.quaternion.setFromEuler(this.hmdEuler);
                 } else {
                     // Desktop Mode
-                    this.handParent.position.y = -300;
-                    this.handParent.position.z = -400;
+                    this.handParent.position.y = -0.300;
+                    this.handParent.position.z = -0.400;
                     this.handParent.quaternion.identity();
                 }
                 this.curInVR = this.world.inVR;
@@ -114,7 +115,7 @@ class LeapHandInput {
             }
 
             // HACK: Reset the world's camera parenting scheme so orbit controls still work
-            if (!handsAreTracking && this.world.handsAreTracking) {
+            if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
                 this.world.scene.attach(this.world.camera);
                 this.world.cameraParent.position  .set(0, 0, 0);
                 this.world.cameraParent.quaternion.identity();
@@ -129,7 +130,7 @@ class LeapHandInput {
     }
 
     /** Does this input want to take control? */
-    isActive() { return this.world.handsAreTracking; }
+    isActive() { return this.world.handsAreTracking && this.mainHand; }
 
     /** Update the pinch state of the hands 
      * @param {Hand} hand */
@@ -179,6 +180,7 @@ class LeapHandInput {
         handGroup.visible  = true;
         handGroup.startMs  = performance.now();
         handGroup.age      = 0;
+        handGroup.frustumCulled = false;
 
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
@@ -190,7 +192,7 @@ class LeapHandInput {
         let jointMat = new THREE.MeshPhongMaterial();
         jointMat.color = new THREE.Color(0, 0.53, 0.808);
         handGroup.joints = new THREE.InstancedMesh(
-            new THREE.SphereBufferGeometry(1, 8, 8),
+            new THREE.SphereBufferGeometry(1, 10, 10),
             jointMat, 32);
         //handGroup.joints.castShadow = true;
         handGroup.joints.layers.set(1);
@@ -202,6 +204,7 @@ class LeapHandInput {
         handGroup.arrow.layers.set(1);
         handGroup.arrow.cone.layers.set(1);
         handGroup.arrow.line.layers.set(1);
+        handGroup.arrow.frustumCulled = false;
         handGroup.add(handGroup.arrow);
 
         this.handParent.add(handGroup);

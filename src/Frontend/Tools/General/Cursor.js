@@ -12,13 +12,14 @@ class Cursor {
         this.world = tools.world;
         this.engine = this.world.parent.engine;
 
-        this.sphereGeo = new THREE.SphereBufferGeometry(1, 5, 5);
+        this.sphereGeo = new THREE.SphereBufferGeometry(0.003, 5, 5);
         this.cursor = new THREE.Mesh(this.sphereGeo, new THREE.MeshBasicMaterial( {depthTest: false}));
         this.cursor.material.color.set(0x00ffff);
         this.cursor.name = "Cursor";
         this.cursor.receiveShadow = false;
         this.cursor.castShadow = false;
         this.cursor.layers.set(1); // Ignore Raycasts
+        this.cursor.frustumCulled = false;
         this.targetPosition = new THREE.Vector3();
         this.lastTimeTargetUpdated = performance.now();
         this.position = this.cursor.position;
@@ -32,6 +33,7 @@ class Cursor {
         this.labelElem.style.display = "none";
         document.getElementById("topnav").appendChild(this.labelElem);
         this.label = new HTMLMesh(this.labelElem);
+        this.label.frustumCulled = false;
         this.label.layers.set(1); // Ignore Raycasts
         this.cursor.add(this.label);
 
@@ -52,6 +54,8 @@ class Cursor {
 
             // Make the Cursor Contents Face the Camera
             this.cursor.quaternion.slerp(this.world.camera.getWorldQuaternion(this.quat), alpha);
+
+            this.cursor.scale.copy(this.world.camera.getWorldScale(this.vec1));
         } else {
             this.cursor.visible = false;
         }

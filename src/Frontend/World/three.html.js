@@ -21,11 +21,11 @@ class HTMLMesh extends THREE.Mesh {
 
 	update(world) {
 		this.texture.update();
-		world.camera.getWorldScale(this.vec);
-		this.scale.set   (this.texture.image.width  * 0.4 * this.vec.x,
-					      this.texture.image.height * 0.4 * this.vec.x);
-		this.position.set(this.texture.image.width  * 0.2 * this.vec.x,
-						  this.texture.image.height * 0.2 * this.vec.x, 0);
+		//world.camera.getWorldScale(this.vec);
+		this.scale.set   (this.texture.image.width  * 0.0004,
+					      this.texture.image.height * 0.0004);
+		this.position.set(this.texture.image.width  * 0.0002,
+						  this.texture.image.height * 0.0002, 0);
 		this.canonicalPosition.copy(this.position);
 	}
 

@@ -8,7 +8,7 @@ class LeapShapeEngineWorker {
     
     constructor() {
         this.shapes = {};
-        this.resolution = 0.75;
+        this.resolution = 0.0025;
         this.backendFunctions = {};
 
         // Initialize the WebAssembly Module

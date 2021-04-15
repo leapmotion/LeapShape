@@ -30,6 +30,7 @@ class Alerts {
         for (let i = 0; i < 5; i++) {
             let label = new HTMLMesh(this.cursor.labelElem);
             label.layers.set(1); // Ignore Raycasts
+            label.frustumCulled = false;
             this.alerts.add (label);
             this.labels.push(label);
         }
@@ -48,6 +49,8 @@ class Alerts {
 
             // Make the Alerts Contents Face the Camera
             this.alerts.quaternion.slerp(this.world.camera.getWorldQuaternion(this.quat), alpha);
+
+            this.alerts.scale.copy(this.world.camera.getWorldScale(this.vec1));
 
             // Lerp the Alerts to Stack on top of each other
             for (let i = 0; i < this.labels.length; i++){

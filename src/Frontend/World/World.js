@@ -25,7 +25,7 @@ class World {
         // camera and world
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color( 0xffffff );
-        this.scene.fog = new THREE.Fog(0xffffff, 500, 1300);
+        //this.scene.fog = new THREE.Fog(0xffffff, 0.5, 1.3);
         this.scene.onBeforeRender = function(renderer, scene, camera) {
             if (camera.cameras && camera.cameras.length) {
                 for (let i = 0; i < camera.cameras.length; i++) {
@@ -34,8 +34,8 @@ class World {
             }
         }
 
-        this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-        this.camera.position.set( 100, 200, 300 );
+        this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.0001, 1000 );
+        this.camera.position.set( 0.1, 0.2, 0.3 );
         this.camera.layers.enableAll();
         this.cameraParent = new THREE.Group();
         this.cameraParent.add(this.camera);
@@ -43,28 +43,29 @@ class World {
 
         // light
         this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-        this.light.position.set( 0, 200, 0 );
+        this.light.position.set( 0, 0.2, 0 );
         this.scene.add( this.light );
         this.light = new THREE.DirectionalLight( 0xffffff );
-        this.light.position.set( 0, 200, 100 );
+        this.light.position.set( 0, 0.2, 0.1 );
         this.light.castShadow = true;
-        this.light.shadow.camera.top = 180;
-        this.light.shadow.camera.bottom = - 100;
-        this.light.shadow.camera.left = - 120;
-        this.light.shadow.camera.right = 120;
+        this.light.shadow.camera.top = 18;
+        this.light.shadow.camera.bottom = - 10;
+        this.light.shadow.camera.left = - 12;
+        this.light.shadow.camera.right = 12;
         this.scene.add( this.light );
         // scene.add( new CameraHelper( light.shadow.camera ) );
 
         // ground
-        this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000),
+        this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
                                    new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false, opacity: 0 }));
         this.mesh.rotation.x = - Math.PI / 2;
         this.mesh.receiveShadow = true;
         this.scene.add( this.mesh );
-        this.grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
+        this.grid = new THREE.GridHelper( 2, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
         this.grid.material.transparent = true;
         this.grid.layers.set(2);
+        this.grid.frustumCulled = false;
         this.scene.add(this.grid);
         
         // renderer
@@ -87,7 +88,7 @@ class World {
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.10;
         this.controls.screenSpacePanning = true;
-        this.controls.target.set( 0, 100, 0 );
+        this.controls.target.set( 0, 0.1, 0 );
         this.controls.update();
         window.addEventListener('resize', this._onWindowResize.bind(this), false);
         window.addEventListener('orientationchange', this._onWindowResize.bind(this), false);
@@ -99,7 +100,7 @@ class World {
         // raycaster
         this.raycaster = new THREE.Raycaster();
         this.raycaster.layers.set(0);
-        this.raycaster.params.Line.threshold = 3;
+        this.raycaster.params.Line.threshold = 0.03;
 
         // stats
         //this.stats = new Stats();
@@ -132,9 +133,9 @@ class World {
         this.noDepthPreviewMaterial = this.selectedMaterial.clone();
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
-            color: 0xffffff, linewidth: 1.5, vertexColors: true  });
+            color: 0xffffff, linewidth: 0.0015, vertexColors: true  });
         this.selectedLineMaterial = new THREE.LineBasicMaterial({
-            color: 0x00ffff, linewidth: 1.5, vertexColors: false });
+            color: 0x00ffff, linewidth: 0.0015, vertexColors: false });
     }
 
     /** Update the camera and render the scene 

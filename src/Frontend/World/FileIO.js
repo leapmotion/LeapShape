@@ -116,8 +116,6 @@ class FileIO {
     }
 
     async launchARiOS() {
-        // Scale to 1/1000th for iOS Quick Look
-        this.objectToSave().scale.set(0.001, 0.001, 0.001);
         this.objectToSave().updateWorldMatrix(true, true);
 
         this.usdzExporter = new USDZExporter();
@@ -127,8 +125,6 @@ class FileIO {
         this.arLink.appendChild(document.createElement('img'));
         this.arLink.href = usdzURL;
 
-        // Scale back to 1:1 for Editing
-        this.objectToSave().scale.set(1.0, 1.0, 1.0);
         this.objectToSave().updateWorldMatrix(true, true);
     }
 

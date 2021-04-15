@@ -84,6 +84,7 @@ export default function ConvertGeometry(meshData) {
     line.globalEdgeMetadata = globalEdgeMetadata;
     line.name = "Model Edges";
     line.lineColors = lineColors;
+    line.frustumCulled = false;
     line.layers.set(2);
     // End Adding Edges
 
@@ -91,6 +92,7 @@ export default function ConvertGeometry(meshData) {
     let mesh = new THREE.Mesh(geometry, window.world.shapeMaterial);
     mesh.material.color.setRGB(0.5, 0.5, 0.5);
     mesh.faceMetadata = faceMetaData;
+    mesh.frustumCulled = false;
     mesh.add(line);
     return mesh;
 }

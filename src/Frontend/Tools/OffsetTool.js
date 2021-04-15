@@ -88,7 +88,7 @@ class OffsetTool {
                     this.world.scene.add(this.currentOffset);
 
                     // Creates an expected offset 
-                    this.createPreviewOffsetGeometry([this.hitObject.shapeName, 1]);
+                    this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.001]);
 
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
