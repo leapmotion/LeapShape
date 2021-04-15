@@ -111,7 +111,7 @@ class OffsetTool {
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
 
                 // Update the Visual Feedback
-                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 1.0 };
+                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.001 };
                 this.offsetMaterial.needsUpdate = true;
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
