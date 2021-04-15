@@ -49,7 +49,7 @@ class Grid {
     updateWithHit(raycastHit) {
         this.worldScale = this.world.camera.getWorldScale(this.vec1).x;
         this.gridPitch = 0.00125;
-        while (this.gridPitch < this.worldScale * 0.01) { this.gridPitch *= 2;}
+        while (this.gridPitch < (this.worldScale * 0.01)-Number.EPSILON) { this.gridPitch *= 2;}
 
         if (raycastHit.object.shapeName) {
             // Append the UV Bounds to the query since they're impossible to get in the query

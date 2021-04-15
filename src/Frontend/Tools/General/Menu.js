@@ -77,7 +77,9 @@ class Menu {
 
         // Update the slot positions based on the camera's aspect
         let minAspect = this.world.inVR ? 1.0 : Math.min(this.world.camera.aspect, 1.5);
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < this.slots.length; i++) {
+            this.slots[i].canonicalPosition.y = (this.world.inVR ? 1 : -1) * 25 * 6 * 0.001;
+
             this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
             this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
         }
