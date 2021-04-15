@@ -21,16 +21,8 @@ class LeapHandInput {
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
         this.handParent = new THREE.Group();
-        // HMD Mode
-        //this.handParent.position.z = -100;
-        //this.handParent.quaternion.setFromEuler(
-        //    new THREE.Euler(Math.PI / 2, 0, Math.PI)
-        //);
-        // Desktop Mode
-        this.handParent.position.y = -300;
-        this.handParent.position.z = -400;
-        this.handParent.quaternion.setFromEuler(new THREE.Euler(0, 0, 0));
         this.world.camera.add(this.handParent);
+        this.hmdEuler = new THREE.Euler(Math.PI / 2, 0, Math.PI);
 
         // Set up Pinch Related Data
         this.pinchSpheres = {};
@@ -55,13 +47,30 @@ class LeapHandInput {
         this.lastTimestep = performance.now();
         this.activeTime = 0; this.prevActive = false;
         this.mainHand = null;
+
+        this.curInVR = false;
     }
 
     /** Updates visuals and regenerates the input ray */
     update() {
         if (this.controller.lastFrame.id !== this.lastFrameNumber) {
-            let handsAreTracking = false;
+            if (this.world.inVR != this.curInVR) {
+                this.controller.setOptimizeHMD(this.world.inVR);
+                if (this.world.inVR) {
+                    // HMD Mode
+                    this.handParent.position.y = 0;
+                    this.handParent.position.z = -100;
+                    this.handParent.quaternion.setFromEuler(this.hmdEuler);
+                } else {
+                    // Desktop Mode
+                    this.handParent.position.y = -300;
+                    this.handParent.position.z = -400;
+                    this.handParent.quaternion.identity();
+                }
+                this.curInVR = this.world.inVR;
+            }
 
+            let handsAreTracking = false;
             for (let type in this.hands) {
                 this.hands[type].markForHiding = true;
             }

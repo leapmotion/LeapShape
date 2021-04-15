@@ -140,6 +140,8 @@ class World {
     /** Update the camera and render the scene 
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
+        this.inVR = this.renderer.xr.isPresenting;
+
         // Conserve Power, don't rerender unless the view is dirty
         if (ray.active || this.dirty) {
             this.lastTimeInteractedWith = performance.now();
