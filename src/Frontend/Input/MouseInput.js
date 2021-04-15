@@ -9,13 +9,14 @@ class MouseInput {
     constructor(world) {
         this.world = world;
         this.ray = new InteractionRay(new THREE.Ray());
+        this.lastTimestep = performance.now();
+        this.activeTime = 0;
+        
         this.mouse = { x: 0, y: 0, buttons: -1 };
         this.world.container.addEventListener( 'pointermove', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'pointerdown', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'pointerup'  , this._onContainerMouse.bind(this) );
         this.prevButton = 0;
-        this.lastTimestep = performance.now();
-        this.activeTime = 0;
         this.up = new THREE.Vector3(0, 1, 0);
 
         this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent);
@@ -59,9 +60,7 @@ class MouseInput {
     }
 
     /** Does this input want to take control? */
-    isActive() {
-        return true;
-    }
+    isActive() { return !this.world.handsAreTracking; }
 
 }
 

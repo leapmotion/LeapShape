@@ -12,7 +12,7 @@ class Grid {
         this.tools = tools; this.world = tools.world; this.oc = oc;
         this.engine = this.world.parent.engine;
 
-        this.gridPitch = 10;
+        this.gridPitch = 0.01;
         this.vec1 = new THREE.Vector3();
         this.vec2 = new THREE.Vector3();
         this.normal = new THREE.Vector3();
@@ -32,10 +32,11 @@ class Grid {
         //this.gridMesh.layers.set(1);
         //this.space.add(this.gridMesh);
 
-        this.sphereGeometry = new THREE.SphereBufferGeometry(1, 5, 5);
+        this.sphereGeometry = new THREE.SphereBufferGeometry(0.001, 5, 5);
         this.gridSpheres = new THREE.InstancedMesh(this.sphereGeometry, new THREE.MeshBasicMaterial(), this.gridCells * (this.gridCells + 3) + 10);
         this.gridSpheres.castShadow = true;
         this.gridSpheres.layers.set(1);
+        this.gridSpheres.frustumCulled = false;
         this.radius = 2; this.mat = new THREE.Matrix4(); this.gridCenter = new THREE.Vector3(); this.tempVec = new THREE.Vector3();
         this.pos = new THREE.Vector3(); this.rot = new THREE.Quaternion().identity(); this.scale = new THREE.Vector3();
         this.updateGridVisual(this.gridCenter);
@@ -46,6 +47,10 @@ class Grid {
     }
 
     updateWithHit(raycastHit) {
+        this.worldScale = this.world.camera.getWorldScale(this.vec1).x;
+        this.gridPitch = 0.00125;
+        while (this.gridPitch < this.worldScale * 0.01) { this.gridPitch *= 2;}
+
         if (raycastHit.object.shapeName) {
             // Append the UV Bounds to the query since they're impossible to get in the query
             let index = raycastHit.faceIndex;
@@ -117,7 +122,7 @@ class Grid {
                 let newX = ((x ) * this.gridPitch) - center.x;
                 let newY = ((y ) * this.gridPitch) - center.z;
                 this.radius = Math.min(2, (8 * this.gridPitch * this.gridPitch) /
-                                ((newX * newX) + (newY * newY) + 0.0001));
+                                ((newX * newX) + (newY * newY) + 0.0001)) * this.worldScale;
 
                 this.pos.set(x * this.gridPitch, 0, y * this.gridPitch)
                 this.mat.makeRotationFromQuaternion(this.rot)
@@ -133,7 +138,10 @@ class Grid {
                 this.pos.set(grid[g][0], grid[g][1], grid[g][2]);
                 this.gridSpheres.worldToLocal(this.pos);
                 this.mat.makeRotationFromQuaternion(this.rot)
-                    .scale(this.scale.set(2.5, 2.5, 2.5)).setPosition(this.pos);
+                    .scale(this.scale.set(
+                        2.5 * this.worldScale,
+                        2.5 * this.worldScale,
+                        2.5 * this.worldScale)).setPosition(this.pos);
                 this.gridSpheres.setMatrixAt(i, this.mat);
                 this.gridSpheres.setColorAt (i, this.color.setRGB(0.0, 1.0, 1.0));
                 i++;

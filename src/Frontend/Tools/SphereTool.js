@@ -18,7 +18,7 @@ class SphereTool {
 
         this.state = -1; // -1 is Deactivated
         this.numSpheres = 0;
-        this.distance = 1;
+        this.distance = 0.001;
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
         this.cameraRelativeMovement = new THREE.Vector3();
@@ -73,6 +73,7 @@ class SphereTool {
                     this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentSphere.name = "Sphere #" + this.numSpheres;
                     this.currentSphere.position.copy(this.point);
+                    this.currentSphere.frustumCulled = false;
                     this.world.scene.add(this.currentSphere);
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
@@ -91,7 +92,7 @@ class SphereTool {
                 this.cameraRelativeMovement.copy(intersects[0].point.clone().sub(this.point));
                 this.cameraRelativeMovement.transformDirection(this.world.camera.matrixWorld.invert());
 
-                this.distance = Math.max(1.0, intersects[0].point.clone().sub(this.point).length());
+                this.distance = Math.max(0.001, intersects[0].point.clone().sub(this.point).length());
                 //if (this.tools.gridPitch > 0) { this.distance = Math.round(this.distance / this.tools.gridPitch) * this.tools.gridPitch; }
                 this.distance = this.tools.grid.snapToGrid1D(this.distance);
                 this.tools.cursor.updateTarget(this.point);
@@ -158,12 +159,12 @@ class SphereTool {
                 let hitObject = this.shapes[hitObjectName];
                 if (radius > 0) {
                     let union = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                    union.SetFuzzyValue(0.00001);
+                    union.SetFuzzyValue(0.00000001);
                     union.Build();
                     return union.Shape();
                 } else {
                     let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                    differenceCut.SetFuzzyValue(0.00001);
+                    differenceCut.SetFuzzyValue(0.00000001);
                     differenceCut.Build();
                     return differenceCut.Shape();
                 }

@@ -27,7 +27,7 @@ class BoxTool {
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();
         this.arrow = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 30, 0x00ffff);
+            new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 0.03, 0x00ffff);
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -90,6 +90,7 @@ class BoxTool {
                     this.currentBox.name = "Box #" + this.numBoxs;
                     this.currentBox.position.copy(this.worldNormal.clone()
                         .multiplyScalar(0.5).add(this.point));
+                    this.currentBox.frustumCulled = false;
                     this.world.scene.add(this.currentBox);
 
                     this.state += 1;
@@ -112,7 +113,7 @@ class BoxTool {
                 let relativeSnapped = intersects[0].object.worldToLocal(this.snappedPoint.clone());
                 this.tools.cursor.updateLabelNumbers(Math.abs(relativeSnapped.x), Math.abs(relativeSnapped.y));
 
-                this.height     = 1;
+                this.height     = 0.001;
                 this.widthAxis  = new THREE.Vector3(1, 0, 0).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this. width));
                 this.lengthAxis = new THREE.Vector3(0, 1, 0).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.length));
                 this.heightAxis = new THREE.Vector3(0, 0, 1).transformDirection(this.rayPlane.matrixWorld).multiplyScalar(Math.sign(this.height));
@@ -137,7 +138,7 @@ class BoxTool {
                 this.tools.grid.setVisible(false);
                 this.arrow.position.copy(this.currentBox.position);
                 this.arrow.setDirection(this.worldNormal);
-                this.arrow.setLength( 20, 13, 10 );
+                this.arrow.setLength( 0.02, 0.013, 0.01 );
                 this.world.scene.add(this.arrow);
             }
         } else if (this.state === 2) {
@@ -248,14 +249,14 @@ class BoxTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.01);
+                unionOp.SetFuzzyValue(0.0000001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.01);
+                differenceOp.SetFuzzyValue(0.0000001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }

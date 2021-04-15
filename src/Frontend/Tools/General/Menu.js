@@ -24,8 +24,8 @@ class Menu {
         this.cameraWorldScale = new THREE.Vector3();
         this.halfSpacing      = 25;
 
-        this.menuSphereGeo = new THREE.SphereBufferGeometry(20, 20);
-        this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (25, 25);
+        this.menuSphereGeo = new THREE.SphereBufferGeometry(0.020, 20);
+        this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (0.025, 0.025);
 
         // Menu Container
         this.menu = new THREE.Group(); this.menuItems = [];
@@ -35,6 +35,7 @@ class Menu {
             menuItem.name = "Menu Item - "+i;
             menuItem.receiveShadow = false;
             menuItem.castShadow = false;
+            menuItem.frustumCulled = false;
 
             let menuItemIcon = new THREE.Mesh(this.menuPlaneGeo,
                 new THREE.MeshBasicMaterial(
@@ -42,6 +43,7 @@ class Menu {
             menuItemIcon.name = "Menu Item Icon - "+i;
             menuItemIcon.receiveShadow = false;
             menuItemIcon.castShadow = false;
+            menuItemIcon.frustumCulled = false;
             menuItem.icon = menuItemIcon;
             menuItem.add(menuItemIcon);
 
@@ -57,7 +59,9 @@ class Menu {
         for (let i = 0; i < 15; i++) {
             let slot = new THREE.Group();
             slot.name = "Slot #" + i;
-            slot.canonicalPosition = new THREE.Vector3((i * this.halfSpacing * 2) - (this.halfSpacing * 6), -25*6, (-75*6));
+            slot.canonicalPosition = new THREE.Vector3(
+                (i * this.halfSpacing * 2) - (this.halfSpacing * 6),
+                25 * 6, (-75 * 6)).multiplyScalar(0.001);
             slot.position.copy(slot.canonicalPosition);
             this.slots.push(slot);
             this.world.camera.add(slot);
@@ -72,7 +76,7 @@ class Menu {
         this.world.camera.getWorldScale     (this.cameraWorldScale);
 
         // Update the slot positions based on the camera's aspect
-        let minAspect = Math.min(this.world.camera.aspect, 1.5);
+        let minAspect = this.world.inVR ? 1.0 : Math.min(this.world.camera.aspect, 1.5);
         for (let i = 0; i < 10; i++) {
             this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
             this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;

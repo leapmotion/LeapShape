@@ -42,16 +42,10 @@ class LeapPinchLocomotion {
             this.rootA.copy(this.curA);
             this.rootB.copy(this.curB);
           }
-        //} else if (leftPinching) {                       // Set Points when Left Pinched
-        //  left .getWorldPosition(this.curA);
-        //  if (!this.isLeftPinching) {
-        //    this.rootA.copy(this.curA);
-        //  }
-        //} else if (rightPinching) {                      // Set Points when Right Pinched
-        //  right.getWorldPosition(this.curB);
-        //  if (!this.isRightPinching) {
-        //    this.rootB.copy(this.curB);
-        //  }
+
+          // Inform the user of their current world scale
+          this.world.parent.tools.cursor.updateTarget(this.rootA.clone().add(this.rootB).multiplyScalar(0.5));
+          this.world.parent.tools.cursor.updateLabelNumbers(1.0 / this.world.camera.getWorldScale(new THREE.Vector3()).x);
         } else if (leftPinching) {                       // Set Points when Left Pinched
           this.oneHandedPinchMove(left, this.isLeftPinching, this.isRightPinching,
                                   this.rootA, this.curA, this.rootB, this.curB);

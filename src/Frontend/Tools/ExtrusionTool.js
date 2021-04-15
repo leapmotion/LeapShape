@@ -16,8 +16,8 @@ class ExtrusionTool {
 
         this.state = -1; // -1 is Deactivated
         this.numExtrusions = 0;
-        this.distance = 1;
-        this.height = 1;
+        this.distance = 0.001;
+        this.height = 0.001;
         this.point = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
@@ -54,14 +54,14 @@ class ExtrusionTool {
                 if (curArrow >= this.handles.length) {
                     let dir = new THREE.Vector3( 1, 2, 0 ).normalize();
                     let origin = new THREE.Vector3( 0, 0, 0 );
-                    this.handles.push(new THREE.ArrowHelper( dir, origin, 30, 0x00ffff ));
+                    this.handles.push(new THREE.ArrowHelper( dir, origin, 0.030, 0x00ffff ));
                 }
 
                 if (faceData.is_planar && curArrow < this.handles.length) {
                     this.handles[curArrow].position.set(faceData.average[0], faceData.average[1], faceData.average[2]);
                     let normal = new THREE.Vector3(faceData.normal[0], faceData.normal[1], faceData.normal[2]);
                     this.handles[curArrow].setDirection(normal);
-                    this.handles[curArrow].setLength( 30, 10, 10 );
+                    this.handles[curArrow].setLength( 0.030, 0.010, 0.010 );
                     this.handles[curArrow].faceIndex = faceData.index;
                     this.handles[curArrow].parentObject = this.world.history.shapeObjects.children[i];
                     this.handles[curArrow].extrusionDirection = normal;

@@ -18,13 +18,13 @@ class CylinderTool {
 
         this.state = -1; // -1 is Deactivated
         this.numCylinders = 0;
-        this.distance = 1;
+        this.distance = 0.001;
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.arrow = new THREE.ArrowHelper(
-            new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 30, 0x00ffff);
+            new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 0.03, 0x00ffff);
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -88,10 +88,11 @@ class CylinderTool {
                     this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentCylinder.name = "Cylinder #" + this.numCylinders;
                     this.currentCylinder.position.copy(this.worldNormal.clone()
-                        .multiplyScalar(0.5).add(this.point));
+                        .multiplyScalar(0.0005).add(this.point));
                     this.currentCylinder.quaternion.copy(new THREE.Quaternion()
                         .setFromUnitVectors(new THREE.Vector3(0, 1, 0), this.worldNormal));
-                    this.height = 1;
+                    this.currentCylinder.frustumCulled = false;
+                    this.height = 0.001;
                     this.world.scene.add(this.currentCylinder);
 
                     ray.alreadyActivated = true;
@@ -103,13 +104,13 @@ class CylinderTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.rayPlane);
             if (intersects.length > 0) {
-                this.distance = Math.max(1.0, intersects[0].point.sub(this.point).length());
+                this.distance = Math.max(0.001, intersects[0].point.sub(this.point).length());
                 this.distance = this.tools.grid.snapToGrid1D(this.distance);
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
                 
                 this.currentCylinder.scale.x = this.distance;
-                this.currentCylinder.scale.y = 1;
+                this.currentCylinder.scale.y = 0.001;
                 this.currentCylinder.scale.z = this.distance;
             }
             ray.alreadyActivated = true;
@@ -120,9 +121,9 @@ class CylinderTool {
 
                 // Add Arrow Preview
                 this.tools.grid.setVisible(false);
-                this.arrow.position.copy(this.worldNormal.clone().add(this.point));
+                this.arrow.position.copy(this.worldNormal.clone().multiplyScalar(0.001).add(this.point));
                 this.arrow.setDirection(this.worldNormal);
-                this.arrow.setLength( 20, 13, 10 );
+                this.arrow.setLength( 0.02, 0.013, 0.01 );
                 this.world.scene.add(this.arrow);
             }
         } else if (this.state === 2) {
@@ -215,14 +216,14 @@ class CylinderTool {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
                 let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.00001);
+                unionOp.SetFuzzyValue(0.00000001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
                 let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.00001);
+                differenceOp.SetFuzzyValue(0.00000001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             } else {
