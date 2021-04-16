@@ -45,24 +45,11 @@ class World {
         this.cameraParent.add(this.camera);
         this.scene.add(this.cameraParent);
 
-        // light
-        this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-        this.light.position.set( 0, 0.2, 0 );
-        this.scene.add( this.light );
-        this.light = new THREE.DirectionalLight( 0xffffff );
-        this.light.position.set( 0, 0.2, 0.1 );
-        this.light.castShadow = true;
-        this.light.shadow.camera.top = 18;
-        this.light.shadow.camera.bottom = - 10;
-        this.light.shadow.camera.left = - 12;
-        this.light.shadow.camera.right = 12;
-        this.scene.add( this.light );
-        // scene.add( new CameraHelper( light.shadow.camera ) );
-
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
-                                   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false, opacity: 0 }));
+                                   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false})); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
+        //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
         this.mesh.isGround = true;
         this.scene.add( this.mesh );
@@ -73,6 +60,22 @@ class World {
         this.grid.frustumCulled = false;
         this.scene.add(this.grid);
         
+        // light
+        this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+        this.light.position.set( 0, 0.2, 0 );
+        this.scene.add( this.light );
+        this.light = new THREE.DirectionalLight( 0xffffff );
+        this.light.position.set( 0, 20, 10);
+        this.light.castShadow = true;
+        this.light.shadow.camera.top    =   1;
+        this.light.shadow.camera.bottom = - 1;
+        this.light.shadow.camera.left   = - 1;
+        this.light.shadow.camera.right  =   1;
+        //this.light.shadow.autoUpdate = true;
+        this.light.target = this.mesh;
+        this.scene.add( this.light );
+        //this.scene.add( new THREE.CameraHelper( this.light.shadow.camera ) );
+
         // renderer
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setPixelRatio( window.devicePixelRatio );
@@ -163,6 +166,7 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
 
             // Render the scene (Normally or in WebXR)
+            this.light.shadow.needsUpdate = true;
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
@@ -175,7 +179,9 @@ class World {
                 this.renderer.xr.enabled = true;
                 this.renderer.state.bindXRFramebuffer(oldFramebuffer);
             }
+
             this.now = performance.now();
+            ray.lastAlreadyActivated = ray.alreadyActivated;
 
             this.dirty = false;
             //this.stats.update();

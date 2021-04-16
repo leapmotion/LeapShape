@@ -88,7 +88,7 @@ class Alerts {
         this.cursor.labelElem.style.display = "none";
 
         // Update the target height to stack the labels on top of eachother
-        let curTargetHeight = this.labels[0].canonicalPosition.y;
+        let curTargetHeight = this.labels[0].canonicalPosition.y * 2;
         for (let i = 0; i < this.labels.length; i++){
             this.labels[i].targetHeight = curTargetHeight;
             curTargetHeight += this.labels[i].scale.y;

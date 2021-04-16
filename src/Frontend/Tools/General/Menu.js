@@ -75,15 +75,6 @@ class Menu {
         this.world.camera.getWorldQuaternion(this.cameraWorldRot);
         this.world.camera.getWorldScale     (this.cameraWorldScale);
 
-        // Update the slot positions based on the camera's aspect
-        let minAspect = this.world.inVR ? 1.0 : Math.min(this.world.camera.aspect, 1.5);
-        for (let i = 0; i < this.slots.length; i++) {
-            this.slots[i].canonicalPosition.y = (this.world.inVR ? 1 : -1) * 25 * 6 * 0.001;
-
-            this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
-            this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
-        }
-
         // Check to see if the interaction ray intersects one of these items
         this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
         let intersects = this.world.raycaster.intersectObject(this.menu, true);
@@ -111,6 +102,7 @@ class Menu {
                 } else {
                     this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
+                    if (!ray.active) { ray.alreadyActivated = true; }
                 }
             } else {
                 if (this.menuItems[i].tool === this.tools.activeTool) {
@@ -130,6 +122,18 @@ class Menu {
             this.menuItems[i].icon.quaternion.slerp(this.cameraWorldRot, 0.1);
 
             activeMenuIndex += 1;
+        }
+
+        // Update the slot positions based on the camera's aspect
+        // Updating them here allows them to be overridden by other 
+        // subsystems (like the hands) later or earlier in the frame
+        let minAspect = this.world.inVR ? 1.0 : Math.min(this.world.camera.aspect, 1.5);
+        for (let i = 0; i < this.slots.length; i++) {
+            this.slots[i].canonicalPosition.y = (this.world.inVR ? 1 : -1) * 25 * 6 * 0.001;
+
+            this.slots[i].position.x = this.slots[i].canonicalPosition.x;
+            this.slots[i].position.y = this.slots[i].canonicalPosition.y / minAspect;
+            this.slots[i].position.z = this.slots[i].canonicalPosition.z / minAspect;
         }
 
         if (!ray.active) { this.menuHeld = false; }

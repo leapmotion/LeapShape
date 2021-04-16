@@ -3,6 +3,7 @@ import "../../../node_modules/leapjs/leap-1.1.0.js";
 import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
+import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
 
 /** This is the Leap Hand Tracking-based Input */
 class LeapJSInput {
@@ -16,8 +17,11 @@ class LeapJSInput {
         this.lastFrameTimestamp = 0;
         this.palmDirection = new THREE.Vector3();
         this.palmNormal = new THREE.Vector3();
-        this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3();
-        this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion();
+        this.cameraWorldPosition = new THREE.Vector3();
+        this.cameraWorldQuaternion = new THREE.Quaternion();
+        this.cameraWorldScale = new THREE.Quaternion();
+        this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3(); this.vec4 = new THREE.Vector3();
+        this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion(); this.eul = new THREE.Euler();
         this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
@@ -47,6 +51,8 @@ class LeapJSInput {
         this.lastTimestep = performance.now();
         this.activeTime = 0; this.prevActive = false;
         this.mainHand = null;
+        this.hoverColor = new THREE.Color(0, 1, 1);
+        this.idleColor = new THREE.Color(0.5, 0.5, 0.5);
 
         this.curInVR = false;
 
@@ -98,21 +104,55 @@ class LeapJSInput {
             }
         }
 
+        // Set the Menu Buttons to appear beside the users' secondary hand
+        this.world.camera.getWorldPosition  (this.cameraWorldPosition);
+        this.world.camera.getWorldQuaternion(this.cameraWorldQuaternion);
+        this.world.camera.getWorldScale     (this.cameraWorldScale);
+        if (this.mainHand && this.world.parent.tools.menu) {
+            let secondaryHandType = this.mainHand === "left" ? "right" : "left";
+            /** @type {THREE.Object3D} */
+            let secondaryHand = this.hands[secondaryHandType];
+            let slots = this.world.parent.tools.menu.slots;
+            if (secondaryHand && secondaryHand.visible && slots) {
+                // Calculate whether the secondary hand's palm is facing the camera
+                this.vec .set(0, -1, 0).applyQuaternion(secondaryHand.getWorldQuaternion(this.quat));
+                this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion);
+                let facing = this.vec.dot(this.vec2);
+                if (facing < 0.0) {
+                    // Array the Menu Items next to the user's secondary hand
+                    secondaryHand.getWorldPosition(this.vec3);
+
+                    for (let s = 0; s < slots.length; s++){
+                        let oldParent = slots[s].parent;
+                        this.world.scene.add(slots[s]);
+
+                        let chirality = (secondaryHandType === 'left' ? 1 : -1);
+                        this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
+                                          0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                        this.vec.set(0.03 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
+                            .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
+                        
+                        slots[s].position.copy(this.vec);
+                        oldParent.attach(slots[s]);
+                    }
+                }
+            }
+        }
+
         if (this.isActive()) {
             // Set Ray Origin and Direction
             let curSphere = this.pinchSpheres[this.mainHand];
             if (curSphere) {
 
-                this.world.camera.getWorldPosition(this.ray.ray.origin);
+                // Approximate shoulder position with magic values
+                this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion).y = 0;
 
-                // Approximate shoulder position with magic values.
-                // TODO: Port to three.js
-                //this.world.camera.getWorldPosition(this.vec);
-                //let shoulderYaw      = Quaternion.Euler(0, headTransform.quaternion.eulerAngles.y, 0);
-                //let ProjectionOrigin = this.vec
-                //                        + (shoulderYaw * (new THREE.Vector3(0, -0.13, -0.1)
-                //                        + this.vec2((hand.IsLeft ? 1 : -1), 0, 0) * 0.15));
-                //let ProjectionDirection = hand.Fingers[1].bones[0].NextJoint.ToVector3() - ProjectionOrigin;
+                // Get Shoulder Rotation Quaternion
+                this.quat.setFromUnitVectors(this.vec3.set(0, 0, 1), this.vec2.normalize());
+                // Place Projection origin points roughly where the shoulders are
+                this.vec2.set((this.mainHand === "left") ? 0.15 : -0.15, 0.05, -0.05)
+                    .multiplyScalar(this.cameraWorldScale.x).applyQuaternion(this.quat);
+                this.ray.ray.origin.copy(this.cameraWorldPosition.add(this.vec2));
 
                 this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
             }
@@ -195,19 +235,23 @@ class LeapJSInput {
         handGroup.age      = 0;
         handGroup.frustumCulled = false;
 
+        this. boneMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
+        this.jointMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
+
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
-            new THREE.MeshPhongMaterial(), 32);
-        //handGroup.bones.castShadow = true;
+            this.boneMat, 32);
+        handGroup.bones.receiveShadow = true;
+        handGroup.bones.castShadow = true;
         handGroup.bones.layers.set(1);
         handGroup.add(handGroup.bones);
 
-        let jointMat = new THREE.MeshPhongMaterial();
-        jointMat.color = new THREE.Color(0, 0.53, 0.808);
+        this.jointMat.color = new THREE.Color(0, 0.53, 0.808);
         handGroup.joints = new THREE.InstancedMesh(
             new THREE.SphereBufferGeometry(1, 10, 10),
-            jointMat, 32);
-        //handGroup.joints.castShadow = true;
+            this.jointMat, 32);
+        handGroup.joints.receiveShadow = true;
+        handGroup.joints.castShadow = true;
         handGroup.joints.layers.set(1);
         handGroup.add(handGroup.joints);
 
@@ -215,7 +259,7 @@ class LeapJSInput {
         //handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
         // Outside of Pinch Point
         handGroup.localPinchPos = new THREE.Vector3(50 * (hand.type==='left'?-1:1), -50, 40);
-        handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 0, 0x00ffff, 10, 10);
+        handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 100, 0x00ffff, 10, 10);
         //handGroup.arrow.visible = false;
         handGroup.arrow.layers.set(1);
         handGroup.arrow.cone.layers.set(1);
@@ -256,6 +300,7 @@ class LeapJSInput {
         handGroup.arrow.visible = handGroup.handType === this.mainHand;
         handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
             applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
+        handGroup.arrow.setColor(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();

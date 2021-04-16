@@ -76,14 +76,15 @@ class SphereTool {
                     this.currentSphere.name = "Sphere #" + this.numSpheres;
                     this.currentSphere.position.copy(this.point);
                     this.currentSphere.frustumCulled = false;
+                    this.currentSphere.scale.set(0.00001,0.00001,0.00001);
                     this.world.scene.add(this.currentSphere);
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.hit.face.normal.clone().transformDirection(this.hit.object.matrixWorld).add(this.rayPlane.position));
                     this.rayPlane.updateMatrixWorld(true);
 
                     this.state += 1;
-                    ray.alreadyActivated = true;
                 }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Sphere

@@ -19,6 +19,7 @@ class ExtrusionTool {
         this.distance = 0.001;
         this.height = 0.001;
         this.point = new THREE.Vector3();
+        this.worldCameraScale = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.extrusionMesh = null;
@@ -46,6 +47,7 @@ class ExtrusionTool {
         this.tools.activeTool = this;
 
         // Place Extrusion Handles
+        this.world.camera.getWorldScale(this.worldCameraScale);
         let curArrow = 0;
         for (let i = 0; i < this.world.history.shapeObjects.children.length; i++) {
             for (let j = 0; j < this.world.history.shapeObjects.children[i].faceMetadata.length; j++) {
@@ -61,7 +63,10 @@ class ExtrusionTool {
                     this.handles[curArrow].position.set(faceData.average[0], faceData.average[1], faceData.average[2]);
                     let normal = new THREE.Vector3(faceData.normal[0], faceData.normal[1], faceData.normal[2]);
                     this.handles[curArrow].setDirection(normal);
-                    this.handles[curArrow].setLength( 0.030, 0.010, 0.010 );
+                    this.handles[curArrow].setLength(
+                        0.03 * this.worldCameraScale.x,
+                        0.01 * this.worldCameraScale.x,
+                        0.01 * this.worldCameraScale.x);
                     this.handles[curArrow].faceIndex = faceData.index;
                     this.handles[curArrow].parentObject = this.world.history.shapeObjects.children[i];
                     this.handles[curArrow].extrusionDirection = normal;
@@ -93,10 +98,16 @@ class ExtrusionTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.handleParent, true);
 
-            if (ray.justActivated && ray.active && intersects.length > 0) {
-                this.hit = intersects[0].object.parent;
-                this.point.copy(this.hit.position);
-                this.state += 1;
+            if (intersects.length > 0) {
+                if (ray.justActivated && ray.active) {
+                    // TODO: Check if this face is in the metadata for Extrusion
+                    // if(intersects[0].object.shapeName){}
+
+                    this.hit = intersects[0].object.parent;
+                    this.point.copy(this.hit.position);
+                    this.state += 1;
+                }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // Resize the Height while dragging
@@ -177,6 +188,7 @@ class ExtrusionTool {
                     this.currentExtrusion.quaternion.copy(new THREE.Quaternion()
                         .setFromUnitVectors(new THREE.Vector3(0, 1, 0),
                             new THREE.Vector3(createExtrusionArgs[0], createExtrusionArgs[1], createExtrusionArgs[2])));
+                    //this.currentExtrusion.scale.y = 0.00001;
                     this.currentExtrusion.attach(mesh);
                     this.world.scene.add(this.currentExtrusion);
                 }
