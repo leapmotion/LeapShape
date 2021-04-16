@@ -21,7 +21,7 @@ class Debug {
         
         // Record whether we're on Safari or Mobile (unused so far)
         this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
-        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
+        this.mobile = /(Android|iPad|iPhone|iPod|Oculus)/g.test(navigator.userAgent) || this.safari;
     }
 
     // Log Errors as <div>s over the main viewport

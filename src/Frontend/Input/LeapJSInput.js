@@ -5,8 +5,8 @@ import { InteractionRay } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
 
 /** This is the Leap Hand Tracking-based Input */
-class LeapHandInput {
-    /** Initialize Mouse Capture
+class LeapJSInput {
+    /** Initialize Leap.js Input
      * @param {World} world */
     constructor(world) {
         this.world = world;
@@ -143,7 +143,7 @@ class LeapHandInput {
     }
 
     /** Does this input want to take control? */
-    isActive() { return this.world.handsAreTracking && this.mainHand; }
+    isActive() { return this.world.handsAreTracking && this.mainHand && !this.world.mobile; }
 
     /** Update the pinch state of the hands 
      * @param {Hand} hand */
@@ -308,4 +308,4 @@ class LeapHandInput {
 
 }
 
-export { LeapHandInput };
+export { LeapJSInput };

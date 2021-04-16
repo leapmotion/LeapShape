@@ -18,6 +18,10 @@ class World {
         // sneaky leaky references for dependency inversion...
         this.parent = parent; window.world = this;
 
+        // record browser metadata for power saving features...
+        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
+        this.mobile = /(Android|iPad|iPhone|iPod|Oculus)/g.test(navigator.userAgent) || this.safari;
+
         // app container div
         this.container = document.getElementById('appbody');
         document.body.appendChild(this.container);
@@ -110,9 +114,6 @@ class World {
         // Contains both the Undo History, and the set of active shapes
         this.history = new History(this);
 
-        // Record browser metadata for power saving features...
-        this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
-        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
         this.lastTimeInteractedWith = performance.now();
         this.dirty = false;
 
@@ -165,7 +166,7 @@ class World {
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
-            if (this.renderer.xr.isPresenting) {
+            if (this.renderer.xr.isPresenting && !this.mobile) {
                 this.renderer.xr.enabled = false;
                 let oldFramebuffer = this.renderer._framebuffer;
                 this.renderer.state.bindXRFramebuffer( null );
@@ -190,7 +191,7 @@ class World {
 
         let oldFramebuffer = this.renderer._framebuffer;
         let oldPresenting = this.renderer.xr.isPresenting;
-        if (oldPresenting) {
+        if (oldPresenting && !this.mobile) {
             this.renderer.xr.enabled = false;
             this.renderer.state.bindXRFramebuffer( null );
             this.renderer.xr.isPresenting = false;
@@ -200,7 +201,7 @@ class World {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
 
-        if (oldPresenting) {
+        if (oldPresenting && !this.mobile) {
             this.renderer.xr.enabled = true;
             this.renderer.state.bindXRFramebuffer(oldFramebuffer);
             this.renderer.xr.isPresenting = oldPresenting;

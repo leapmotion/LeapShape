@@ -1,6 +1,7 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import { MouseInput } from './MouseInput.js';
-import { LeapHandInput } from './LeapHandInput.js';
+import { LeapJSInput } from './LeapJSInput.js';
+import { OpenXRInput } from './OpenXRInput.js';
 
 /**
  * This is the input abstraction object for LeapShape.
@@ -21,18 +22,17 @@ class InteractionRay {
     }
 }
 
-/**
- * This is the input abstraction for LeapShape.
+/** This is the input abstraction for LeapShape.
  * Mouse, Touchscreen, Hands, and Controllers 
- * are routed through here.
- */
+ * are routed through here as InteractionRays. */
 class Input {
     
     constructor(world) {
         // Add your new input abstraction here!
         this.inputs = {
-            mouse: new MouseInput(world),
-            xrHands: new LeapHandInput(world)
+            mouse : new MouseInput (world),
+            hands : new LeapJSInput(world),
+            openxr: new OpenXRInput(world)
         };
         this.activeInput = this.inputs.mouse;
         this.ray = new InteractionRay(new THREE.Ray());

@@ -21,7 +21,7 @@ class FileIO {
 
         // Record browser metadata...
         this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
-        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent) || this.safari;
+        this.mobile = /(Android|iPad|iPhone|iPod|Oculus)/g.test(navigator.userAgent) || this.safari;
 
         // Create Export Buttons
         this.createNavLink("Export to .GLTF", this.saveShapesGLTF);
