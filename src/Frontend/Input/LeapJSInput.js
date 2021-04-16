@@ -241,7 +241,8 @@ class LeapJSInput {
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
             this.boneMat, 32);
-        //handGroup.bones.castShadow = true;
+        handGroup.bones.receiveShadow = true;
+        handGroup.bones.castShadow = true;
         handGroup.bones.layers.set(1);
         handGroup.add(handGroup.bones);
 
@@ -249,7 +250,8 @@ class LeapJSInput {
         handGroup.joints = new THREE.InstancedMesh(
             new THREE.SphereBufferGeometry(1, 10, 10),
             this.jointMat, 32);
-        //handGroup.joints.castShadow = true;
+        handGroup.joints.receiveShadow = true;
+        handGroup.joints.castShadow = true;
         handGroup.joints.layers.set(1);
         handGroup.add(handGroup.joints);
 

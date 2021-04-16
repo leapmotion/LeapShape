@@ -93,6 +93,8 @@ export default function ConvertGeometry(meshData) {
     mesh.material.color.setRGB(0.5, 0.5, 0.5);
     mesh.faceMetadata = faceMetaData;
     mesh.frustumCulled = false;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     mesh.add(line);
     return mesh;
 }
