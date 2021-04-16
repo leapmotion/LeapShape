@@ -19,6 +19,7 @@ class ExtrusionTool {
         this.distance = 0.001;
         this.height = 0.001;
         this.point = new THREE.Vector3();
+        this.worldCameraScale = new THREE.Vector3();
         this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.extrusionMesh = null;
@@ -46,6 +47,7 @@ class ExtrusionTool {
         this.tools.activeTool = this;
 
         // Place Extrusion Handles
+        this.world.camera.getWorldScale(this.worldCameraScale);
         let curArrow = 0;
         for (let i = 0; i < this.world.history.shapeObjects.children.length; i++) {
             for (let j = 0; j < this.world.history.shapeObjects.children[i].faceMetadata.length; j++) {
@@ -61,7 +63,10 @@ class ExtrusionTool {
                     this.handles[curArrow].position.set(faceData.average[0], faceData.average[1], faceData.average[2]);
                     let normal = new THREE.Vector3(faceData.normal[0], faceData.normal[1], faceData.normal[2]);
                     this.handles[curArrow].setDirection(normal);
-                    this.handles[curArrow].setLength( 0.030, 0.010, 0.010 );
+                    this.handles[curArrow].setLength(
+                        0.03 * this.worldCameraScale.x,
+                        0.01 * this.worldCameraScale.x,
+                        0.01 * this.worldCameraScale.x);
                     this.handles[curArrow].faceIndex = faceData.index;
                     this.handles[curArrow].parentObject = this.world.history.shapeObjects.children[i];
                     this.handles[curArrow].extrusionDirection = normal;
@@ -94,6 +99,8 @@ class ExtrusionTool {
             let intersects = this.world.raycaster.intersectObject(this.handleParent, true);
 
             if (ray.justActivated && ray.active && intersects.length > 0) {
+                // if(intersects[0].object.shapeName)
+
                 this.hit = intersects[0].object.parent;
                 this.point.copy(this.hit.position);
                 this.state += 1;
