@@ -37,8 +37,8 @@ class OffsetTool {
             shader.vertexShader =
                '\nuniform float dilation;\n' +
                shader.vertexShader.slice(0, insertionPoint) +
-                'transformed += dilation * objectNormal;\n    '
-             + shader.vertexShader.slice(   insertionPoint);
+                'transformed += dilation * objectNormal;\n    ' +
+               shader.vertexShader.slice(   insertionPoint);
 
              shader.fragmentShader = createDitherDepthFragmentShader(hasFragDepth, shader.fragmentShader);
             

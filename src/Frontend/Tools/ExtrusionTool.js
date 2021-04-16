@@ -98,12 +98,16 @@ class ExtrusionTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.handleParent, true);
 
-            if (ray.justActivated && ray.active && intersects.length > 0) {
-                // if(intersects[0].object.shapeName)
+            if (intersects.length > 0) {
+                if (ray.justActivated && ray.active) {
+                    // TODO: Check if this face is in the metadata for Extrusion
+                    // if(intersects[0].object.shapeName){}
 
-                this.hit = intersects[0].object.parent;
-                this.point.copy(this.hit.position);
-                this.state += 1;
+                    this.hit = intersects[0].object.parent;
+                    this.point.copy(this.hit.position);
+                    this.state += 1;
+                }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // Resize the Height while dragging

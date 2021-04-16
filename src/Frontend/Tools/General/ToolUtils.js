@@ -35,7 +35,7 @@ export function createDitherDepthFragmentShader(hasFragDepth, origShader) {
             int x = int(mod(gl_FragCoord.x, 8.));
             int y = int(mod(gl_FragCoord.y, 8.));
             float limit = (float(dither_table[x + y * 8]) + 1.) / 64.;
-            gl_FragDepthEXT = gl_FragCoord.z - (limit*0.002);
+            gl_FragDepthEXT = gl_FragCoord.z - (limit*0.0001);
             ` : '\n') + '}';
 }
 

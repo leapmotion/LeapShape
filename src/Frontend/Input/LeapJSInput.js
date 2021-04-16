@@ -3,6 +3,7 @@ import "../../../node_modules/leapjs/leap-1.1.0.js";
 import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
+import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
 
 /** This is the Leap Hand Tracking-based Input */
 class LeapJSInput {
@@ -234,18 +235,20 @@ class LeapJSInput {
         handGroup.age      = 0;
         handGroup.frustumCulled = false;
 
+        this. boneMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
+        this.jointMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
+
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
-            new THREE.MeshPhongMaterial(), 32);
+            this.boneMat, 32);
         //handGroup.bones.castShadow = true;
         handGroup.bones.layers.set(1);
         handGroup.add(handGroup.bones);
 
-        let jointMat = new THREE.MeshPhongMaterial();
-        jointMat.color = new THREE.Color(0, 0.53, 0.808);
+        this.jointMat.color = new THREE.Color(0, 0.53, 0.808);
         handGroup.joints = new THREE.InstancedMesh(
             new THREE.SphereBufferGeometry(1, 10, 10),
-            jointMat, 32);
+            this.jointMat, 32);
         //handGroup.joints.castShadow = true;
         handGroup.joints.layers.set(1);
         handGroup.add(handGroup.joints);
