@@ -60,7 +60,7 @@ class MouseInput {
     }
 
     /** Does this input want to take control? */
-    isActive() { return !this.world.handsAreTracking; }
+    isActive() { return !(this.world.handsAreTracking || this.world.inVR); }
 
 }
 

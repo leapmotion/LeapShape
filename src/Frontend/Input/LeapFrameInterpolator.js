@@ -15,6 +15,8 @@ class LeapFrameInterpolator {
 
         this.nowToLeapOffsetUS = 0;
         this.interpolatedFrame = new window.Leap.Frame(this.getExampleFrameJSON());
+        this.interpolatedFrame.hands[0].valid = false;
+        this.interpolatedFrame.hands[1].valid = false;
         //console.log(this.interpolatedFrame);
 
         // Rebase the leap and frame times together when a frame is received
@@ -166,6 +168,7 @@ class LeapFrameInterpolator {
                         bone.nextJoint[0] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[0], bHand.fingers[f].bones[bi].nextJoint[0], alpha);
                         bone.nextJoint[1] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[1], bHand.fingers[f].bones[bi].nextJoint[1], alpha);
                         bone.nextJoint[2] = this.lerp(aHand.fingers[f].bones[bi].nextJoint[2], bHand.fingers[f].bones[bi].nextJoint[2], alpha);
+                        bone.center();
                         bone._center  [0] = this.lerp(bone.prevJoint[0], bone.nextJoint[0], 0.5);
                         bone._center  [1] = this.lerp(bone.prevJoint[1], bone.nextJoint[1], 0.5);
                         bone._center  [2] = this.lerp(bone.prevJoint[2], bone.nextJoint[2], 0.5);
@@ -181,6 +184,7 @@ class LeapFrameInterpolator {
                         bone.basis[2][1] = this.lerp(aHand.fingers[f].bones[bi].basis[2][1], bHand.fingers[f].bones[bi].basis[2][1], alpha);
                         bone.basis[2][2] = this.lerp(aHand.fingers[f].bones[bi].basis[2][2], bHand.fingers[f].bones[bi].basis[2][2], alpha);
                     
+                        bone.matrix();
                         for (let m = 0; m < 16; m++) {
                             bone._matrix[m] = this.lerp(aHand.fingers[f].bones[bi].matrix()[m], bHand.fingers[f].bones[bi].matrix()[m], alpha);
                         }
