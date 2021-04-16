@@ -90,6 +90,7 @@ class BoxTool {
                     this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentBox.name = "Box #" + this.numBoxs;
+                    this.currentBox.scale.set(0.000001, 0.000001, 0.000001);
                     this.currentBox.position.copy(this.worldNormal.clone()
                         .multiplyScalar(0.5).add(this.point));
                     this.currentBox.frustumCulled = false;

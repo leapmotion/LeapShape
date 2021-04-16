@@ -184,6 +184,7 @@ class ExtrusionTool {
                     this.currentExtrusion.quaternion.copy(new THREE.Quaternion()
                         .setFromUnitVectors(new THREE.Vector3(0, 1, 0),
                             new THREE.Vector3(createExtrusionArgs[0], createExtrusionArgs[1], createExtrusionArgs[2])));
+                    //this.currentExtrusion.scale.y = 0.00001;
                     this.currentExtrusion.attach(mesh);
                     this.world.scene.add(this.currentExtrusion);
                 }

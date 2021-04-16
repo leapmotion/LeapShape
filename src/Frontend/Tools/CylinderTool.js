@@ -89,6 +89,7 @@ class CylinderTool {
                     this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentCylinder.name = "Cylinder #" + this.numCylinders;
+                    this.currentCylinder.scale.set(0.000001, 0.000001, 0.000001);
                     this.currentCylinder.position.copy(this.worldNormal.clone()
                         .multiplyScalar(0.0005).add(this.point));
                     this.currentCylinder.quaternion.copy(new THREE.Quaternion()
