@@ -19,7 +19,7 @@ class MouseInput {
         this.prevButton = 0;
         this.up = new THREE.Vector3(0, 1, 0);
 
-        this.mobile = /(Android|iPad|iPhone|iPod)/g.test(navigator.userAgent);
+        this.mobile = /(Android|iPad|iPhone|iPod|Oculus)/g.test(navigator.userAgent);
     }
 
     /** Triggered whenever the mouse moves over the application
