@@ -16,8 +16,8 @@ class LeapJSInput {
         this.lastFrameTimestamp = 0;
         this.palmDirection = new THREE.Vector3();
         this.palmNormal = new THREE.Vector3();
-        this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3();
-        this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion();
+        this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3(); this.vec4 = new THREE.Vector3();
+        this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion(); this.eul = new THREE.Euler();
         this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
         this.baseBoneRotation = (new THREE.Quaternion).setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0));
 
@@ -103,16 +103,18 @@ class LeapJSInput {
             let curSphere = this.pinchSpheres[this.mainHand];
             if (curSphere) {
 
-                this.world.camera.getWorldPosition(this.ray.ray.origin);
+                // Approximate shoulder position with magic values
+                this.world.camera.getWorldPosition     (this.vec );
+                this.world.camera.getWorldQuaternion   (this.quat);
+                this.vec2.set(0, 0, -1).applyQuaternion(this.quat).y = 0;
+                this.world.camera.getWorldScale        (this.vec4);
 
-                // Approximate shoulder position with magic values.
-                // TODO: Port to three.js
-                //this.world.camera.getWorldPosition(this.vec);
-                //let shoulderYaw      = Quaternion.Euler(0, headTransform.quaternion.eulerAngles.y, 0);
-                //let ProjectionOrigin = this.vec
-                //                        + (shoulderYaw * (new THREE.Vector3(0, -0.13, -0.1)
-                //                        + this.vec2((hand.IsLeft ? 1 : -1), 0, 0) * 0.15));
-                //let ProjectionDirection = hand.Fingers[1].bones[0].NextJoint.ToVector3() - ProjectionOrigin;
+                // Get Shoulder Rotation Quaternion
+                this.quat.setFromUnitVectors(this.vec3.set(0, 0, 1), this.vec2.normalize());
+                // Place Projection origin points roughly where the shoulders are
+                this.vec2.set((this.mainHand === "left") ? 0.15 : -0.15, 0.05, -0.05)
+                    .multiplyScalar(this.vec4.x).applyQuaternion(this.quat);
+                this.ray.ray.origin.copy(this.vec.add(this.vec2));
 
                 this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
             }
@@ -215,7 +217,7 @@ class LeapJSInput {
         //handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
         // Outside of Pinch Point
         handGroup.localPinchPos = new THREE.Vector3(50 * (hand.type==='left'?-1:1), -50, 40);
-        handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 0, 0x00ffff, 10, 10);
+        handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 100, 0x00ffff, 10, 10);
         //handGroup.arrow.visible = false;
         handGroup.arrow.layers.set(1);
         handGroup.arrow.cone.layers.set(1);

@@ -101,26 +101,9 @@ class OpenXRInput {
             if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; }
             //if ((this.mainHand != this.hand1) && this.hand2.visible) { this.mainHand = this.hand2; }
             //if ((this.mainHand != this.hand2) && this.hand1.visible) { this.mainHand = this.hand1; }
-            //this.mainHand = this.hand2;
             if (this.mainHand) {
-                //this.hand2line.updateWorldMatrix(true, true);
-                //this.mainHand.matrixWorld.decompose( this.vec2, this.quat, this.vec3 );
-                //if (this.mainHand.joints.getWorldPosition) {
-                //    this.mainHand.joints.getWorldPosition(this.vec);
-                //    //console.error(JSON.stringify(this.mainHand.joints));
-
-                //    this.world.parent.tools.cursor.updateLabel(JSON.stringify(this.vec));
-                //    this.world.parent.tools.cursor.updateTarget(this.vec);
-                //}
-                //this.mainHand.updateWorldMatrix(true, true);
-                //this.mainHand.matrixWorld.decompose( this.vec2, this.quat, this.vec3 );
-                //if (this.mainHand.joints) {
-                //    this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.joints['index-finger-tip'].quaternion));
-                //    this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.joints['index-finger-tip'].position);
-                //}else{
-                    this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
-                    this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.position);
-                //}
+                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
+                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.position);
             }
             this.lastMainHand = this.mainHand;
 
