@@ -16,6 +16,9 @@ class LeapJSInput {
         this.lastFrameTimestamp = 0;
         this.palmDirection = new THREE.Vector3();
         this.palmNormal = new THREE.Vector3();
+        this.cameraWorldPosition = new THREE.Vector3();
+        this.cameraWorldQuaternion = new THREE.Quaternion();
+        this.cameraWorldScale = new THREE.Quaternion();
         this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3(); this.vec4 = new THREE.Vector3();
         this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion(); this.eul = new THREE.Euler();
         this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
@@ -98,23 +101,53 @@ class LeapJSInput {
             }
         }
 
+        // Set the Menu Buttons to appear beside the users' secondary hand
+        this.world.camera.getWorldPosition  (this.cameraWorldPosition);
+        this.world.camera.getWorldQuaternion(this.cameraWorldQuaternion);
+        this.world.camera.getWorldScale     (this.cameraWorldScale);
+        if (this.mainHand && this.world.parent.tools.menu) {
+            let secondaryHandType = this.mainHand === "left" ? "right" : "left";
+            /** @type {THREE.Object3D} */
+            let secondaryHand = this.hands[secondaryHandType];
+            let slots = this.world.parent.tools.menu.slots;
+            if (secondaryHand && secondaryHand.visible && slots) {
+                // Calculate whether the secondary hand's palm is facing the camera
+                this.vec .set(0, -1, 0).applyQuaternion(secondaryHand.getWorldQuaternion(this.quat));
+                this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion);
+                let facing = this.vec.dot(this.vec2);
+                if (facing < 0.0) {
+                    // Array the Menu Items next to the user's secondary hand
+                    let toWorld = secondaryHand.matrixWorld;
+                    secondaryHand.getWorldPosition(this.vec2);
+
+                    for (let s = 0; s < slots.length; s++){
+                        let oldParent = slots[s].parent;
+                        this.world.scene.add(slots[s]);
+                        this.vec.set((0.090 + (Math.floor(s / 3) * 0.050)) *
+                                        (secondaryHandType === 'left' ? 1 : -1),
+                                       0.0, 0.05 - ((s % 3) * 0.050))
+                            .applyQuaternion(this.quat).multiplyScalar(this.cameraWorldScale.x).add(this.vec2);
+                        slots[s].position.copy(this.vec);
+                        oldParent.attach(slots[s]);
+                    }
+                }
+            }
+        }
+
         if (this.isActive()) {
             // Set Ray Origin and Direction
             let curSphere = this.pinchSpheres[this.mainHand];
             if (curSphere) {
 
                 // Approximate shoulder position with magic values
-                this.world.camera.getWorldPosition     (this.vec );
-                this.world.camera.getWorldQuaternion   (this.quat);
-                this.vec2.set(0, 0, -1).applyQuaternion(this.quat).y = 0;
-                this.world.camera.getWorldScale        (this.vec4);
+                this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion).y = 0;
 
                 // Get Shoulder Rotation Quaternion
                 this.quat.setFromUnitVectors(this.vec3.set(0, 0, 1), this.vec2.normalize());
                 // Place Projection origin points roughly where the shoulders are
                 this.vec2.set((this.mainHand === "left") ? 0.15 : -0.15, 0.05, -0.05)
-                    .multiplyScalar(this.vec4.x).applyQuaternion(this.quat);
-                this.ray.ray.origin.copy(this.vec.add(this.vec2));
+                    .multiplyScalar(this.cameraWorldScale.x).applyQuaternion(this.quat);
+                this.ray.ray.origin.copy(this.cameraWorldPosition.add(this.vec2));
 
                 this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
             }
