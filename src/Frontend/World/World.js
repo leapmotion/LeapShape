@@ -174,13 +174,13 @@ class World {
                 this.renderer.xr.enabled = true;
                 this.renderer.state.bindXRFramebuffer(oldFramebuffer);
             }
+            this.now = performance.now();
 
             this.dirty = false;
             //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
             this.lastTimeInteractedWith += 1020; // Otherwise Update once per ~second...
         }
-
     }
 
     /** **INTERNAL**: This function recalculates the viewport based on the new window size. */

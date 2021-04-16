@@ -14,9 +14,30 @@ class LeapFrameInterpolator {
         this.controller = controller;
 
         this.nowToLeapOffsetUS = 0;
-        let exampleFrameJSON = this.getExampleFrameJSON();
-        this.interpolatedFrame = new window.Leap.Frame(exampleFrameJSON);
-        console.log(this.interpolatedFrame);
+        this.interpolatedFrame = new window.Leap.Frame(this.getExampleFrameJSON());
+        //console.log(this.interpolatedFrame);
+
+        // Rebase the leap and frame times together when a frame is received
+        controller.loop((frame) => {
+            // Rebase performance.now() and the leap timestamps together
+            let nowTimestamp = performance.now() * 1000;  // us
+            let leapTimestamp = frame.timestamp;          // us
+            if (frame.valid && leapTimestamp && leapTimestamp !== this.lastFrameTimestamp) {
+                // Solve for the rough offset between performance.now() and the leap timestamp
+                let rawOffset = leapTimestamp - nowTimestamp;
+                let offsetCorrection = rawOffset - this.nowToLeapOffsetUS;
+                if (this.nowToLeapOffsetUS === 0 || Math.abs(offsetCorrection) > 20000) {
+                    this.nowToLeapOffsetUS += Math.sign(offsetCorrection) * (Math.abs(offsetCorrection) - 20000);
+                } else {
+                    this.nowToLeapOffsetUS += offsetCorrection / 1000;
+                }
+
+                this.lastFrameTimestamp = frame.timestamp;
+            } else {
+                return this.interpolatedFrame;
+            }
+
+        });
 
         // Temporary Swap Variables
         this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3();
@@ -26,26 +47,7 @@ class LeapFrameInterpolator {
 
     /** Updates visuals and regenerates the input ray */
     update() {
-        // Set up Interpolation
-        let latestFrame = this.controller.lastFrame;
-
-        // Rebase performance.now() and the leap timestamps together
-        let nowTimestamp = performance.now() * 1000; // us
-        let leapTimestamp = latestFrame.timestamp;   // us
-        if (latestFrame.valid && leapTimestamp && leapTimestamp !== this.lastFrameTimestamp) {
-            // Solve for the rough offset between performance.now() and the leap timestamp
-            let rawOffset = leapTimestamp - nowTimestamp;
-            let offsetCorrection = rawOffset - this.nowToLeapOffsetUS;
-            if (this.nowToLeapOffsetUS === 0 || Math.abs(offsetCorrection) > 2000) {
-                this.nowToLeapOffsetUS = rawOffset;
-            }
-            this.nowToLeapOffsetUS += offsetCorrection / 1000;
-            this.lastFrameTimestamp = latestFrame.timestamp;
-        } else {
-            return this.interpolatedFrame;
-        }
-
-        let interpolatedFrameTimestamp = nowTimestamp + this.nowToLeapOffsetUS;
+        let interpolatedFrameTimestamp = (this.world.now * 1000) + this.nowToLeapOffsetUS;
         return this.getInterpolatedFrame(this.interpolatedFrame, this.controller, interpolatedFrameTimestamp - 6000);
     }
 
@@ -91,6 +93,11 @@ class LeapFrameInterpolator {
         toFill.currentFrameRate = this.lerp(a.currentFrameRate, b.currentFrameRate, alpha);
         toFill.timestamp = this.lerp(a.timestamp, b.timestamp, alpha);
 
+        // Invalidate the existing hands
+        for (let h = 0; h < toFill.hands.length; h++) {
+            toFill.hands[h].valid = false;
+        }
+
         // Loop through the newer frame's hands
         for (let h = 0; h < b.hands.length; h++) {
             let bHand = b.hands[h];
@@ -100,6 +107,7 @@ class LeapFrameInterpolator {
             if (aHand) {
                 // Lerp the Single Value Hand Parameters
                 toFillHand.id              = bHand.id;
+                toFillHand.valid           = bHand.valid;
                 toFillHand.palmWidth       = this.lerp(aHand.palmWidth      , bHand.palmWidth      , alpha);
                 toFillHand.pinchDistance   = this.lerp(aHand.pinchDistance  , bHand.pinchDistance  , alpha);
                 toFillHand.pinchStrength   = this.lerp(aHand.pinchStrength  , bHand.pinchStrength  , alpha);
@@ -178,6 +186,8 @@ class LeapFrameInterpolator {
                         }
                     });
                 });
+            } else {
+                toFillHand.valid = false;
             }
         }
         return toFill;

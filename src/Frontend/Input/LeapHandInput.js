@@ -80,6 +80,7 @@ class LeapHandInput {
         }
         for (let h = 0; h < this.interpolatedFrame.hands.length; h++) {
             let hand = this.interpolatedFrame.hands[h];
+            if (!hand.valid) { continue; }
             if (hand.type in this.hands) {
                 handsAreTracking = true;
                 this.updateHand(hand);
