@@ -97,8 +97,8 @@ class BoxTool {
                     this.world.scene.add(this.currentBox);
 
                     this.state += 1;
-                    ray.alreadyActivated = true;
                 }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Box

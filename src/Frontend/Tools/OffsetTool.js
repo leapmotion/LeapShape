@@ -66,7 +66,7 @@ class OffsetTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (intersects.length > 0 && ray.justActivated &&
+            if (intersects.length > 0 && !ray.justDeactivated &&
                 (intersects[0].object.shapeName || intersects[0].object.isGround)) {
 
                 this.hit = intersects[0];
@@ -79,24 +79,26 @@ class OffsetTool {
 
                 // Record the hit object and plane...
                 if (this.hit.object.shapeName) {
-                    this.hitObject = this.hit.object;
-                    this.point.copy(this.hit.point);
-                    //this.hitObject.material = this.offsetMaterial;
+                    if (ray.justActivated) {
+                        this.hitObject = this.hit.object;
+                        this.point.copy(this.hit.point);
+                        //this.hitObject.material = this.offsetMaterial;
 
-                    // Spawn the Offset
-                    this.currentOffset = new THREE.Mesh(this.hitObject.geometry, this.offsetMaterial);
-                    this.offsetMaterial.emissive.setRGB(0, 0.25, 0.25);
-                    this.currentOffset.name = "Waiting...";
-                    this.world.scene.add(this.currentOffset);
+                        // Spawn the Offset
+                        this.currentOffset = new THREE.Mesh(this.hitObject.geometry, this.offsetMaterial);
+                        this.offsetMaterial.emissive.setRGB(0, 0.25, 0.25);
+                        this.currentOffset.name = "Waiting...";
+                        this.world.scene.add(this.currentOffset);
 
-                    // Creates an expected offset 
-                    this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.001]);
+                        // Creates an expected offset 
+                        this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.001]);
 
-                    this.rayPlane.position.copy(this.point);
-                    this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
-                    this.rayPlane.updateMatrixWorld(true);
+                        this.rayPlane.position.copy(this.point);
+                        this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
+                        this.rayPlane.updateMatrixWorld(true);
 
-                    this.state += 1;
+                        this.state += 1;
+                    }
                     ray.alreadyActivated = true;
                 }
             }

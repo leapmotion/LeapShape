@@ -175,7 +175,9 @@ class World {
                 this.renderer.xr.enabled = true;
                 this.renderer.state.bindXRFramebuffer(oldFramebuffer);
             }
+
             this.now = performance.now();
+            ray.lastAlreadyActivated = ray.alreadyActivated;
 
             this.dirty = false;
             //this.stats.update();

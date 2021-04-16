@@ -83,8 +83,8 @@ class SphereTool {
                     this.rayPlane.updateMatrixWorld(true);
 
                     this.state += 1;
-                    ray.alreadyActivated = true;
                 }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Sphere

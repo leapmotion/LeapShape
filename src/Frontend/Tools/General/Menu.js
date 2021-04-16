@@ -102,6 +102,7 @@ class Menu {
                 } else {
                     this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
+                    ray.alreadyActivated = true; // A hack for stateful menu hovering, fix soon
                 }
             } else {
                 if (this.menuItems[i].tool === this.tools.activeTool) {

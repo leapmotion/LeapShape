@@ -1,6 +1,6 @@
 {
   "port": 8081,
-  "host": "10.0.0.78",
+  //"host": "10.0.0.78",
   "remoteLogs": false,
   "https": true
 }

@@ -98,9 +98,9 @@ class CylinderTool {
                     this.height = 0.001;
                     this.world.scene.add(this.currentCylinder);
 
-                    ray.alreadyActivated = true;
                     this.state += 1;
                 }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Cylinder

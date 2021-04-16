@@ -50,6 +50,8 @@ class LeapJSInput {
         this.lastTimestep = performance.now();
         this.activeTime = 0; this.prevActive = false;
         this.mainHand = null;
+        this.hoverColor = new THREE.Color(0, 1, 1);
+        this.idleColor = new THREE.Color(0.5, 0.5, 0.5);
 
         this.curInVR = false;
 
@@ -293,6 +295,7 @@ class LeapJSInput {
         handGroup.arrow.visible = handGroup.handType === this.mainHand;
         handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
             applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
+        handGroup.arrow.setColor(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();
