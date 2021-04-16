@@ -166,7 +166,7 @@ class World {
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
-            if (this.renderer.xr.isPresenting && !this.world.mobile) {
+            if (this.renderer.xr.isPresenting && !this.mobile) {
                 this.renderer.xr.enabled = false;
                 let oldFramebuffer = this.renderer._framebuffer;
                 this.renderer.state.bindXRFramebuffer( null );
@@ -191,7 +191,7 @@ class World {
 
         let oldFramebuffer = this.renderer._framebuffer;
         let oldPresenting = this.renderer.xr.isPresenting;
-        if (oldPresenting && !this.world.mobile) {
+        if (oldPresenting && !this.mobile) {
             this.renderer.xr.enabled = false;
             this.renderer.state.bindXRFramebuffer( null );
             this.renderer.xr.isPresenting = false;
@@ -201,7 +201,7 @@ class World {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
 
-        if (oldPresenting && !this.world.mobile) {
+        if (oldPresenting && !this.mobile) {
             this.renderer.xr.enabled = true;
             this.renderer.state.bindXRFramebuffer(oldFramebuffer);
             this.renderer.xr.isPresenting = oldPresenting;
