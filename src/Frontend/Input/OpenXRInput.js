@@ -64,23 +64,25 @@ class OpenXRInput {
                 this.initialized = true;
             }
 
-        //    // Set Ray Origin and Direction
-        //    let curSphere = this.pinchSpheres[this.mainHand];
-        //    if (curSphere) {
-        //        this.world.camera.getWorldPosition(this.ray.ray.origin);
-        //        this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
-        //    }
+            // Set Ray Origin and Input Direction
+            if(this.hand1.visible == false && this.hand2.visible == false) { this.mainHand = null; }
+            if (!this.mainHand && this.hand1.visible) { this.mainHand = this.hand1; }
+            if (!this.mainHand && this.hand2.visible) { this.mainHand = this.hand2; }
+            if (this.mainHand) {
+                this.ray.ray.origin.copy(this.mainHand.position)
+                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
+            }
 
-        //    // Add Extra Fields for the active state
-        //    this.ray.justActivated = false; this.ray.justDeactivated = false;
-        //    this.ray.active = curSphere.visible;
-        //    if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
-        //    if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-        //    this.ray.alreadyActivated = false;
-        //    this.prevActive = this.ray.active;
-        //    if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
-        //    this.ray.activeMS = this.activeTime;
-        //    this.lastTimestep = performance.now();
+            // Add Extra Fields for the active state
+            this.ray.justActivated = false; this.ray.justDeactivated = false;
+            this.ray.active = this.mainHand !== null && this.mainHand.inputState.pinching;
+            if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
+            if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
+            this.ray.alreadyActivated = false;
+            this.prevActive = this.ray.active;
+            if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
+            this.ray.activeMS = this.activeTime;
+            this.lastTimestep = performance.now();
         //}
 
     }
