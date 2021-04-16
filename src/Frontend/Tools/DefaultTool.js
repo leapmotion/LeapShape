@@ -206,7 +206,7 @@ class DefaultTool {
             this.hit = intersects[0];
 
             // Record the hit object and plane...
-            if (this.hit.object.name.includes("#")) {
+            if (this.hit.object.shapeName) {
                 this.hitObject = this.hit.object;
                 this.point.copy(this.hit.point);
                 this.worldNormal = this.hit.face.normal.clone()

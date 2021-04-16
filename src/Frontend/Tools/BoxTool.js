@@ -48,11 +48,13 @@ class BoxTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObjects([this.world.mesh, this.world.history.shapeObjects], true);
 
-            if (intersects.length > 0 && !ray.justDeactivated) {
+            if (intersects.length > 0 && !ray.justDeactivated &&
+                (intersects[0].object.shapeName || intersects[0].object.isGround)) {
+
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
-                    if (intersects[i].object.name.includes("#")) {
+                    if (intersects[i].object.shapeName) {
                         this.hit = intersects[i]; break;
                     }
                 }
@@ -220,7 +222,7 @@ class BoxTool {
                 if (mesh) {
                     mesh.name = boxMesh.name;
                     mesh.shapeName = shapeName;
-                    if (this.hitObject.name.includes("#")) {
+                    if (this.hitObject.shapeName) {
                         this.world.history.addToUndo(mesh, this.hitObject, "Box Extrusion");
                         this.hitObject = null;
                     } else {

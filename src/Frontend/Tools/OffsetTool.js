@@ -66,11 +66,13 @@ class OffsetTool {
             this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
             let intersects = this.world.raycaster.intersectObject(this.world.scene, true);
 
-            if (intersects.length > 0 && ray.justActivated) {
+            if (intersects.length > 0 && ray.justActivated &&
+                (intersects[0].object.shapeName || intersects[0].object.isGround)) {
+
                 this.hit = intersects[0];
                 // Shoot through the floor if necessary
                 for (let i = 0; i < intersects.length; i++){
-                    if (intersects[i].object.name.includes("#") || this.hit.face !== null) {
+                    if (intersects[i].object.shapeName || intersects[i].object.isGround) {
                         this.hit = intersects[i]; break;
                     }
                 }
@@ -149,7 +151,7 @@ class OffsetTool {
                     mesh.name = offsetMesh.name;
                     mesh.shapeName = shapeName;
                     let friendlyName = (createOffsetArgs[1] > 0) ? "Expansion" : "Hollowing";
-                    if (this.hitObject.name.includes("#")) {
+                    if (this.hitObject.shapeName) {
                         this.world.history.addToUndo(mesh, this.hitObject, friendlyName);
                         this.hitObject = null;
                     } else {

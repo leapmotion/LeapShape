@@ -2,6 +2,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import "../../../node_modules/leapjs/leap-1.1.0.js";
 import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
+import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
 
 /** This is the Leap Hand Tracking-based Input */
 class LeapHandInput {
@@ -12,7 +13,7 @@ class LeapHandInput {
         this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
 
         this.hands = {};
-        this.lastFrameNumber = 0;
+        this.lastFrameTimestamp = 0;
         this.palmDirection = new THREE.Vector3();
         this.palmNormal = new THREE.Vector3();
         this.vec = new THREE.Vector3(); this.vec2 = new THREE.Vector3(); this.vec3 = new THREE.Vector3();
@@ -31,13 +32,11 @@ class LeapHandInput {
         this.pinchSpheres['left'].material.color.setRGB(0.2, 0.5, 0.5);
         this.pinchSpheres['left'].name = "Left Pinch Sphere";
         this.pinchSpheres['left'].visible = false;
-        this.pinchSpheres['left'].localPinchPos = new THREE.Vector3(-32, -50, 20);
         this.pinchSpheres['left'].layers.set(1);
         this.pinchSpheres['right'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
         this.pinchSpheres['right'].material.color.setRGB(0.5, 0.2, 0.2);
         this.pinchSpheres['right'].name = "Right Pinch Sphere";
         this.pinchSpheres['right'].visible = false;
-        this.pinchSpheres['right'].localPinchPos = new THREE.Vector3(32, -50, 20);
         this.pinchSpheres['right'].layers.set(1);
         this.world.leftPinch  = this.pinchSpheres['left' ];
         this.world.rightPinch = this.pinchSpheres['right'];
@@ -50,83 +49,97 @@ class LeapHandInput {
         this.mainHand = null;
 
         this.curInVR = false;
+
+        this.interpolator = new LeapFrameInterpolator(world, this.controller);
     }
 
     /** Updates visuals and regenerates the input ray */
     update() {
-        if (this.controller.lastFrame.id !== this.lastFrameNumber) {
-            if (this.world.inVR != this.curInVR) {
-                this.controller.setOptimizeHMD(this.world.inVR);
-                if (this.world.inVR) {
-                    // HMD Mode
-                    this.handParent.position.y = 0;
-                    this.handParent.position.z = -0.100;
-                    this.handParent.quaternion.setFromEuler(this.hmdEuler);
-                } else {
-                    // Desktop Mode
-                    this.handParent.position.y = -0.300;
-                    this.handParent.position.z = -0.400;
-                    this.handParent.quaternion.identity();
-                }
-                this.curInVR = this.world.inVR;
-            }
+        // Rebase performance.now() and the leap timestamps together
+        this.interpolatedFrame = this.interpolator.update();
 
-            let handsAreTracking = false;
-            for (let type in this.hands) {
-                this.hands[type].markForHiding = true;
+        if (this.world.inVR != this.curInVR) {
+            this.controller.setOptimizeHMD(this.world.inVR);
+            if (this.world.inVR) {
+                // HMD Mode
+                this.handParent.position.y = 0;
+                this.handParent.position.z = -0.100;
+                this.handParent.quaternion.setFromEuler(this.hmdEuler);
+            } else {
+                // Desktop Mode
+                this.handParent.position.y = -0.300;
+                this.handParent.position.z = -0.400;
+                this.handParent.quaternion.identity();
             }
-            for (let h = 0; h < this.controller.lastFrame.hands.length; h++) {
-                let hand = this.controller.lastFrame.hands[h];
-                if (hand.type in this.hands) {
-                    handsAreTracking = true;
-                    this.updateHand(hand);
-                    this.updatePinching(hand);
-
-                    // First Hand that shows up becomes "the main hand"
-                    if (!this.mainHand) { this.mainHand = hand.type; }
-                } else {
-                    this.createHand(hand);
-                }
-            }
-            for (let type in this.hands) {
-                if (this.hands[type].markForHiding) {
-                    this.hands[type].visible = false;
-                }
-            }
-
-            if (this.isActive()) {
-                // Set Ray Origin and Direction
-                let curSphere = this.pinchSpheres[this.mainHand];
-                if (curSphere) {
-                    this.world.camera.getWorldPosition(this.ray.ray.origin);
-                    this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
-                }
-
-                // Add Extra Fields for the active state
-                this.ray.justActivated = false; this.ray.justDeactivated = false;
-                this.ray.active = curSphere.visible;
-                if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
-                if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-                this.ray.alreadyActivated = false;
-                this.prevActive = this.ray.active;
-                if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
-                this.ray.activeMS = this.activeTime;
-                this.lastTimestep = performance.now();
-            }
-
-            // HACK: Reset the world's camera parenting scheme so orbit controls still work
-            if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
-                this.world.scene.attach(this.world.camera);
-                this.world.cameraParent.position  .set(0, 0, 0);
-                this.world.cameraParent.quaternion.identity();
-                this.world.cameraParent.scale     .set(1, 1, 1);
-                this.world.cameraParent.attach(this.world.camera);
-                this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
-            }
-            this.world.handsAreTracking = handsAreTracking;
-            if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
-            this.lastFrameNumber = this.controller.lastFrame.id;
+            this.curInVR = this.world.inVR;
         }
+
+        let handsAreTracking = false;
+        for (let type in this.hands) {
+            this.hands[type].markForHiding = true;
+        }
+        for (let h = 0; h < this.interpolatedFrame.hands.length; h++) {
+            let hand = this.interpolatedFrame.hands[h];
+            if (!hand.valid) { continue; }
+            if (hand.type in this.hands) {
+                handsAreTracking = true;
+                this.updateHand(hand);
+                this.updatePinching(hand);
+
+                // First Hand that shows up becomes "the main hand"
+                if (!this.mainHand) { this.mainHand = hand.type; }
+            } else {
+                this.createHand(hand);
+            }
+        }
+        for (let type in this.hands) {
+            if (this.hands[type].markForHiding) {
+                this.hands[type].visible = false;
+            }
+        }
+
+        if (this.isActive()) {
+            // Set Ray Origin and Direction
+            let curSphere = this.pinchSpheres[this.mainHand];
+            if (curSphere) {
+
+                this.world.camera.getWorldPosition(this.ray.ray.origin);
+
+                // Approximate shoulder position with magic values.
+                // TODO: Port to three.js
+                //this.world.camera.getWorldPosition(this.vec);
+                //let shoulderYaw      = Quaternion.Euler(0, headTransform.quaternion.eulerAngles.y, 0);
+                //let ProjectionOrigin = this.vec
+                //                        + (shoulderYaw * (new THREE.Vector3(0, -0.13, -0.1)
+                //                        + this.vec2((hand.IsLeft ? 1 : -1), 0, 0) * 0.15));
+                //let ProjectionDirection = hand.Fingers[1].bones[0].NextJoint.ToVector3() - ProjectionOrigin;
+
+                this.ray.ray.direction.copy(curSphere.position).sub(this.ray.ray.origin).normalize();
+            }
+
+            // Add Extra Fields for the active state
+            this.ray.justActivated = false; this.ray.justDeactivated = false;
+            this.ray.active = curSphere.visible;
+            if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
+            if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
+            this.ray.alreadyActivated = false;
+            this.prevActive = this.ray.active;
+            if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
+            this.ray.activeMS = this.activeTime;
+            this.lastTimestep = performance.now();
+        }
+
+        // HACK: Reset the world's camera parenting scheme so orbit controls still work
+        if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
+            this.world.scene.attach(this.world.camera);
+            this.world.cameraParent.position  .set(0, 0, 0);
+            this.world.cameraParent.quaternion.identity();
+            this.world.cameraParent.scale     .set(1, 1, 1);
+            this.world.cameraParent.attach(this.world.camera);
+            this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -0.3)));
+        }
+        this.world.handsAreTracking = handsAreTracking;
+        if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
     }
 
     /** Does this input want to take control? */
@@ -163,7 +176,7 @@ class LeapHandInput {
 
         let worldScale = handGroup.getWorldScale(this.vec).x;
         // Unfiltered Palm-Relative Pinching position
-        handGroup.localToWorld(this.vec.copy(pinchSphere.localPinchPos));
+        handGroup.localToWorld(this.vec.copy(handGroup.localPinchPos));
         // Keep the pinch point within a 10mm sphere in Unscaled World Space
         pinchSphere.position.sub(this.vec).clampLength(0, 10 * worldScale).add(this.vec);
         //pinchSphere.position.lerp(this.vec, 0.01);
@@ -198,7 +211,10 @@ class LeapHandInput {
         handGroup.joints.layers.set(1);
         handGroup.add(handGroup.joints);
 
-        handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
+        // At Pinch Point
+        //handGroup.localPinchPos = new THREE.Vector3(32 * (hand.type==='left'?-1:1), -50, 20);
+        // Outside of Pinch Point
+        handGroup.localPinchPos = new THREE.Vector3(50 * (hand.type==='left'?-1:1), -50, 40);
         handGroup.arrow = new THREE.ArrowHelper(this.vec.set(0, -1, 0), handGroup.localPinchPos, 0, 0x00ffff, 10, 10);
         //handGroup.arrow.visible = false;
         handGroup.arrow.layers.set(1);
