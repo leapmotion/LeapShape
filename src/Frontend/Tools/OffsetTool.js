@@ -29,7 +29,7 @@ class OffsetTool {
         let hasFragDepth = hasFragmentDepth(this.world);
         this.offsetMaterial = this.world.previewMaterial.clone();
         this.offsetMaterial.uniforms = {};
-        this.offsetMaterial.extensions = { fragDepth: hasFragDepth }; // set to use fragment depth values
+        if (hasFragDepth) { this.offsetMaterial.extensions = { fragDepth: hasFragDepth }; } // set to use fragment depth values
         this.offsetMaterial.onBeforeCompile = ( shader ) => {
             // Vertex Shader: Dilate Vertex positions by the normals
             let insertionPoint = shader.vertexShader.indexOf("#include <displacementmap_vertex>");
@@ -40,8 +40,10 @@ class OffsetTool {
                 'transformed += dilation * objectNormal;\n    ' +
                shader.vertexShader.slice(   insertionPoint);
 
-             shader.fragmentShader = createDitherDepthFragmentShader(hasFragDepth, shader.fragmentShader);
-            
+            if (hasFragDepth) {
+                shader.fragmentShader = createDitherDepthFragmentShader(hasFragDepth, shader.fragmentShader);
+            }
+
             shader.uniforms.dilation = { value: 0.0 };
             this.offsetMaterial.uniforms = shader.uniforms;
             this.offsetMaterial.userData.shader = shader;
@@ -116,6 +118,7 @@ class OffsetTool {
 
                 // Update the Visual Feedback
                 this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.001 };
+                this.offsetMaterial.side = this.distance < 0 ? THREE.BackSide : THREE.FrontSide;
                 this.offsetMaterial.needsUpdate = true;
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
@@ -179,6 +182,7 @@ class OffsetTool {
                     mesh.shapeName = shapeName;
                     mesh.material = this.offsetMaterial;
                     this.currentOffset = mesh;
+                    this.currentOffset.children[0].visible = false;
                     this.world.scene.add(this.currentOffset);
                 }
                 this.world.dirty = true;
