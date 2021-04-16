@@ -19,21 +19,22 @@ class OpenXRInput {
         this.lastTimestep = performance.now();
         this.activeTime = 0; this.prevActive = false;
         this.mainHand = null; this.initialized = false;
+        this.lastMainHand = null;
 
-        if (this.isActive()) { this.initialize(); }
+        //if (this.isActive()) { this.initialize(); }
     }
 
     initialize() {
         // Initialize Model Factories
         this.controllerModelFactory = new XRControllerModelFactory();
-        //let modelPath = (typeof ESBUILD !== 'undefined') ? './textures/Box.png' : '../../../textures/Box.png'
-        this.handModelFactory = new XRHandModelFactory();//.setPath("./models/fbx/");
+        let modelPath = (typeof ESBUILD !== 'undefined') ? './models/' : "../../../models/";
+        this.handModelFactory = new XRHandModelFactory().setPath(modelPath);
         
         // Controllers
         this.controller1 = this.world.renderer.xr.getController(0);
         this.controller2 = this.world.renderer.xr.getController(1);
-        this.controller1.inputState = { pinching: false };
-        this.controller2.inputState = { pinching: false };
+        this.controller1.inputState = { pinching: false }; this.controller1.visible = false;
+        this.controller2.inputState = { pinching: false }; this.controller2.visible = false;
         this.controller1.traverse((element) => { if(element.layers){ element.layers.set(1); }});
         this.controller2.traverse((element) => { if(element.layers){ element.layers.set(1); }});
         this.world.scene.add(this.controller1); this.world.scene.add(this.controller2);
@@ -54,6 +55,8 @@ class OpenXRInput {
         // Hands
         this.hand1 = this.world.renderer.xr.getHand(0);
         this.hand2 = this.world.renderer.xr.getHand(1);
+        this.hand1.inputState = { pinching: false };
+        this.hand2.inputState = { pinching: false };
         this.handModel1 = this.handModelFactory.createHandModel(this.hand1, 'boxes');
         this.handModel2 = this.handModelFactory.createHandModel(this.hand2, 'boxes');
         this.hand1.add (this.handModel1);  this.hand2.add (this.handModel2);
@@ -63,6 +66,12 @@ class OpenXRInput {
         this.hand1.traverse((element) => { if(element.layers){ element.layers.set(1); }});
         this.hand2.traverse((element) => { if(element.layers){ element.layers.set(1); }});
     
+        // Controller Interaction
+        this.hand1.addEventListener('pinchstart', (e) => { this.hand1.inputState.pinching = true ; });
+        this.hand1.addEventListener('pinchend'  , (e) => { this.hand1.inputState.pinching = false; });
+        this.hand2.addEventListener('pinchstart', (e) => { this.hand2.inputState.pinching = true ; });
+        this.hand2.addEventListener('pinchend'  , (e) => { this.hand2.inputState.pinching = false; });
+
         // Pointer
         let lineGeometry = new THREE.BufferGeometry().setFromPoints(
             [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
@@ -74,8 +83,10 @@ class OpenXRInput {
         line.frustumCulled = false;
         this.controller1.add( line.clone() );
         this.controller2.add( line.clone() );
-        this.hand1      .add( line.clone() );
-        this.hand2      .add( line.clone() );
+        this.hand1Line = line.clone();
+        this.hand1.add(this.hand1Line); //.joints['index-finger-tip']
+        this.hand2line = line.clone()
+        this.hand2.add(this.hand2line); //.joints['index-finger-tip']
         this.initialized = true;
     }
 
@@ -85,16 +96,33 @@ class OpenXRInput {
             if (!this.initialized) { this.initialize(); }
 
             // Set Ray Origin and Input Direction
-            if(!this.hand1.visible       && !this.hand2.visible && 
-               !this.controller1.visible && !this.controller2.visible) { this.mainHand = null; }
-            if (!this.mainHand && this.hand1.visible) { this.mainHand = this.hand1; }
-            if (!this.mainHand && this.hand2.visible) { this.mainHand = this.hand2; }
+            if (this.mainHand && !this.mainHand.visible) { this.mainHand = null; }
             if (!this.mainHand && this.controller2.visible) { this.mainHand = this.controller2; }
             if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; }
+            //if ((this.mainHand != this.hand1) && this.hand2.visible) { this.mainHand = this.hand2; }
+            //if ((this.mainHand != this.hand2) && this.hand1.visible) { this.mainHand = this.hand1; }
+            //this.mainHand = this.hand2;
             if (this.mainHand) {
-                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
-                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.position);
+                //this.hand2line.updateWorldMatrix(true, true);
+                //this.mainHand.matrixWorld.decompose( this.vec2, this.quat, this.vec3 );
+                //if (this.mainHand.joints.getWorldPosition) {
+                //    this.mainHand.joints.getWorldPosition(this.vec);
+                //    //console.error(JSON.stringify(this.mainHand.joints));
+
+                //    this.world.parent.tools.cursor.updateLabel(JSON.stringify(this.vec));
+                //    this.world.parent.tools.cursor.updateTarget(this.vec);
+                //}
+                //this.mainHand.updateWorldMatrix(true, true);
+                //this.mainHand.matrixWorld.decompose( this.vec2, this.quat, this.vec3 );
+                //if (this.mainHand.joints) {
+                //    this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.joints['index-finger-tip'].quaternion));
+                //    this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.joints['index-finger-tip'].position);
+                //}else{
+                    this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
+                    this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.position);
+                //}
             }
+            this.lastMainHand = this.mainHand;
 
             // Add Extra Fields for the active state
             this.ray.justActivated = false; this.ray.justDeactivated = false;
