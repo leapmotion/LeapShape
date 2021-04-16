@@ -136,7 +136,7 @@ class LeapHandInput {
             this.world.cameraParent.quaternion.identity();
             this.world.cameraParent.scale     .set(1, 1, 1);
             this.world.cameraParent.attach(this.world.camera);
-            this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -300)));
+            this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -0.3)));
         }
         this.world.handsAreTracking = handsAreTracking;
         if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
