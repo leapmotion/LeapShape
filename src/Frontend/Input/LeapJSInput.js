@@ -117,16 +117,18 @@ class LeapJSInput {
                 let facing = this.vec.dot(this.vec2);
                 if (facing < 0.0) {
                     // Array the Menu Items next to the user's secondary hand
-                    let toWorld = secondaryHand.matrixWorld;
-                    secondaryHand.getWorldPosition(this.vec2);
+                    secondaryHand.getWorldPosition(this.vec3);
 
                     for (let s = 0; s < slots.length; s++){
                         let oldParent = slots[s].parent;
                         this.world.scene.add(slots[s]);
-                        this.vec.set((0.090 + (Math.floor(s / 3) * 0.050)) *
-                                        (secondaryHandType === 'left' ? 1 : -1),
-                                       0.0, 0.05 - ((s % 3) * 0.050))
-                            .applyQuaternion(this.quat).multiplyScalar(this.cameraWorldScale.x).add(this.vec2);
+
+                        let chirality = (secondaryHandType === 'left' ? 1 : -1);
+                        this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
+                                          0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                        this.vec.set(0.03 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
+                            .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
+                        
                         slots[s].position.copy(this.vec);
                         oldParent.attach(slots[s]);
                     }
