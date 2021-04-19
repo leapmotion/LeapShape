@@ -48,7 +48,7 @@ class World {
 
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
-                                   new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false})); //, opacity: 0 
+                                   new THREE.MeshStandardMaterial({ color: 0x999999, depthWrite: false})); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
         //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
@@ -121,15 +121,15 @@ class World {
         this.dirty = false;
 
         // Materials for the Scene
-        this.shapeMaterial = new THREE.MeshPhongMaterial({
-            wireframe: false,
+        this.shapeMaterial = new THREE.MeshStandardMaterial({
+            dithering: true,
             polygonOffset: true, // Push the mesh material back for line drawing
             polygonOffsetFactor: 2.0,
             polygonOffsetUnits: 1.0
         });
         this.shapeMaterial.roughnessMap = null;
         this.shapeMaterial.metalnessMap = null;
-        this.shapeMaterial.roughness = 1.0;
+        this.shapeMaterial.roughness = 0.75;
         this.shapeMaterial.metalness = 0.0;
         this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
         this.selectedMaterial = this.shapeMaterial.clone();

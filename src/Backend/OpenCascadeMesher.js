@@ -67,7 +67,7 @@ class OpenCascadeMesher {
             Object.assign(fullShapeEdgeHashes, this.ForEachEdge(shape, (index, edge) => { }));
     
             // Set up the Incremental Mesh builder, with a precision
-            this.incrementalMesh = new this.oc.BRepMesh_IncrementalMesh(shape, maxDeviation, false, 1);
+            this.incrementalMesh = new this.oc.BRepMesh_IncrementalMesh(shape, maxDeviation, false, 0.5);
     
             // Construct the edge hashes to assign proper indices to the edges
             let fullShapeEdgeHashes2 = {};
