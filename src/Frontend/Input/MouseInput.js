@@ -46,6 +46,8 @@ class MouseInput {
             this.ray.activeMS = this.activeTime;
             this.lastTimestep = performance.now();
 
+            this.world.container.style.cursor = this.ray.lastAlreadyActivated ? "pointer" : "default";
+
             // Set Ray Origin and Direction
             this.ray.ray.origin.setFromMatrixPosition(this.world.camera.matrixWorld);
 
