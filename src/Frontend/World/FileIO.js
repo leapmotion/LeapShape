@@ -23,13 +23,16 @@ class FileIO {
         this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );
         this.mobile = /(Android|iPad|iPhone|iPod|Oculus)/g.test(navigator.userAgent) || this.safari;
 
+        // Create General-Purpose Import Button
+        this.createImportButton("Import File...");
+
         // Create Export Buttons
         this.createNavLink("Export to .GLTF", this.saveShapesGLTF);
         if (this.mobile && this.safari) {
             this.arLink = this.createNavLink("AR Preview", this.launchARiOS);
         } else {
-            this.createNavLink("Export to .obj" , this.saveShapesOBJ );
-            this.createNavLink("Export to .stl", this.saveShapesSTL);
+            this.createNavLink("Export to .obj"  , this.saveShapesOBJ );
+            this.createNavLink("Export to .stl"  , this.saveShapesSTL);
             this.createNavLink("Export to .step" , this.saveShapesSTEP );
         }
 
@@ -61,6 +64,32 @@ class FileIO {
         link.onmouseup = (e) => { callback.bind(this)(e); };
         document.getElementById("topnav").appendChild(link);
         return link;
+    }
+
+    /** Creates a NavBar Button for uploading files
+     * @param {string} title */
+    createImportButton(title) {
+        //<label for="files" title="Import STEP, IGES, or (ASCII) STL from File">Import STEP/IGES/STL
+        //  <input id="files" name="files" type="file" accept=".iges,.step,.igs,.stp,.stl" multiple style="display:none;" oninput="loadFiles();"/>
+        //</label>
+
+        let label = document.createElement("label");
+        label.innerText = title;
+        label.title = title;
+
+        let input = document.createElement("input");
+        input.id = "files";
+        input.name = "files";
+        input.type = "file";
+        input.accept = ".iges,.step,.igs,.stp,.stl";
+        input.multiple = true;
+        input.style.display = "none";
+        input.oninput = (e) => { this.loadFiles(e.target.files); }
+
+        label.appendChild(input);
+        label.for = "files";
+        document.getElementById("topnav").appendChild(label);
+        return label;
     }
 
     /** Saves data to a file
@@ -172,6 +201,93 @@ class FileIO {
         }
         return toReturn;
     }
+
+
+    // File Loading Interface
+
+    /** This function synchronously loads a list of files into the scene.
+     * @param {FileList} files */
+    async loadFiles(files) {
+        console.log("Importing Files...", files);
+        for (let i = 0; i < files.length; i++) {
+            let fileText = await files[i].text(); // TODO: Try reading the raw arraybuffers here...
+            let isSTL = files[i].name.toLowerCase().includes(".stl");
+
+            this.engine.execute(files[i].name, isSTL ? this.importSTLBackend : this.importSTEPorIGESBackend,
+                [files[i].name, fileText], (mesh) => {
+                    if (mesh) {
+                        mesh.name = files[i].name;
+                        mesh.shapeName = files[i].name;
+                        this.world.history.addToUndo(mesh, null, "Import " + isSTL ? ".stl" : "CAD Shape");
+                    }
+                    this.world.dirty = true;
+                });
+        };
+    }
+
+    /** This function parses the ASCII contents of a `.STEP` or `.IGES` 
+      * file as a Shape into the `externalShapes` dictionary. */
+    importSTEPorIGESBackend(fileName, fileText) {
+        // Writes the uploaded file to Emscripten's Virtual Filesystem
+        this.oc.FS.createDataFile("/", fileName, fileText, true, true);
+
+        // Choose the correct OpenCascade file parsers to read the CAD file
+        let reader = null; let tempFilename = fileName.toLowerCase();
+        if (tempFilename.endsWith(".step") || tempFilename.endsWith(".stp")) {
+            reader = new this.oc.STEPControl_Reader();
+        } else if (tempFilename.endsWith(".iges") || tempFilename.endsWith(".igs")) {
+            reader = new this.oc.IGESControl_Reader();
+        } else { console.error("opencascade.js can't parse this extension! (yet)"); }
+
+        let readResult = reader.ReadFile(fileName);            // Read the file
+        if (readResult === 1) {
+            console.log(fileName + " loaded successfully!     Converting to OCC now...");
+            reader.TransferRoots();                            // Translate all transferable roots to OpenCascade
+            let stepShape = reader.OneShape();                 // Obtain the results of translation in one OCCT shape
+
+            // Remove the file when we're done (otherwise we run into errors on reupload)
+            this.oc.FS.unlink("/" + fileName);
+
+            return stepShape;
+        } else {
+            console.error("Failed to Read " + fileName);
+            return null;
+        }
+    }
+  
+    /** This function parses the contents of an ASCII .STL File as a Shape 
+      * into the `externalShapes` dictionary. */
+    importSTLBackend(fileName, fileText) {
+        // Writes the uploaded file to Emscripten's Virtual Filesystem
+        this.oc.FS.createDataFile("/", fileName, fileText, true, true);
+
+        // Choose the correct OpenCascade file parsers to read the STL file
+        var reader = new this.oc.StlAPI_Reader();
+        let readShape = new this.oc.TopoDS_Shape();
+
+        if (reader.Read(readShape, fileName)) {
+            console.log(fileName + " loaded successfully!     Converting to OCC now...");
+
+            // Remove the file when we're done (otherwise we run into errors on reupload)
+            this.oc.FS.unlink("/" + fileName);
+
+            // Convert Shell to Solid as is expected
+            let solidSTL = new this.oc.BRepBuilderAPI_MakeSolid();
+            readShape = new this.oc.TopoDS_Shape(readShape);
+            solidSTL.Add(readShape);
+            readShape = new this.oc.TopoDS_Shape(solidSTL.Solid());
+
+            // Remove Internal Faces and Edges and Return
+            let cleanSTL = new this.oc.ShapeUpgrade_UnifySameDomain(readShape, true, true);
+            cleanSTL.Build();
+            return cleanSTL.Shape();
+        } else {
+            console.error("Something in OCCT went wrong trying to read " + fileName + ".  \n" +
+                "Cascade Studio only imports small ASCII .stl files for now!");
+            return null;
+        }
+    }
+
 }
 
 export { FileIO };

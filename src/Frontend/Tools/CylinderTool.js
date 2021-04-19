@@ -131,15 +131,15 @@ class CylinderTool {
             }
         } else if (this.state === 2) {
             // When dragging begins again, advance to the next state
-            if (ray.justActivated) {
-                this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
-                let intersects = this.world.raycaster.intersectObjects([this.currentCylinder, this.arrow], true);
-                if (intersects.length > 0) {
+            this.world.raycaster.set(ray.ray.origin, ray.ray.direction);
+            let intersects = this.world.raycaster.intersectObjects([this.currentCylinder, this.arrow], true);
+            if (intersects.length > 0) {
+                if (ray.justActivated) {
                     this.world.scene.remove(this.arrow);
                     this.currentCylinder.material = this.world.previewMaterial;
-                    ray.alreadyActivated = true;
                     this.state += 1;
                 }
+                ray.alreadyActivated = true;
             }
         } else if(this.state === 3) {
             // Resize the Height while dragging
