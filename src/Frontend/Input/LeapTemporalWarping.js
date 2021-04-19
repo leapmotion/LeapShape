@@ -13,7 +13,6 @@ class LeapTemporalWarping {
         this.interpolator = interpolator;
 
         this.nowToLeapOffsetUS = 0;
-        this.interpolatedTransform = new THREE.Matrix4();
         this.historyLength = 20;
         this.history = new window.Leap.CircularBuffer(20);
 
@@ -29,10 +28,19 @@ class LeapTemporalWarping {
         this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
     }
 
-    /** Adds new element to the history and resamples a current time matrix. */
+    /** Adds new element to the history and resamples the current time matrix. */
     update() {
+        this.currentTimestamp = (this.world.now * 1000) + this.interpolator.nowToLeapOffsetUS;
+
         // Add a new Head Transform to the history
-        let currentTimestamp = (this.world.now * 1000) + this.interpolator.nowToLeapOffsetUS;
+        this.addFrameToHistory(this.currentTimestamp);
+        // Sample a head transform from this time, 17ms ago
+        return this.getInterpolatedFrame(this.interpolatedFrame, this.history, this.currentTimestamp-17000);
+    }
+
+    /** Accumulate the current head transform into the history
+     * @param {number} currentTimestamp */
+    addFrameToHistory(currentTimestamp) {
         if (this.history.get(this.historyLength - 1)) {
             let sample = this.history.get(this.historyLength - 1);
             sample.timestamp = currentTimestamp;
@@ -46,8 +54,6 @@ class LeapTemporalWarping {
                 quaternion: this.world.camera.quaternion.clone()
             });
         }
-
-        return this.getInterpolatedFrame(this.interpolatedFrame, this.history, interpolatedFrameTimestamp-14000);
     }
 
     /** Interpolates a frame to the given timestamp 
@@ -55,33 +61,36 @@ class LeapTemporalWarping {
     getInterpolatedFrame(frame, history, timestamp) {
         // Step through time until we have the two frames we'd like to interpolate between.
         let back = 0, doubleBack = 1;
-        let aFrame = history.get(back+doubleBack);
+        let aFrame = history.get(back+doubleBack) || this.interpolatedFrame;
         let bFrame = history.get(back);
-        while (aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
+        while (aFrame && aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
             doubleBack += 1; aFrame = history.get(back + doubleBack);
         }
-        while (!(bFrame.timestamp < timestamp ||
+        while (aFrame && bFrame &&
+              (!(bFrame.timestamp < timestamp ||
                 (aFrame.timestamp < timestamp && bFrame.timestamp > timestamp) ||
-                back == 198)) { // Only 200 entries in the history buffer
+                back == 198))) { // Only 200 entries in the history buffer
             back++;
             doubleBack = 1;
             aFrame = history.get(back+doubleBack);
-            bFrame = history.get(back  );
-            while (aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
+            bFrame = history.get(back           );
+            while (aFrame && aFrame.timestamp === bFrame.timestamp && doubleBack < 10) {
                 doubleBack += 1; aFrame = history.get(back + doubleBack);
             }
         }
 
-        let aTimestamp = aFrame.timestamp, bTimestamp = bFrame.timestamp;
-        let alpha = (timestamp - aTimestamp) / (bTimestamp - aTimestamp);
+        if (aFrame && bFrame) {
+            let aTimestamp = aFrame.timestamp, bTimestamp = bFrame.timestamp;
+            let alpha = (timestamp - aTimestamp) / (bTimestamp - aTimestamp);
 
-        // Debug visualize the temporal offset
-        //this.world.parent.tools.cursor.updateTarget(this.vec.set(0,0,0)); 
-        //this.world.parent.tools.cursor.updateLabel(timestamp - aTimestamp);//this.nowToLeapOffsetUS);
+            // Debug visualize the temporal offset
+            //this.world.parent.tools.cursor.updateTarget(this.vec.set(0,0,0)); 
+            //this.world.parent.tools.cursor.updateLabel(timestamp - aTimestamp);//this.nowToLeapOffsetUS);
 
-        frame.timestamp = this.lerp           (aTimestamp       , bTimestamp       , alpha);
-        frame.position       . lerpVectors    (aFrame.position  , bFrame.position  , alpha);
-        frame.quaternion     .slerpQuaternions(aFrame.quaternion, bFrame.quaternion, alpha);
+            frame.timestamp = this.lerp(aTimestamp, bTimestamp, alpha);
+            frame.position.lerpVectors(aFrame.position, bFrame.position, alpha);
+            frame.quaternion.slerpQuaternions(aFrame.quaternion, bFrame.quaternion, alpha);
+        }
         return frame;
     }
 
