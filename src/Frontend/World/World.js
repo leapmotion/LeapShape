@@ -38,6 +38,7 @@ class World {
             }
         }
 
+        this.cameraWorldScale = new THREE.Vector3(1,1,1);
         this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.0001, 1000 );
         this.camera.position.set( 0.1, 0.2, 0.3 );
         this.camera.layers.enableAll();
@@ -108,7 +109,6 @@ class World {
         // raycaster
         this.raycaster = new THREE.Raycaster();
         this.raycaster.layers.set(0);
-        this.raycaster.params.Line.threshold = 0.03;
 
         // stats
         //this.stats = new Stats();
@@ -147,6 +147,8 @@ class World {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         this.inVR = this.renderer.xr.isPresenting;
+        this.raycaster.params.Line.threshold =
+            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
 
         // Conserve Power, don't rerender unless the view is dirty
         if (ray.active || this.dirty) {
