@@ -33,7 +33,6 @@ class OffsetTool {
         this.offsetMaterial.onBeforeCompile = ( shader ) => {
             // Vertex Shader: Dilate Vertex positions by the normals
             let insertionPoint = shader.vertexShader.indexOf("#include <displacementmap_vertex>");
-            console.log(insertionPoint);
             shader.vertexShader =
                '\nuniform float dilation;\n' +
                shader.vertexShader.slice(0, insertionPoint) +
@@ -93,7 +92,7 @@ class OffsetTool {
                         this.world.scene.add(this.currentOffset);
 
                         // Creates an expected offset 
-                        this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.001]);
+                        this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.002]);
 
                         this.rayPlane.position.copy(this.point);
                         this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
@@ -114,12 +113,22 @@ class OffsetTool {
                 this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat).invert());
 
                 this.distance = this.cameraRelativeMovement.x;
-                this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
+                this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/5);
 
                 // Update the Visual Feedback
-                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.001 };
+                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.002 };
                 this.offsetMaterial.side = this.distance < 0 ? THREE.BackSide : THREE.FrontSide;
                 this.offsetMaterial.needsUpdate = true;
+                if (this.currentOffset.name !== "Waiting...") {
+                    if (this.distance < 0 && this.currentOffset.geometry === this.currentOffset.dilatedGeometry) {
+                        this.currentOffset.geometry = this.currentOffset.contractedGeometry;
+                        this.currentOffset.geometry.needsUpdate = true;
+                    } else if (this.distance > 0 && this.currentOffset.geometry === this.currentOffset.contractedGeometry) {
+                        this.currentOffset.geometry = this.currentOffset.dilatedGeometry;
+                        this.currentOffset.geometry.needsUpdate = true;
+                    }
+                }
+
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
 
@@ -174,13 +183,15 @@ class OffsetTool {
         let shapeName = "Offset #" + this.numOffsets;
         this.engine.execute(shapeName, this.createOffset, createOffsetArgs,
             (mesh) => {
-                if (this.currentOffset) {
-                    this.world.scene.remove(this.currentOffset);
-                }
-
                 if (mesh) {
+                    if (this.currentOffset) {
+                        this.world.scene.remove(this.currentOffset);
+                    }
+
                     mesh.shapeName = shapeName;
                     mesh.material = this.offsetMaterial;
+                    mesh.dilatedGeometry = mesh.geometry;
+                    mesh.contractedGeometry = this.currentOffset.geometry;
                     this.currentOffset = mesh;
                     this.currentOffset.children[0].visible = false;
                     this.world.scene.add(this.currentOffset);

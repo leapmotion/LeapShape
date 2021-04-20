@@ -15,6 +15,7 @@ class FilletTool {
         this.oc = oc; this.shapes = {};
 
         this.state = -1; // -1 is Deactivated
+        this.hoverRange = null; this.hoverEdges = null;
         this.selected = [];
 
         this.hitObject = null;
@@ -28,6 +29,7 @@ class FilletTool {
                                        new THREE.MeshBasicMaterial());
         this.didHitEdge = false;
         this.tapThreshold = 300; // Touches below this threshold (in ms) are considered taps
+        this.lastDistance = 0;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -45,11 +47,13 @@ class FilletTool {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
             this.didHitEdge = false;
-            // Tool is currently in Selection Mode
-            if (ray.justActivated) {
-                let alreadySelected = this.raycastObject(ray, true);
 
-                if (this.raycastObject(ray)) {
+            let alreadySelected = this.raycastObject(ray, true);
+            let hovered         = this.raycastObject(ray);
+
+            // Tool is currently in Selection Mode
+            if (hovered) {
+                if (ray.justActivated) {
                     // Create a plane at the origin for dragging
                     this.rayPlane.position.copy(this.point);
                     this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
@@ -62,14 +66,18 @@ class FilletTool {
                     } else {
                         this.didHitEdge = true;
                     }
-                } else {
-                    this.dragging = false;
+                    this.state = 1;
                 }
+                this.hover(this.hitVertexIndex, this.hitEdges);
+                ray.alreadyActivated = true;
 
-                this.state = 1;
+            } else {
+                this.hover(-1, null);
+                this.dragging = false;
             }
         } else if (this.state === 1) {
             this.world.dirty = true;
+            this.hover(-1, null);
 
             // While dragging, adjust the fillet radius
             if (this.dragging) {
@@ -81,18 +89,24 @@ class FilletTool {
                     this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat1).invert());
 
                     this.distance = this.cameraRelativeMovement.x;
-                    this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
+                    this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch / 5);
                     this.tools.cursor.updateTarget(this.point);
                     this.tools.cursor.updateLabel(this.distance === 0 ? "Left-Chamfer\nRight-Fillet" :
                         (this.distance > 0 ?
-                        Number(this.distance.toFixed(2)) + " - Fillet" :
-                        Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer"));
+                            Number(         this.distance .toFixed(2)) + " - Fillet" :
+                            Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer"));
+
+                    if (this.distance !== 0) {
+                        this.previewFilletShapeGeometry(this.currentFillet,
+                            [this.hitObject.shapeName, this.distance,
+                            this.selected.map((range) => range.localEdgeIndex)]);
+                    }
                 }
 
                 ray.alreadyActivated = true;
             } else if (ray.active && this.didHitEdge && ray.activeMS > this.tapThreshold) {
                 // If we're dragging for a while, and we hit an edge... select the edge we hit and adjust it
-                this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
+                this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges);
                 this.dragging = true;
                 ray.alreadyActivated = true;
             } else if (ray.active && this.didHitEdge && ray.activeMS < this.tapThreshold) {
@@ -111,7 +125,7 @@ class FilletTool {
                 } else if (ray.activeMS < this.tapThreshold) { 
                     // Toggle an object's selection state
                     if (this.raycastObject(ray, false)) {
-                        this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges, this.hitObject);
+                        this.toggleEdgeSelection(this.hitVertexIndex, this.hitEdges);
                     }
                 }
                 this.state = 0;
@@ -126,10 +140,12 @@ class FilletTool {
         let shapeName = "Filleted " + originalMesh.shapeName;
         this.engine.execute(shapeName, this.filletShape, filletShapeArgs,
             (mesh) => {
-                originalMesh.position  .set(0, 0, 0);
-                originalMesh.scale     .set(1, 1, 1);
-                originalMesh.quaternion.set(0, 0, 0, 1);
-
+                this.hitObject.visible = true;
+                if (this.currentFillet && this.currentFillet.parent) {
+                    this.currentFillet.geometry.dispose();
+                    this.currentFillet.parent.remove(this.currentFillet);
+                    this.currentFillet = null;
+                }
                 if (mesh) {
                     mesh.shapeName = shapeName;
                     mesh.name = originalMesh.name;
@@ -139,12 +155,37 @@ class FilletTool {
             });
     }
 
+    /** Ask OpenCascade to Fillet Edges on this shape
+     * @param {THREE.Mesh} originalMesh */
+    previewFilletShapeGeometry(originalMesh, filletShapeArgs) {
+        if (this.calculating || filletShapeArgs[1] === this.lastDistance) { return; }
+        this.calculating = true; this.lastDistance = filletShapeArgs[1];
+        let shapeName = "Preview Fillet";
+        this.engine.execute(shapeName, this.filletShape, filletShapeArgs,
+            (mesh) => {
+                if (mesh) {
+                    this.hitObject.visible = false;
+                    mesh.name = "Preview Fillet";
+                    if (this.currentFillet && this.currentFillet.parent) {
+                        this.currentFillet.geometry.dispose();
+                        this.currentFillet.parent.remove(this.currentFillet);
+                    }
+                    this.currentFillet = mesh;
+                    this.world.scene.add(this.currentFillet);
+                }
+                this.world.dirty = true;
+                this.calculating = false;
+            });
+    }
+
     /** Create fillets on edges in a shape in OpenCascade; 
      * to be executed on the Worker Thread */
     filletShape(shapeToFillet, radius, edges) {
         if (radius === 0) { console.error("Invalid Fillet Radius!");  return null; }
         let shape = this.shapes[shapeToFillet];
-        let mkFillet = radius > 0 ? new this.oc.BRepFilletAPI_MakeFillet(shape) : new this.oc.BRepFilletAPI_MakeChamfer(shape);
+        let mkFillet = radius > 0 ?
+            new this.oc.BRepFilletAPI_MakeFillet (shape) :
+            new this.oc.BRepFilletAPI_MakeChamfer(shape);
 
         // Iterate through the edges of the shape and add them to the Fillet as they come
         let foundEdges = 0, edge_index = 0, edgeHashes = {};
@@ -166,7 +207,8 @@ class FilletTool {
                 edge_index++;
             }
         }
-        if (foundEdges == 0) { console.error("Fillet Edges Not Found!");  return null; }
+        if (foundEdges == 0) { console.error("Fillet Edges Not Found!"); return null; }
+        mkFillet.Build(); // This call is where it will fail if it's going to fail!
         return new this.oc.TopoDS_Solid(mkFillet.Shape());
     }
 
@@ -199,12 +241,12 @@ class FilletTool {
     }
 
     /** @param {THREE.LineSegments} edges */
-    toggleEdgeSelection(vertexIndex, edges, obj) {
+    toggleEdgeSelection(vertexIndex, edges) {
         let edgeIndex = edges.globalEdgeIndices[vertexIndex];
         let range = edges.globalEdgeMetadata[edgeIndex];
 
         let colorArray = edges.geometry.getAttribute("color");
-        if (obj && this.selected.includes(range)) {
+        if (edges && this.selected.includes(range)) {
             for (let i = range.start; i <= range.end; i++){
                 colorArray.setXYZ(i, 0, 0, 0);
             }
@@ -228,6 +270,37 @@ class FilletTool {
         }
         this.selected = [];
         colorArray.needsUpdate = true;
+    }
+
+    hover(vertexIndex, edges) {
+        let range = null;
+        if (edges) {
+            let edgeIndex = edges.globalEdgeIndices [vertexIndex];
+            range         = edges.globalEdgeMetadata[edgeIndex];
+        }
+
+        // If this hover is different than the old one, un-hover the old one
+        if (this.hoverEdges && this.hoverRange && !this.selected.includes(this.hoverRange) &&
+            (this.hoverEdges !== edges || range !== this.hoverRange)) {
+            let colorArray = this.hoverEdges.geometry.getAttribute("color");
+            for (let i = this.hoverRange.start; i <= this.hoverRange.end; i++) {
+                colorArray.setXYZ(i, 0, 0.0, 0.0);
+            }
+            colorArray.needsUpdate = true;
+            this.hoverRange = this.hoverRange;
+        }
+
+        this.hoverEdges = edges;
+        this.hoverRange = range;
+
+        // If this current hover is valid, highlight it
+        if (this.hoverEdges && !this.selected.includes(range)) {
+            let colorArray  = this.hoverEdges.geometry.getAttribute("color");
+            for (let i = range.start; i <= range.end; i++) {
+                colorArray.setXYZ(i, 0, 1.0, 1.0);
+            }
+            colorArray.needsUpdate = true;
+        }
     }
 
     activate() {
