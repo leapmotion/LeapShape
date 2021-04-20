@@ -1,5 +1,6 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import Stats from      '../../../node_modules/three/examples/jsm/libs/stats.module.js';
+//import Stats from '../../../node_modules/three/examples/jsm/libs/stats.module.js';
+//import { GUI } from '../../../node_modules/three/examples/jsm/libs/dat.gui.module.js';
 import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
 import { History } from "./History.js";
@@ -38,13 +39,15 @@ class World {
             }
         }
 
-        this.cameraWorldScale = new THREE.Vector3(1,1,1);
+        this.cameraWorldPosition = new THREE.Vector3(1,1,1);
+        this.cameraWorldScale    = new THREE.Vector3(1,1,1);
         this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.0001, 1000 );
         this.camera.position.set( 0.1, 0.2, 0.3 );
         this.camera.layers.enableAll();
         this.cameraParent = new THREE.Group();
         this.cameraParent.add(this.camera);
         this.scene.add(this.cameraParent);
+        this.camera.getWorldPosition(this.cameraWorldPosition);
 
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
@@ -53,6 +56,7 @@ class World {
         //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
         this.mesh.isGround = true;
+        this.mesh.frustumCulled = false;
         this.scene.add( this.mesh );
         this.grid = new THREE.GridHelper( 2, 20, 0x000000, 0x000000 );
         this.grid.material.opacity = 0.4;
@@ -65,16 +69,24 @@ class World {
         this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
         this.light.position.set( 0, 0.2, 0 );
         this.scene.add( this.light );
+        this.lightParent = new THREE.Group();
+        this.lightTarget = new THREE.Group();
+        this.lightParent.frustumCulled = false;
+        this.lightParent.add(this.lightTarget);
         this.light = new THREE.DirectionalLight( 0xffffff );
         this.light.position.set( 0, 20, 10);
         this.light.castShadow = true;
+        this.light.frustumCulled = false;
+        this.light.shadow.frustumCulled = false;
+        this.light.shadow.camera.frustumCulled = false;
         this.light.shadow.camera.top    =   1;
         this.light.shadow.camera.bottom = - 1;
         this.light.shadow.camera.left   = - 1;
         this.light.shadow.camera.right  =   1;
         //this.light.shadow.autoUpdate = true;
-        this.light.target = this.mesh;
-        this.scene.add( this.light );
+        this.light.target = this.lightTarget;
+        this.lightParent.add(this.light);
+        this.scene.add( this.lightParent );
         //this.scene.add( new THREE.CameraHelper( this.light.shadow.camera ) );
 
         // renderer
@@ -114,6 +126,11 @@ class World {
         //this.stats = new Stats();
         //this.container.appendChild(this.stats.dom);
 
+        // gui 
+        //this.gui = new GUI();
+        //this.params = { offset: 17000 };
+        //this.gui.add( this.params, 'offset').min( 25000 ).max( 40000 ).name( 'Temporal Offset' );
+
         // Contains both the Undo History, and the set of active shapes
         this.history = new History(this);
 
@@ -149,6 +166,18 @@ class World {
         this.inVR = this.renderer.xr.isPresenting;
         this.raycaster.params.Line.threshold =
             0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
+
+        this.camera.getWorldPosition(this.cameraWorldPosition);
+        this.raycaster.params.Line.threshold =
+            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
+        // Make the shadow resolution change as the camera changes
+        this.lightParent.position.copy(this.cameraWorldPosition);
+        this.lightParent.scale   .copy(this.cameraWorldScale   );
+        this.light.shadow.camera.top    =  this.cameraWorldScale.x / 1.5;
+        this.light.shadow.camera.bottom = -this.cameraWorldScale.x / 1.5;
+        this.light.shadow.camera.left   = -this.cameraWorldScale.x / 1.5;
+        this.light.shadow.camera.right  =  this.cameraWorldScale.x / 1.5;
+        this.light.shadow.camera.updateProjectionMatrix();
 
         // Conserve Power, don't rerender unless the view is dirty
         if (ray.active || this.dirty) {
