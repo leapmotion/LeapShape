@@ -29,6 +29,7 @@ class FilletTool {
                                        new THREE.MeshBasicMaterial());
         this.didHitEdge = false;
         this.tapThreshold = 300; // Touches below this threshold (in ms) are considered taps
+        this.lastDistance = 0;
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
@@ -88,12 +89,18 @@ class FilletTool {
                     this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat1).invert());
 
                     this.distance = this.cameraRelativeMovement.x;
-                    this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
+                    this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch / 5);
                     this.tools.cursor.updateTarget(this.point);
                     this.tools.cursor.updateLabel(this.distance === 0 ? "Left-Chamfer\nRight-Fillet" :
                         (this.distance > 0 ?
-                        Number(this.distance.toFixed(2)) + " - Fillet" :
-                        Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer"));
+                            Number(         this.distance .toFixed(2)) + " - Fillet" :
+                            Number(Math.abs(this.distance).toFixed(2)) + " - Chamfer"));
+
+                    if (this.distance !== 0) {
+                        this.previewFilletShapeGeometry(this.currentFillet,
+                            [this.hitObject.shapeName, this.distance,
+                            this.selected.map((range) => range.localEdgeIndex)]);
+                    }
                 }
 
                 ray.alreadyActivated = true;
@@ -133,12 +140,41 @@ class FilletTool {
         let shapeName = "Filleted " + originalMesh.shapeName;
         this.engine.execute(shapeName, this.filletShape, filletShapeArgs,
             (mesh) => {
+                this.hitObject.visible = true;
+                if (this.currentFillet && this.currentFillet.parent) {
+                    this.currentFillet.geometry.dispose();
+                    this.currentFillet.parent.remove(this.currentFillet);
+                    this.currentFillet = null;
+                }
                 if (mesh) {
                     mesh.shapeName = shapeName;
                     mesh.name = originalMesh.name;
                     this.world.history.addToUndo(mesh, originalMesh, "Fillet");
                 }
                 this.world.dirty = true;
+            });
+    }
+
+    /** Ask OpenCascade to Fillet Edges on this shape
+     * @param {THREE.Mesh} originalMesh */
+    previewFilletShapeGeometry(originalMesh, filletShapeArgs) {
+        if (this.calculating || filletShapeArgs[1] === this.lastDistance) { return; }
+        this.calculating = true; this.lastDistance = filletShapeArgs[1];
+        let shapeName = "Preview Fillet";
+        this.engine.execute(shapeName, this.filletShape, filletShapeArgs,
+            (mesh) => {
+                if (mesh) {
+                    this.hitObject.visible = false;
+                    mesh.name = "Preview Fillet";
+                    if (this.currentFillet && this.currentFillet.parent) {
+                        this.currentFillet.geometry.dispose();
+                        this.currentFillet.parent.remove(this.currentFillet);
+                    }
+                    this.currentFillet = mesh;
+                    this.world.scene.add(this.currentFillet);
+                }
+                this.world.dirty = true;
+                this.calculating = false;
             });
     }
 

@@ -113,7 +113,7 @@ class OffsetTool {
                 this.cameraRelativeMovement.applyQuaternion(this.world.camera.getWorldQuaternion(this.quat).invert());
 
                 this.distance = this.cameraRelativeMovement.x;
-                this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
+                this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/5);
 
                 // Update the Visual Feedback
                 this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.002 };
