@@ -34,8 +34,8 @@ class LeapTemporalWarping {
 
         // Add a new Head Transform to the history
         this.addFrameToHistory(this.currentTimestamp);
-        // Sample a head transform from this time, 17ms ago
-        return this.getInterpolatedFrame(this.interpolatedFrame, this.history, this.currentTimestamp-17000);
+        // Sample a head transform from this time, 40ms ago
+        return this.getInterpolatedFrame(this.interpolatedFrame, this.history, this.currentTimestamp - 40000);
     }
 
     /** Accumulate the current head transform into the history
