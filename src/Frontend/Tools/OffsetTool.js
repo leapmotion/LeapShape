@@ -173,11 +173,11 @@ class OffsetTool {
         let shapeName = "Offset #" + this.numOffsets;
         this.engine.execute(shapeName, this.createOffset, createOffsetArgs,
             (mesh) => {
-                if (this.currentOffset) {
-                    this.world.scene.remove(this.currentOffset);
-                }
-
                 if (mesh) {
+                    if (this.currentOffset) {
+                        this.world.scene.remove(this.currentOffset);
+                    }
+
                     mesh.shapeName = shapeName;
                     mesh.material = this.offsetMaterial;
                     this.currentOffset = mesh;
