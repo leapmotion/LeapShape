@@ -119,6 +119,16 @@ class OffsetTool {
                 this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.002 };
                 this.offsetMaterial.side = this.distance < 0 ? THREE.BackSide : THREE.FrontSide;
                 this.offsetMaterial.needsUpdate = true;
+                if (this.currentOffset.name !== "Waiting...") {
+                    if (this.distance < 0 && this.currentOffset.geometry === this.currentOffset.dilatedGeometry) {
+                        this.currentOffset.geometry = this.currentOffset.contractedGeometry;
+                        this.currentOffset.geometry.needsUpdate = true;
+                    } else if (this.distance > 0 && this.currentOffset.geometry === this.currentOffset.contractedGeometry) {
+                        this.currentOffset.geometry = this.currentOffset.dilatedGeometry;
+                        this.currentOffset.geometry.needsUpdate = true;
+                    }
+                }
+
                 this.tools.cursor.updateTarget(this.point);
                 this.tools.cursor.updateLabelNumbers(this.distance);
 
@@ -180,6 +190,8 @@ class OffsetTool {
 
                     mesh.shapeName = shapeName;
                     mesh.material = this.offsetMaterial;
+                    mesh.dilatedGeometry = mesh.geometry;
+                    mesh.contractedGeometry = this.currentOffset.geometry;
                     this.currentOffset = mesh;
                     this.currentOffset.children[0].visible = false;
                     this.world.scene.add(this.currentOffset);
