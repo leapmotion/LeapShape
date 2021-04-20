@@ -39,7 +39,7 @@ class Menu {
 
             let menuItemIcon = new THREE.Mesh(this.menuPlaneGeo,
                 new THREE.MeshBasicMaterial(
-                    { color: 0x999999, alphaTest: 0.5, map: tools.tools[i].descriptor.icon, depthTest:false }));
+                    { color: 0x999999, transparent: true, map: tools.tools[i].descriptor.icon, depthTest:false }));
             menuItemIcon.name = "Menu Item Icon - "+i;
             menuItemIcon.receiveShadow = false;
             menuItemIcon.castShadow = false;

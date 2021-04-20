@@ -4,6 +4,7 @@ import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
 import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
+import { LeapTemporalWarping } from './LeapTemporalWarping.js';
 
 /** This is the Leap Hand Tracking-based Input */
 class LeapJSInput {
@@ -27,7 +28,10 @@ class LeapJSInput {
 
         this.handParent = new THREE.Group();
         this.handParent.scale.set(0.001, 0.001, 0.001);
-        this.world.camera.add(this.handParent);
+        //this.world.camera.add(this.handParent);
+        this.temporalWarpingSpace = new THREE.Group();
+        this.temporalWarpingSpace.add(this.handParent);
+        this.world.camera.parent.add(this.temporalWarpingSpace);
         this.hmdEuler = new THREE.Euler(Math.PI / 2, 0, Math.PI);
 
         // Set up Pinch Related Data
@@ -57,12 +61,16 @@ class LeapJSInput {
         this.curInVR = false;
 
         this.interpolator = new LeapFrameInterpolator(world, this.controller);
+        this.temporalWarping = new LeapTemporalWarping(world, this.interpolator);
     }
 
     /** Updates visuals and regenerates the input ray */
     update() {
         // Rebase performance.now() and the leap timestamps together
         this.interpolatedFrame = this.interpolator.update();
+        this.interpolatedSpace = this.temporalWarping.update();
+        this.temporalWarpingSpace.position.copy(this.interpolatedSpace.position);
+        this.temporalWarpingSpace.quaternion.copy(this.interpolatedSpace.quaternion);
 
         if (this.world.inVR != this.curInVR) {
             this.controller.setOptimizeHMD(this.world.inVR);

@@ -46,6 +46,7 @@ class MouseInput {
             this.ray.activeMS = this.activeTime;
             this.lastTimestep = performance.now();
 
+            // Changes the cursor between the "Hovering" and "Passive" state
             this.world.container.style.cursor = this.ray.lastAlreadyActivated ? "pointer" : "default";
 
             // Set Ray Origin and Direction
