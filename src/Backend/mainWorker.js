@@ -71,6 +71,7 @@ class LeapShapeEngineWorker {
                 return { name: payload.name, payload: meshData };
             }
         } catch (e) {
+            console.error("CAD Operation Failed!");
             return { name: payload.name, payload: null };
         }
     }

@@ -33,7 +33,6 @@ class OffsetTool {
         this.offsetMaterial.onBeforeCompile = ( shader ) => {
             // Vertex Shader: Dilate Vertex positions by the normals
             let insertionPoint = shader.vertexShader.indexOf("#include <displacementmap_vertex>");
-            console.log(insertionPoint);
             shader.vertexShader =
                '\nuniform float dilation;\n' +
                shader.vertexShader.slice(0, insertionPoint) +
@@ -93,7 +92,7 @@ class OffsetTool {
                         this.world.scene.add(this.currentOffset);
 
                         // Creates an expected offset 
-                        this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.001]);
+                        this.createPreviewOffsetGeometry([this.hitObject.shapeName, 0.002]);
 
                         this.rayPlane.position.copy(this.point);
                         this.rayPlane.lookAt(this.world.camera.getWorldPosition(this.vec));
@@ -117,7 +116,7 @@ class OffsetTool {
                 this.distance = this.tools.grid.snapToGrid1D(this.distance, this.tools.grid.gridPitch/10);
 
                 // Update the Visual Feedback
-                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.001 };
+                this.offsetMaterial.uniforms.dilation = { value: this.currentOffset.name === "Waiting..." ? this.distance : this.distance - 0.002 };
                 this.offsetMaterial.side = this.distance < 0 ? THREE.BackSide : THREE.FrontSide;
                 this.offsetMaterial.needsUpdate = true;
                 this.tools.cursor.updateTarget(this.point);
