@@ -13,10 +13,13 @@ class Grid {
         this.engine = this.world.parent.engine;
 
         this.gridPitch = 0.01;
-        this.vec1 = new THREE.Vector3();
-        this.vec2 = new THREE.Vector3();
+        this.vec1   = new THREE.Vector3();
+        this.vec2   = new THREE.Vector3();
+        this.quat   = new THREE.Quaternion();
+        this.quat1  = new THREE.Quaternion();
+        this.quat2  = new THREE.Quaternion();
         this.normal = new THREE.Vector3();
-        this.color = new THREE.Color();
+        this.color  = new THREE.Color();
         this.needsUpdate = true;
         this.updateCount = 0;
 
@@ -98,8 +101,37 @@ class Grid {
             }
 
             // Set Grid Rotation
-            this.vec1.set(0, 1, 0); this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
-            this.space.quaternion.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.identity();
+
+            //if (this.queryResult.tU) {
+            //    this.vec1.set(1, 0, 0).applyQuaternion(this.quat);
+            //    this.vec2.fromArray(this.queryResult.tU);
+            //    this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            //    this.quat.premultiply(this.quat2);
+            //}
+            //if (this.queryResult.tV) {
+            //    this.vec1.set(0, 0, 1).applyQuaternion(this.quat);
+            //    this.vec2.fromArray(this.queryResult.tV);
+            //    this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            //    this.quat.premultiply(this.quat2);
+            //}
+
+            this.vec1.set(0, 1, 0).applyQuaternion(this.quat);
+            this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
+            this.quat2.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.premultiply(this.quat2);
+
+            this.vec1.set(0, 0, 1).applyQuaternion(this.quat);
+            this.vec2.set(0, 1, 0).projectOnPlane(this.normal).normalize();
+            this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            this.quat.premultiply(this.quat2);
+
+            this.vec1.set(0, 1, 0).applyQuaternion(this.quat);
+            this.quat2.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.premultiply(this.quat2);
+
+            this.space.quaternion.copy(this.quat);
+
 
             // Set the dot center
             this.updateGridVisual(this.tempVec.set(this.queryResult.x, this.queryResult.y, this.queryResult.z), this.queryResult.grid);
@@ -109,9 +141,12 @@ class Grid {
         }
     }
 
+    /** Internal method to update the grid's position
+     * @param {THREE.Vector3} worldCenter
+     * @param {number[][]} grid */
     updateGridVisual(worldCenter, grid) {
         this.space.updateWorldMatrix(true, true);
-        this.gridSpheres.position.copy(this.space.worldToLocal(this.snapToGrid(worldCenter.clone())));
+        this.gridSpheres.position.copy(this.space.worldToLocal(this.snapToGrid(worldCenter.clone(), false, false)));
         this.gridSpheres.updateWorldMatrix(true, true);
         let center = new THREE.Vector3().copy(worldCenter);
         this.gridSpheres.worldToLocal(center);
@@ -156,13 +191,35 @@ class Grid {
 
     /** Snap this position to the grid
      * @param {THREE.Vector3} position
-     * @param {boolean} volumetric */
-    snapToGrid(position, volumetric) {
+     * @param {boolean} volumetric
+     * @param {boolean} useMagnetPoints */
+    snapToGrid(position, volumetric = false, useMagnetPoints = true) {
         this.vec1.copy(position);
         this.space.worldToLocal(this.vec1);
         if (!volumetric) { this.vec1.y = 0; }
         snapToGrid(this.vec1, this.gridPitch);
         this.space.localToWorld(this.vec1);
+
+        // If we have magnet points...
+        if (useMagnetPoints) {
+            if (this.queryResult && this.queryResult.grid) {
+                // Try snapping to magnet points
+                let closestDistance = this.vec1.distanceTo(position), closestIndex = -1;
+                for (let g = 0; g < this.queryResult.grid.length; g++) {
+                    this.vec2.fromArray(this.queryResult.grid[g]);
+                    let distance = this.vec2.distanceTo(position);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestIndex = g;
+                    }
+                }
+
+                // If the magnet point is closer, 
+                // use it instead of the grid point!
+                if (closestIndex >= 0) { this.vec1.fromArray(this.queryResult.grid[closestIndex]); }
+            }
+        }
+
         position.copy(this.vec1);
         return position;
     }
