@@ -109,9 +109,7 @@ class BackendFunctions {
      * @param {string} shapeName @param {number} faceIndex @param {number} u @param {number} v */
     static querySurfaceBackend(shapeName, faceIndex, u, v, x, y, z, uvBounds) {
         if (false) {  // This fools the intellisense into working
-            this.oc = oc;
-            /** @type {Object.<string, oc.TopoDS_Shape>} */ this.shapes;
-        }
+            /** @type {Object.<string, oc.TopoDS_Shape>} */ this.shapes; this.oc = oc; }
 
         let toReturn = { isMetadata: true };
         let shape = this.shapes[shapeName];
