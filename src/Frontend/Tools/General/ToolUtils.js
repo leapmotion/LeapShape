@@ -188,12 +188,14 @@ class BackendFunctions {
         // Capture Tangent Directions
         let tempDir = new this.oc.gp_Dir();
         if (this.props.IsTangentUDefined()) {
-            this.props.TangentU(tempDir)
-            toReturn.tUX = tempDir.X(); toReturn.tUY = tempDir.Y(); toReturn.tUZ = tempDir.Z();
+            this.props.TangentU(tempDir);
+            toReturn.tU = [0, 0, 0];
+            toReturn.tU[0] = tempDir.X(); toReturn.tU[1] = tempDir.Y(); toReturn.tU[2] = tempDir.Z();
         }
         if (this.props.IsTangentVDefined()) {
-            this.props.TangentV(tempDir)
-            toReturn.tVX = tempDir.X(); toReturn.tVY = tempDir.Y(); toReturn.tVZ = tempDir.Z();
+            this.props.TangentV(tempDir);
+            toReturn.tV = [0, 0, 0];
+            toReturn.tV[0] = tempDir.X(); toReturn.tV[1] = tempDir.Y(); toReturn.tV[2] = tempDir.Z();
         }
         this.oc._free(tempDir);
 

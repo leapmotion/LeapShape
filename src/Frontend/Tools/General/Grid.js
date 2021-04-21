@@ -13,10 +13,13 @@ class Grid {
         this.engine = this.world.parent.engine;
 
         this.gridPitch = 0.01;
-        this.vec1 = new THREE.Vector3();
-        this.vec2 = new THREE.Vector3();
+        this.vec1   = new THREE.Vector3();
+        this.vec2   = new THREE.Vector3();
+        this.quat   = new THREE.Quaternion();
+        this.quat1  = new THREE.Quaternion();
+        this.quat2  = new THREE.Quaternion();
         this.normal = new THREE.Vector3();
-        this.color = new THREE.Color();
+        this.color  = new THREE.Color();
         this.needsUpdate = true;
         this.updateCount = 0;
 
@@ -98,8 +101,37 @@ class Grid {
             }
 
             // Set Grid Rotation
-            this.vec1.set(0, 1, 0); this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
-            this.space.quaternion.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.identity();
+
+            //if (this.queryResult.tU) {
+            //    this.vec1.set(1, 0, 0).applyQuaternion(this.quat);
+            //    this.vec2.fromArray(this.queryResult.tU);
+            //    this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            //    this.quat.premultiply(this.quat2);
+            //}
+            //if (this.queryResult.tV) {
+            //    this.vec1.set(0, 0, 1).applyQuaternion(this.quat);
+            //    this.vec2.fromArray(this.queryResult.tV);
+            //    this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            //    this.quat.premultiply(this.quat2);
+            //}
+
+            this.vec1.set(0, 1, 0).applyQuaternion(this.quat);
+            this.normal.set(this.queryResult.nX, this.queryResult.nY, this.queryResult.nZ);
+            this.quat2.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.premultiply(this.quat2);
+
+            this.vec1.set(0, 0, 1).applyQuaternion(this.quat);
+            this.vec2.set(0, 1, 0).projectOnPlane(this.normal).normalize();
+            this.quat2.setFromUnitVectors(this.vec1, this.vec2);
+            this.quat.premultiply(this.quat2);
+
+            this.vec1.set(0, 1, 0).applyQuaternion(this.quat);
+            this.quat2.setFromUnitVectors(this.vec1, this.normal);
+            this.quat.premultiply(this.quat2);
+
+            this.space.quaternion.copy(this.quat);
+
 
             // Set the dot center
             this.updateGridVisual(this.tempVec.set(this.queryResult.x, this.queryResult.y, this.queryResult.z), this.queryResult.grid);
