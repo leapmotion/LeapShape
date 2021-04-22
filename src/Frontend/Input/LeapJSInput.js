@@ -186,7 +186,7 @@ class LeapJSInput {
             this.world.cameraParent.attach(this.world.camera);
             this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -0.3)));
         }
-        this.world.handsAreTracking = handsAreTracking;
+        if (!this.world.mobile) { this.world.handsAreTracking = handsAreTracking; }
         if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
     }
 

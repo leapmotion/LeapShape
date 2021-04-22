@@ -37,14 +37,14 @@ class OpenXRInput {
         this.controller2.inputState = { pinching: false }; this.controller2.visible = false;
         this.controller1.traverse((element) => { if(element.layers){ element.layers.set(1); }});
         this.controller2.traverse((element) => { if(element.layers){ element.layers.set(1); }});
-        this.world.scene.add(this.controller1); this.world.scene.add(this.controller2);
+        this.world.cameraParent.add(this.controller1); this.world.cameraParent.add(this.controller2);
         this.controllerGrip1 = this.world.renderer.xr.getControllerGrip(0);
         this.controllerGrip2 = this.world.renderer.xr.getControllerGrip(1);
         this.controllerGrip1.add(this.controllerModelFactory.createControllerModel(this.controllerGrip1));
         this.controllerGrip2.add(this.controllerModelFactory.createControllerModel(this.controllerGrip2));
         this.controllerGrip1.traverse((element) => { if(element.layers){ element.layers.set(1); }});
         this.controllerGrip2.traverse((element) => { if(element.layers){ element.layers.set(1); }});
-        this.world.scene.add(this.controllerGrip1); this.world.scene.add(this.controllerGrip2);
+        this.world.cameraParent.add(this.controllerGrip1); this.world.cameraParent.add(this.controllerGrip2);
     
         // Controller Interaction
         this.controller1.addEventListener('selectstart', (e) => { this.controller1.inputState.pinching = true ; });
@@ -60,7 +60,7 @@ class OpenXRInput {
         this.handModel1 = this.handModelFactory.createHandModel(this.hand1, 'boxes');
         this.handModel2 = this.handModelFactory.createHandModel(this.hand2, 'boxes');
         this.hand1.add (this.handModel1);  this.hand2.add (this.handModel2);
-        this.world.scene.add(this.hand1);  this.world.scene.add(this.hand2);
+        this.world.cameraParent.add(this.hand1);  this.world.cameraParent.add(this.hand2);
         this.hand1.layers.set(1); this.handModel1.layers.set(1); this.handModel1.frustumCulled = false;
         this.hand2.layers.set(1); this.handModel2.layers.set(1); this.handModel2.frustumCulled = false;
         this.hand1.traverse((element) => { if(element.layers){ element.layers.set(1); }});
@@ -102,9 +102,17 @@ class OpenXRInput {
             //if ((this.mainHand != this.hand1) && this.hand2.visible) { this.mainHand = this.hand2; }
             //if ((this.mainHand != this.hand2) && this.hand1.visible) { this.mainHand = this.hand1; }
             if (this.mainHand) {
-                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.quaternion));
-                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.position);
+                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.getWorldQuaternion(this.quat)));
+                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.getWorldPosition(this.vec));
+
+                if (this.world.leftPinch && this.world.rightPinch){
+                    this.world.leftPinch.position.copy(this.controller1.getWorldPosition(this.vec));
+                    this.world.leftPinch.visible = this.controller1.inputState.pinching;
+                    this.world.rightPinch.position.copy(this.controller2.getWorldPosition(this.vec));
+                    this.world.rightPinch.visible = this.controller2.inputState.pinching;
+                }
             }
+            this.world.handsAreTracking = this.mainHand !== null;
             this.lastMainHand = this.mainHand;
 
             // Add Extra Fields for the active state
