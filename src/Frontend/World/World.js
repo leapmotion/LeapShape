@@ -75,7 +75,7 @@ class World {
         this.lightParent.add(this.lightTarget);
         this.light = new THREE.DirectionalLight( 0xffffff );
         this.light.position.set( 0, 20, 10);
-        this.light.castShadow = true;
+        this.light.castShadow = !this.mobile;
         this.light.frustumCulled = false;
         this.light.shadow.frustumCulled = false;
         this.light.shadow.camera.frustumCulled = false;
@@ -83,7 +83,7 @@ class World {
         this.light.shadow.camera.bottom = - 1;
         this.light.shadow.camera.left   = - 1;
         this.light.shadow.camera.right  =   1;
-        //this.light.shadow.autoUpdate = true;
+        this.light.shadow.autoUpdate = false;
         this.light.target = this.lightTarget;
         this.lightParent.add(this.light);
         this.scene.add( this.lightParent );
@@ -164,8 +164,6 @@ class World {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         this.inVR = this.renderer.xr.isPresenting;
-        this.raycaster.params.Line.threshold =
-            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
 
         this.camera.getWorldPosition(this.cameraWorldPosition);
         this.raycaster.params.Line.threshold =
@@ -197,7 +195,7 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
 
             // Render the scene (Normally or in WebXR)
-            this.light.shadow.needsUpdate = true;
+            this.light.shadow.needsUpdate = !this.mobile;
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
@@ -215,6 +213,14 @@ class World {
             ray.lastAlreadyActivated = ray.alreadyActivated;
 
             this.dirty = false;
+
+            // If we just entered VR, offset the camera parent by the camera position
+            if (this.inVR && !this.lastInVR) {
+                this.cameraParent.position.copy(this.camera.position)
+                    .multiplyScalar(-1.0).add(this.cameraWorldPosition);
+            }
+
+            this.lastInVR = this.inVR;
             //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
             this.lastTimeInteractedWith += 1020; // Otherwise Update once per ~second...
