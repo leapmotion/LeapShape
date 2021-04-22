@@ -29,7 +29,7 @@ class World {
         
         // camera and world
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color( 0xffffff );
+        this.scene.background = new THREE.Color( 0xeeeeee );
         //this.scene.fog = new THREE.Fog(0xffffff, 0.5, 1.3);
         this.scene.onBeforeRender = function(renderer, scene, camera) {
             if (camera.cameras && camera.cameras.length) {
@@ -51,7 +51,7 @@ class World {
 
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
-                                   new THREE.MeshStandardMaterial({ color: 0x999999, depthWrite: false})); //, opacity: 0 
+                                   new THREE.MeshStandardMaterial({ color: 0x7f7f7f, depthWrite: false})); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
         //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
