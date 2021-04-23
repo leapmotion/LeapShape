@@ -15,6 +15,9 @@ jobs:
         with:
           lfs: true
 
+      # Ideally this makes the next step run faster
+      # But I haven't noticed a speed difference
+      # May want to cache the ./node_modules directory directly...
       - name: Cache Node Modules
         uses: actions/cache@v2
         env:
@@ -31,6 +34,10 @@ jobs:
       - name: Install Node Modules
         run: npm install
 
+      # Switching the HTML entrypoint over to the build
+      # and compensating for the fact that 
+      # Safari and Firefox can't     use modules in WebWorkers
+      # but        ESBuild can't NOT use modules in WebWorkers!
       - name: Pre-Process Site
         run: |
           sed -e 's/\/src\//\/build\//g' index.html > index.html.tmp
@@ -46,6 +53,8 @@ jobs:
           sed -e 's/\/\/export /export /g' src/Backend/OpenCascadeMesher.js > src/Backend/OpenCascadeMesher.js.tmp
           mv src/Backend/OpenCascadeMesher.js.tmp src/Backend/OpenCascadeMesher.js
 
+      # This step may not be necessary since 
+      # we're force-pushing from main to gh-pages
       - name: Remove old WebAssembly
         working-directory: ./build
         continue-on-error: true
@@ -60,9 +69,10 @@ jobs:
           git config --local user.name "GitHub Actions"
           git add build
           git add index.html
-          git add .github
           git diff-index --quiet HEAD || git commit -m "Rebuild Site"
 
+      # Force Push from main to gh-pages... 
+      # This means there is no history being accumulated
       - name: Push Changes to branch
         uses: ad-m/github-push-action@master
         with:
