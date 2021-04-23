@@ -37,7 +37,7 @@ jobs:
           mv index.html.tmp index.html
           sed -e 's/\/\/import /import /g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
           mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
-          sed -e 's/importScripts /\/\/importScripts/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
+          sed -e 's/importScripts/\/\/importScripts/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
           mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
 
       - name: Remove old WebAssembly
