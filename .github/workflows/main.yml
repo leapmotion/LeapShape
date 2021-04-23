@@ -40,7 +40,7 @@ jobs:
       # but        ESBuild can't NOT use modules in WebWorkers!
       - name: Pre-Process Site
         run: |
-          sed -e 's/\/src\//\/build\//g' index.html > index.html.tmp
+          sed -e 's/.\/src\//\/build\//g' index.html > index.html.tmp
           mv index.html.tmp index.html
           sed -e 's/\/\/import /import /g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
           mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
