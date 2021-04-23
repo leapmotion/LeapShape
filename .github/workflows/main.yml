@@ -25,6 +25,12 @@ jobs:
           mv index.html.tmp index.html
           sed -e 's/\/\/import url/import url/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
           mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
+          sed -e 's/\/\/import opencascade/import opencascade/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
+          mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
+          sed -e 's/\/\/import \{OpenCascadeMesher\}/import \{OpenCascadeMesher\}/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
+          mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
+          sed -e 's/importScripts /\/\/importScripts/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
+          mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
 
       - name: Remove old WebAssembly
         working-directory: ./build
