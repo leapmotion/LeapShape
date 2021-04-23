@@ -1,0 +1,48 @@
+name: LeapShape - Build Site
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Install Node Packages
+        run: |
+          npm install
+
+      - name: Pre-Process Site
+        run: |
+          sed -e 's/\/src\//\/build\//g' index.html > index.html.tmp
+          mv index.html.tmp index.html
+          sed -e 's/\/\/import url/import url/g' src/Backend/mainWorker.js > src/Backend/mainWorker.js.tmp
+          mv src/Backend/mainWorker.js.tmp src/Backend/mainWorker.js
+
+      - name: Remove old WebAssembly
+        working-directory: ./build
+        run: rm -rf opencascade.wasm-*
+
+      - name: Run esbuild
+        run: npm run build
+
+      - name: Commit the Updated Build Artifacts
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions"
+          git add build
+          git add index.html
+          git diff-index --quiet HEAD || git commit -m "Rebuild Site"
+
+      - name: Push Changes to branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
