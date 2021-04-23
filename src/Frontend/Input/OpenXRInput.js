@@ -62,8 +62,8 @@ class OpenXRInput {
         this.hand2 = this.world.renderer.xr.getHand(1);
         this.hand1.inputState = { pinching: false };
         this.hand2.inputState = { pinching: false };
-        this.handModel1 = this.handModelFactory.createHandModel(this.hand1, 'boxes');
-        this.handModel2 = this.handModelFactory.createHandModel(this.hand2, 'boxes');
+        this.handModel1 = this.handModelFactory.createHandModel(this.hand1, 'capsules');
+        this.handModel2 = this.handModelFactory.createHandModel(this.hand2, 'capsules');
         this.hand1.add (this.handModel1);  this.hand2.add (this.handModel2);
         this.world.cameraParent.add(this.hand1);  this.world.cameraParent.add(this.hand2);
         this.hand1.layers.set(1); this.handModel1.layers.set(1); this.handModel1.frustumCulled = false;
