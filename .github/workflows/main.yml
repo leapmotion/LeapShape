@@ -28,6 +28,7 @@ jobs:
 
       - name: Remove old WebAssembly
         working-directory: ./build
+        continue-on-error: true
         run: rm -rf opencascade.wasm-*
 
       - name: Run esbuild
