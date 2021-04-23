@@ -25,6 +25,7 @@ class OpenXRInput {
         this.cameraWorldPosition = new THREE.Vector3();
         this.cameraWorldQuaternion = new THREE.Quaternion();
         this.cameraWorldScale = new THREE.Quaternion();
+        this.identity = new THREE.Quaternion().identity();
 
         //if (this.isActive()) { this.initialize(); }
     }
@@ -109,7 +110,10 @@ class OpenXRInput {
                 this.mainHand.children[0].visible = true;
                 this.mainHand.children[0].material.color.copy(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
 
-                let isHand = this.handModel1.visible || this.handModel2.visible;
+                let isHand = (this.handModel1.children.length > 0 && this.handModel1.children[0].count > 0) ||
+                             (this.handModel2.children.length > 0 && this.handModel2.children[0].count > 0);
+                this.line1.quaternion.copy(isHand ? this.downTilt : this.identity);
+                this.line2.quaternion.copy(isHand ? this.  upTilt : this.identity);
 
                 this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.children[0].getWorldQuaternion(this.quat)));
                 this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(isHand?0.0:0.05).add(this.mainHand.getWorldPosition(this.vec));
