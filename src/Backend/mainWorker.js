@@ -1,7 +1,7 @@
+// Leave these next 4 lines exactly as they are.  The comments are toggled for ESBuild
 //import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
 //import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
-//import {OpenCascadeMesher} from './OpenCascadeMesher.js';
-// No Modules in Workers in Safari or Firefox... but we pretend for ESBuild.  Leave the below line:
+//import { OpenCascadeMesher } from './OpenCascadeMesher.js';
 importScripts('../../node_modules/opencascade.js/dist/opencascade.wasm.js', './OpenCascadeMesher.js');
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
