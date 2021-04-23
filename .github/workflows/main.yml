@@ -57,18 +57,9 @@ jobs:
           git add .github
           git diff-index --quiet HEAD || git commit -m "Rebuild Site"
 
-      #- name: Push Changes to branch
-      #  uses: ad-m/github-push-action@master
-      #  with:
-      #    github_token: ${{ secrets.GITHUB_TOKEN }}
-      #    branch: gh-pages
-      #    CLEAN: true # Automatically remove deleted files from the deploy branch
-
-      # Push the contents of the html directory to the gh-pages branch 
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+      - name: Push Changes to branch
+        uses: ad-m/github-push-action@master
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is set by github, do not change.
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: . # The folder the action should deploy.
-          CLEAN: true # Automatically remove deleted files from the deploy branch
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
