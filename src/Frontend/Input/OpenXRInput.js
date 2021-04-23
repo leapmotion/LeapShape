@@ -13,13 +13,18 @@ class OpenXRInput {
 
         this.vec  = new THREE.Vector3();    this.vec2  = new THREE.Vector3();   this.vec3 = new THREE.Vector3();
         this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion();
-        this.mat1 = new THREE.Matrix4();    this.mat2  = new THREE.Matrix4();
+        this.mat1 = new THREE.Matrix4(); this.mat2 = new THREE.Matrix4();
+        this.upTilt   = (new THREE.Quaternion).setFromEuler(new THREE.Euler( Math.PI / 3.5, 0, 0));
+        this.downTilt = (new THREE.Quaternion).setFromEuler(new THREE.Euler(-Math.PI / 3.5, 0, 0));
 
         this.ray = new InteractionRay(new THREE.Ray());
         this.lastTimestep = performance.now();
         this.activeTime = 0; this.prevActive = false;
         this.mainHand = null; this.initialized = false;
         this.lastMainHand = null;
+        this.cameraWorldPosition = new THREE.Vector3();
+        this.cameraWorldQuaternion = new THREE.Quaternion();
+        this.cameraWorldScale = new THREE.Quaternion();
 
         //if (this.isActive()) { this.initialize(); }
     }
@@ -74,19 +79,17 @@ class OpenXRInput {
 
         // Pointer
         let lineGeometry = new THREE.BufferGeometry().setFromPoints(
-            [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
+            [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -0.03)]);
         let line = new THREE.Line(lineGeometry);
         line.material.color.setRGB(0, 0, 0);
         line.name = 'line';
         line.scale.z = 5;
         line.layers.set(1);
         line.frustumCulled = false;
-        this.controller1.add( line.clone() );
-        this.controller2.add( line.clone() );
-        this.hand1Line = line.clone();
-        this.hand1.add(this.hand1Line); //.joints['index-finger-tip']
-        this.hand2line = line.clone()
-        this.hand2.add(this.hand2line); //.joints['index-finger-tip']
+        this.line1 = line.clone(); this.line1.quaternion.copy(this.downTilt); this.controller1.add(this.line1);
+        this.line2 = line.clone(); this.line2.quaternion.copy(this.  upTilt); this.controller2.add(this.line2);
+        this.hoverColor = new THREE.Color(0, 1, 1);
+        this.idleColor  = new THREE.Color(0.5, 0.5, 0.5);
         this.initialized = true;
     }
 
@@ -95,22 +98,63 @@ class OpenXRInput {
         if (this.isActive()) {
             if (!this.initialized) { this.initialize(); }
 
+            this.controller1.children[0].visible = false;
+            this.controller2.children[0].visible = false;
+
             // Set Ray Origin and Input Direction
-            if (this.mainHand && !this.mainHand.visible) { this.mainHand = null; }
-            if (!this.mainHand && this.controller2.visible) { this.mainHand = this.controller2; }
-            if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; }
-            //if ((this.mainHand != this.hand1) && this.hand2.visible) { this.mainHand = this.hand2; }
-            //if ((this.mainHand != this.hand2) && this.hand1.visible) { this.mainHand = this.hand1; }
+            if (this.mainHand && !this.mainHand.visible) { this.mainHand = null; this.secondaryHand = null; }
+            if (!this.mainHand && this.controller2.visible) { this.mainHand = this.controller2; this.secondaryHand = this.controller1;}
+            if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; this.secondaryHand = this.controller2;}
             if (this.mainHand) {
-                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.getWorldQuaternion(this.quat)));
-                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(0.05).add(this.mainHand.getWorldPosition(this.vec));
+                this.mainHand.children[0].visible = true;
+                this.mainHand.children[0].material.color.copy(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
+
+                let isHand = this.handModel1.visible || this.handModel2.visible;
+
+                this.ray.ray.direction.copy(this.vec.set(0, 0, -1).applyQuaternion(this.mainHand.children[0].getWorldQuaternion(this.quat)));
+                this.ray.ray.origin.copy(this.ray.ray.direction).multiplyScalar(isHand?0.0:0.05).add(this.mainHand.getWorldPosition(this.vec));
 
                 if (this.world.leftPinch && this.world.rightPinch){
                     this.world.leftPinch.position.copy(this.controller1.getWorldPosition(this.vec));
-                    this.world.leftPinch.visible = this.controller1.inputState.pinching;
+                    this.world.leftPinch. visible = this.controller1.inputState.pinching;
                     this.world.rightPinch.position.copy(this.controller2.getWorldPosition(this.vec));
                     this.world.rightPinch.visible = this.controller2.inputState.pinching;
                 }
+
+                // Set the Menu Buttons to appear beside the users' secondary hand
+                this.world.camera.getWorldQuaternion(this.cameraWorldQuaternion);
+                this.world.camera.getWorldScale     (this.cameraWorldScale);
+                if (this.secondaryHand && this.world.parent.tools.menu) {
+                    let slots = this.world.parent.tools.menu.slots;
+                    if (slots) {
+                        this.secondaryHandTransform = (this.secondaryHand == this.controller1 ?
+                            this.hand1 : this.hand2).joints['middle-finger-phalanx-proximal'];
+
+                        // Calculate whether the secondary hand's palm is facing the camera
+                        this.vec.set(0, -1, 0).applyQuaternion(this.secondaryHandTransform.getWorldQuaternion(this.quat));
+                        this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion);
+                        let facing = this.vec.dot(this.vec2);
+                        if (facing < 0.0) {
+                            // Array the Menu Items next to the user's secondary hand
+                            this.secondaryHandTransform.getWorldPosition(this.vec3);
+
+                            for (let s = 0; s < slots.length; s++) {
+                                let oldParent = slots[s].parent;
+                                this.world.scene.add(slots[s]);
+
+                                let chirality = (this.secondaryHand == this.controller1 ? -1 : 1);
+                                this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
+                                    0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                                this.vec.set(-0.02 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
+                                    .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
+                                
+                                slots[s].position.copy(this.vec);
+                                oldParent.attach(slots[s]);
+                            }
+                        }
+                    }
+                }
+
             }
             this.world.handsAreTracking = this.mainHand !== null;
             this.lastMainHand = this.mainHand;
