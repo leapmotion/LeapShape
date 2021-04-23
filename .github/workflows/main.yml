@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Run Unit Tests
+    name: Rebuild Site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -52,13 +52,6 @@ jobs:
           mv src/Backend/OpenCascadeMesher.js.tmp src/Backend/OpenCascadeMesher.js
           sed -e 's/\/\/export /export /g' src/Backend/OpenCascadeMesher.js > src/Backend/OpenCascadeMesher.js.tmp
           mv src/Backend/OpenCascadeMesher.js.tmp src/Backend/OpenCascadeMesher.js
-
-      # This step may not be necessary since 
-      # we're force-pushing from main to gh-pages
-      - name: Remove old WebAssembly
-        working-directory: ./build
-        continue-on-error: true
-        run: rm -rf opencascade.wasm-*
 
       - name: Run esbuild
         run: npm run build
