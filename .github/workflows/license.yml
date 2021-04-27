@@ -1,0 +1,32 @@
+name: LeapShape - Verify License Headers
+
+on:
+  push:
+    branches:
+      #- main
+      - feat-license
+
+jobs:
+  test:
+    name: Verify License Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Update Copyright Headers
+        run: python .github/workflows/add_copyright_headers.py
+
+      - name: Commit Updated Headers
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions"
+          git add src
+          git diff-index --quiet HEAD || git commit -m "Add License Header(s)"
+
+      - name: Push Changes to branch
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
