@@ -32,6 +32,7 @@ class MouseInput {
         this.world.container.addEventListener( 'pointermove', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'pointerdown', this._onContainerMouse.bind(this) );
         this.world.container.addEventListener( 'pointerup'  , this._onContainerMouse.bind(this) );
+        this.world.container.addEventListener( 'wheel'      , this._onContainerMouse.bind(this) );
         this.prevButton = 0;
         this.up = new THREE.Vector3(0, 1, 0);
 
