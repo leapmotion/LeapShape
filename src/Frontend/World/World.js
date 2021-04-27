@@ -16,9 +16,11 @@
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 //import Stats from '../../../node_modules/three/examples/jsm/libs/stats.module.js';
-//import { GUI } from '../../../node_modules/three/examples/jsm/libs/dat.gui.module.js';
+import { GUI } from '../../../node_modules/three/examples/jsm/libs/dat.gui.module.js';
 import { OrbitControls } from '../../../node_modules/three/examples/jsm/controls/OrbitControls.js';
 import { VRButton } from '../../../node_modules/three/examples/jsm/webxr/VRButton.js';
+import { CSM } from '../../../node_modules/three/examples/jsm/csm/CSM.js';
+import { CSMHelper } from '../../../node_modules/three/examples/jsm/csm/CSMHelper.js';
 import { History } from "./History.js";
 import { InteractionRay } from "../Input/Input.js";
 import { LeapShapeRenderer } from "../main.js";
@@ -65,9 +67,26 @@ class World {
         this.scene.add(this.cameraParent);
         this.camera.getWorldPosition(this.cameraWorldPosition);
 
+        this.csmGroup = new THREE.Group();
+        this.scene.add(this.csmGroup);
+        this.csm = new CSM( {
+            maxFar: 10,
+            cascades: 2,
+            //mode: "practical",
+            parent: this.csmGroup,
+            //shadowMapSize: 1024,
+            //lightIntensity: 1.0,
+            margin: 1,
+            lightDirection: new THREE.Vector3( 0, -2, -1).normalize(),
+            camera: this.camera
+        });
+        this.csm.fade = false;
+        this.csm.updateFrustums();
+
         // ground
-        this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
-                                   new THREE.MeshStandardMaterial({ color: 0x7f7f7f, depthWrite: false})); //, opacity: 0 
+        let groundMat = new THREE.MeshStandardMaterial({ color: 0x7f7f7f, depthWrite: false });
+        this.csm.setupMaterial(groundMat);
+        this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), groundMat); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
         //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
@@ -85,30 +104,12 @@ class World {
         this.light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
         this.light.position.set( 0, 0.2, 0 );
         this.scene.add( this.light );
-        this.lightParent = new THREE.Group();
-        this.lightTarget = new THREE.Group();
-        this.lightParent.frustumCulled = false;
-        this.lightParent.add(this.lightTarget);
-        this.light = new THREE.DirectionalLight( 0xffffff );
-        this.light.position.set( 0, 20, 10);
-        this.light.castShadow = !this.mobile;
-        this.light.frustumCulled = false;
-        this.light.shadow.frustumCulled = false;
-        this.light.shadow.camera.frustumCulled = false;
-        this.light.shadow.camera.top    =   1;
-        this.light.shadow.camera.bottom = - 1;
-        this.light.shadow.camera.left   = - 1;
-        this.light.shadow.camera.right  =   1;
-        this.light.shadow.autoUpdate = false;
-        this.light.target = this.lightTarget;
-        this.lightParent.add(this.light);
-        this.scene.add( this.lightParent );
-        //this.scene.add( new THREE.CameraHelper( this.light.shadow.camera ) );
 
         // renderer
         this.renderer = new THREE.WebGLRenderer( { antialias: true } );
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.container.appendChild(this.renderer.domElement);
         if (navigator.xr) {
             navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
@@ -144,8 +145,8 @@ class World {
 
         // gui 
         //this.gui = new GUI();
-        //this.params = { offset: 17000 };
-        //this.gui.add( this.params, 'offset').min( 25000 ).max( 40000 ).name( 'Temporal Offset' );
+        //this.params = { offset: 10 };
+        //this.gui.add( this.params, 'offset').min( 1 ).max( 100 ).name( 'Far Offset' );
 
         // Contains both the Undo History, and the set of active shapes
         this.history = new History(this);
@@ -165,10 +166,13 @@ class World {
         this.shapeMaterial.roughness = 0.75;
         this.shapeMaterial.metalness = 0.0;
         this.shapeMaterial.color.setRGB(0.5, 0.5, 0.5);
+        this.csm.setupMaterial(this.shapeMaterial);
         this.selectedMaterial = this.shapeMaterial.clone();
         this.selectedMaterial.emissive.setRGB(0.0, 0.25, 0.25);
+        this.csm.setupMaterial(this.selectedMaterial);
         this.previewMaterial = createDitherDepthMaterial(this);
         this.noDepthPreviewMaterial = this.selectedMaterial.clone();
+        this.csm.setupMaterial(this.noDepthPreviewMaterial);
         this.basicMaterial = new THREE.MeshBasicMaterial();
         this.lineMaterial = new THREE.LineBasicMaterial({
             color: 0xffffff, linewidth: 0.0015, vertexColors: true  });
@@ -184,14 +188,24 @@ class World {
         this.camera.getWorldPosition(this.cameraWorldPosition);
         this.raycaster.params.Line.threshold =
             0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
-        // Make the shadow resolution change as the camera changes
-        this.lightParent.position.copy(this.cameraWorldPosition);
-        this.lightParent.scale   .copy(this.cameraWorldScale   );
-        this.light.shadow.camera.top    =  this.cameraWorldScale.x / 1.5;
-        this.light.shadow.camera.bottom = -this.cameraWorldScale.x / 1.5;
-        this.light.shadow.camera.left   = -this.cameraWorldScale.x / 1.5;
-        this.light.shadow.camera.right  =  this.cameraWorldScale.x / 1.5;
-        this.light.shadow.camera.updateProjectionMatrix();
+        
+        // HACK to make Cascaded Shadow maps work at any scale...
+        //this.csm.updateFrustums();
+        this.csm.getBreaks();
+        this.csm.initCascades();
+        this.csm.updateShadowBounds();
+        for (let i = 0; i < this.csm.frustums.length; i++) {
+            let shadowCam = this.csm.lights[i].shadow.camera;
+            shadowCam.left   *= this.cameraWorldScale.x;
+            shadowCam.right  *= this.cameraWorldScale.x;
+            shadowCam.top    *= this.cameraWorldScale.x;
+            shadowCam.bottom *= this.cameraWorldScale.x;
+            shadowCam.updateProjectionMatrix();
+            this.csm.lights[i].shadow.autoUpdate = false;
+            this.csm.lights[i].shadow.needsUpdate = !this.mobile;
+        }
+        this.csm.updateUniforms();
+        this.csm.update();
 
         // Conserve Power, don't rerender unless the view is dirty
         if (ray.active || this.dirty) {
@@ -211,7 +225,6 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
 
             // Render the scene (Normally or in WebXR)
-            this.light.shadow.needsUpdate = !this.mobile;
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
@@ -258,6 +271,7 @@ class World {
 
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
+        this.csm.updateFrustums();
         this.renderer.setSize(width, height);
 
         if (oldPresenting && !this.mobile) {
