@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../../node_modules/three/build/three.module.js';
-import { HTMLMesh } from '../../World/three.html.js';
+import { TextMesh } from '../../World/TextMesh.js';
 
 /** This is an in-scene helper for measurements and precision placement. */
 class Cursor {
@@ -42,13 +42,7 @@ class Cursor {
         this.hitObject = null;
 
         // Create a Text Updating Label for the Coordinate Data
-        this.labelElem = document.createElement("a");
-        this.labelElem.innerText = "Abs: (0,0,0)";
-        this.labelElem.style.backgroundColor = 'transparent';
-        this.labelElem.style.fontSize = '40px';
-        this.labelElem.style.display = "none";
-        document.getElementById("topnav").appendChild(this.labelElem);
-        this.label = new HTMLMesh(this.labelElem);
+        this.label = new TextMesh('');
         this.label.frustumCulled = false;
         this.label.layers.set(1); // Ignore Raycasts
         this.cursor.add(this.label);
@@ -83,13 +77,9 @@ class Cursor {
         this.lastTimeTargetUpdated = performance.now();
     }
 
-    updateLabel(text) {
-        if (this.labelElem.innerText !== text) {
-            this.labelElem.style.display = "block";
-            this.labelElem.style.color = "black";
-            this.labelElem.innerText = text;
-            this.label.update(world);
-            this.labelElem.style.display = "none";
+    updateLabel(text, r = 0, g = 0, b = 0) {
+        if (this.label.text !== text) {
+            this.label.update(text, r, g, b);
         }
     }
 
@@ -100,7 +90,7 @@ class Cursor {
         str = str.substr(0, str.length - 2);
         str += ")";
 
-        this.updateLabel(str);
+        this.updateLabel(str, 0, 0, 0);
     }
 }
 
