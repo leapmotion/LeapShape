@@ -52,6 +52,8 @@ class Tools {
 
         this.tools = [
             new DefaultTool   (this),
+            new UndoTool      (this),
+            new RedoTool      (this),
             new UnionTool     (this),
             new DifferenceTool(this),
             new CopyTool      (this),
@@ -62,9 +64,7 @@ class Tools {
             new CylinderTool  (this),
             new ExtrusionTool (this),
             new FilletTool    (this),
-            new OffsetTool    (this),
-            new UndoTool      (this),
-            new RedoTool      (this)
+            new OffsetTool    (this)
         ];
 
         this.activeTool = null;

@@ -163,8 +163,8 @@ class OpenXRInput {
                                 this.world.scene.add(slots[s]);
 
                                 let chirality = (this.secondaryHand == this.controller1 ? -1 : 1);
-                                this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
-                                    0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                                this.vec2.set((((s % 3) * 0.045) + 0.07) * chirality,
+                                    0.05 - (Math.floor(s / 3) * 0.055), 0.00).applyQuaternion(this.cameraWorldQuaternion);
                                 this.vec.set(-0.02 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
                                     .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
                                 
