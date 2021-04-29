@@ -107,7 +107,7 @@ class ExtrusionTool {
     /** Update the ExtrusionTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
-        if (ray.alreadyActivated || this.state === -1) {
+        if (ray.hovering || this.state === -1) {
             return; // Tool is currently deactivated
         } else if(this.state === 0) {
             // Wait for the ray to be active and pointing at a drawable surface
@@ -123,7 +123,7 @@ class ExtrusionTool {
                     this.point.copy(this.hit.position);
                     this.state += 1;
                 }
-                ray.alreadyActivated = true;
+                ray.hovering = true;
             }
         } else if(this.state === 1) {
             // Resize the Height while dragging
@@ -149,7 +149,7 @@ class ExtrusionTool {
                     this.height > 0 ? 0.0  : 0.25,
                     this.height > 0 ? 0.25 : 0.0 , 0.0);
             }
-            ray.alreadyActivated = true;
+            ray.hovering = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {

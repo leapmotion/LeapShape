@@ -106,7 +106,7 @@ class DefaultTool {
     /** Update the DefaultTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
-        if (ray.alreadyActivated || this.state === -1) {
+        if (ray.hovering || this.state === -1) {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
             // Tool is currently in Selection Mode
@@ -140,7 +140,7 @@ class DefaultTool {
 
         this.updateGizmoVisibility();
 
-        ray.alreadyActivated = this.draggingGizmo || ray.alreadyActivated;
+        ray.hovering = this.draggingGizmo || ray.hovering;
     }
 
     /** Ask OpenCascade to Move the Shape on this Mesh

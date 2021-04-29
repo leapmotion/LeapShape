@@ -186,7 +186,7 @@ class LeapJSInput {
             this.ray.active = curSphere.visible;
             if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
             if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-            this.ray.alreadyActivated = false;
+            this.ray.hovering = false;
             this.prevActive = this.ray.active;
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;
@@ -324,7 +324,7 @@ class LeapJSInput {
         handGroup.arrow.visible = handGroup.handType === this.mainHand;
         handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
             applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
-        handGroup.arrow.setColor(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
+        handGroup.arrow.setColor(this.ray.lastHovering ? this.hoverColor : this.idleColor);
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();

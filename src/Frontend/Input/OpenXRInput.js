@@ -124,7 +124,7 @@ class OpenXRInput {
             if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; this.secondaryHand = this.controller2;}
             if (this.mainHand) {
                 this.mainHand.children[0].visible = true;
-                this.mainHand.children[0].material.color.copy(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
+                this.mainHand.children[0].material.color.copy(this.ray.lastHovering ? this.hoverColor : this.idleColor);
 
                 let isHand = (this.handModel1.children.length > 0 && this.handModel1.children[0].count > 0) ||
                              (this.handModel2.children.length > 0 && this.handModel2.children[0].count > 0);
@@ -184,7 +184,7 @@ class OpenXRInput {
             this.ray.active = this.mainHand !== null && this.mainHand.inputState.pinching;
             if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
             if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-            this.ray.alreadyActivated = false;
+            this.ray.hovering = false;
             this.prevActive = this.ray.active;
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;

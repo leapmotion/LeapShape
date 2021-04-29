@@ -118,7 +118,7 @@ class Menu {
                 } else {
                     this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
-                    if (!ray.active) { ray.alreadyActivated = true; }
+                    if (!ray.active) { ray.hovering = true; }
                 }
             } else {
                 if (this.menuItems[i].tool === this.tools.activeTool) {
@@ -154,7 +154,7 @@ class Menu {
 
         if (!ray.active) { this.menuHeld = false; }
 
-        ray.alreadyActivated = ray.alreadyActivated || this.menuHeld;
+        ray.hovering = ray.hovering || this.menuHeld;
     }
 
 }
