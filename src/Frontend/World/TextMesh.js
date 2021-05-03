@@ -79,7 +79,6 @@ class TextTexture extends THREE.CanvasTexture {
 			this.context.font = font;
 			this.context.textBaseline = 'top';
 			this.context.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", 0.8)";
-			console.log(this.context.fillStyle);
 			this.context.fillText(string, 0, 0);
 		}
 

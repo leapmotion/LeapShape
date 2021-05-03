@@ -18,7 +18,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { TransformControls } from '../../../node_modules/three/examples/jsm/controls/TransformControls.js';
+import { LSTransformControls } from './General/LSTransformControls.js';
 
 /** This class controls all of the DefaultTool behavior */
 class DefaultTool {
@@ -52,7 +52,7 @@ class DefaultTool {
         }
 
         // Initialize Transform Gizmo (which allows for the movement of objects around the scene)
-        this.gizmo = new TransformControls(this.world.camera, this.world.container);
+        this.gizmo = new LSTransformControls(this.world.camera, this.world.container);
         this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
         this.gizmo.setRotationSnap( THREE.MathUtils.degToRad( 15 ) );
         this.gizmo.setScaleSnap( 0.25 );
@@ -110,10 +110,12 @@ class DefaultTool {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
             // Tool is currently in Selection Mode
+            this.gizmo.update(ray);
             if (ray.active) {
                 this.state = 1;
             }
         } else if (this.state === 1) {
+            this.gizmo.update(ray);
             this.world.dirty = true;
             if (this.draggingGizmo) {
                 this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );

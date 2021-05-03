@@ -53,7 +53,7 @@ class RedoTool {
     update(ray) { return; }
 
     /** Whether or not to show this tool in the menu */
-    shouldShow() { return this.world.inVR && this.world.history.redoObjects.children.length > 0; }
+    shouldShow() { return this.world.inVR; }// && this.world.history.redoObjects.children.length > 0; }
 }
 
 export { RedoTool };
