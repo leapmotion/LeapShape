@@ -70,11 +70,12 @@ class DefaultTool {
                      q.z / Math.sqrt(1 - q.w * q.w));
                 this.angle = 2.0 * Math.acos(q.w) * 57.2958;
 
-                // Compensate position for rotation
+                // Compensate position for rotation and scale
                 let rotDis = this.startPos.clone().applyQuaternion(q).sub(this.startPos);
+                let scaDis = this.startPos.clone().multiplyScalar(this.gizmoTransform.scale.x).sub(this.startPos);
 
                 // Get the Delta between Recorded and Current Transformations
-                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis);
+                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis).sub(scaDis);
 
                 // Move the object via that matrix
                 for (let i = 0; i < this.selected.length; i++) {
@@ -121,7 +122,8 @@ class DefaultTool {
                 this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
                 for (let i = 0; i < this.selected.length; i++) {
                     let rotDis = this.startPos.clone().applyQuaternion(this.gizmoTransform.quaternion).sub(this.startPos);
-                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis));
+                    let scaDis = this.startPos.clone().multiplyScalar(this.gizmoTransform.scale.x).sub(this.startPos);
+                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis).sub(scaDis));
                     this.selected[i].quaternion.copy(this.gizmoTransform.quaternion);
                     this.selected[i].scale.copy(this.gizmoTransform.scale);
                 }

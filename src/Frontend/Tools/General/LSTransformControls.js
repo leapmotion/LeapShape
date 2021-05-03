@@ -477,19 +477,6 @@ var LSTransformControls = function ( camera, domElement ) {
 			// Apply scale
 			object.scale.copy( scaleStart ).multiply( _tempVector2 );
 
-			//console.log(object.position.x, object.position.y, object.position.z);
-			if (object.scale.x === 1) {
-				this.oldWorldPos = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
-			} else {
-				let originalOffset = this.oldWorldPos.clone();
-				let scaledOffset   = this.oldWorldPos.clone().multiplyScalar(object.scale.x);
-				if (scaledOffset.x !== 0) {
-					console.log(scaledOffset.x, scaledOffset.y, scaledOffset.z);
-				}
-	
-				object.position.copy(scaledOffset.sub(originalOffset));
-			}
-
 		} else if ( mode === 'rotate' ) {
 
 			offset.copy( pointEnd ).sub( pointStart );
