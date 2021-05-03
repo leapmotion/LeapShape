@@ -469,68 +469,25 @@ var LSTransformControls = function ( camera, domElement ) {
 
 		} else if ( mode === 'scale' ) {
 
-			if ( axis.search( 'XYZ' ) !== - 1 ) {
-
-				var d = pointEnd.length() / pointStart.length();
-
-				if ( pointEnd.dot( pointStart ) < 0 ) d *= - 1;
-
-				_tempVector2.set( d, d, d );
-
-			} else {
-
-				_tempVector.copy( pointStart );
-				_tempVector2.copy( pointEnd );
-
-				_tempVector.applyQuaternion( worldQuaternionInv );
-				_tempVector2.applyQuaternion( worldQuaternionInv );
-
-				_tempVector2.divide( _tempVector );
-
-				if ( axis.search( 'X' ) === - 1 ) {
-
-					_tempVector2.x = 1;
-
-				}
-
-				if ( axis.search( 'Y' ) === - 1 ) {
-
-					_tempVector2.y = 1;
-
-				}
-
-				if ( axis.search( 'Z' ) === - 1 ) {
-
-					_tempVector2.z = 1;
-
-				}
-
-			}
+			var d = pointEnd.length() / pointStart.length();
+			if ( pointEnd.dot( pointStart ) < 0 ) d *= - 1;
+			if ( this.scaleSnap ) { d = Math.round( d / this.scaleSnap ) * this.scaleSnap || this.scaleSnap; }
+			_tempVector2.set( d, d, d );
 
 			// Apply scale
-
 			object.scale.copy( scaleStart ).multiply( _tempVector2 );
 
-			if ( this.scaleSnap ) {
-
-				if ( axis.search( 'X' ) !== - 1 ) {
-
-					object.scale.x = Math.round( object.scale.x / this.scaleSnap ) * this.scaleSnap || this.scaleSnap;
-
+			//console.log(object.position.x, object.position.y, object.position.z);
+			if (object.scale.x === 1) {
+				this.oldWorldPos = new Vector3(worldPosition.x, worldPosition.y, worldPosition.z);
+			} else {
+				let originalOffset = this.oldWorldPos.clone();
+				let scaledOffset   = this.oldWorldPos.clone().multiplyScalar(object.scale.x);
+				if (scaledOffset.x !== 0) {
+					console.log(scaledOffset.x, scaledOffset.y, scaledOffset.z);
 				}
-
-				if ( axis.search( 'Y' ) !== - 1 ) {
-
-					object.scale.y = Math.round( object.scale.y / this.scaleSnap ) * this.scaleSnap || this.scaleSnap;
-
-				}
-
-				if ( axis.search( 'Z' ) !== - 1 ) {
-
-					object.scale.z = Math.round( object.scale.z / this.scaleSnap ) * this.scaleSnap || this.scaleSnap;
-
-				}
-
+	
+				object.position.copy(scaledOffset.sub(originalOffset));
 			}
 
 		} else if ( mode === 'rotate' ) {
@@ -984,16 +941,16 @@ var LSTransformControlsGizmo = function () {
 			[ new Line( CircleGeometry( 1, 0.5 ), matLineBlue ), null, [ 0, Math.PI / 2, 0 ]],
 			[ new Mesh( new OctahedronGeometry( 0.04, 0 ), matBlue ), [ 0.99, 0, 0 ], null, [ 1, 3, 1 ]],
 		],
-		E: [
-			[ new Line( CircleGeometry( 1.25, 1 ), matLineYellowTransparent ), null, [ 0, Math.PI / 2, 0 ]],
-			[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 1.17, 0, 0 ], [ 0, 0, - Math.PI / 2 ], [ 1, 1, 0.001 ]],
-			[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ - 1.17, 0, 0 ], [ 0, 0, Math.PI / 2 ], [ 1, 1, 0.001 ]],
-			[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 0, - 1.17, 0 ], [ Math.PI, 0, 0 ], [ 1, 1, 0.001 ]],
-			[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 0, 1.17, 0 ], [ 0, 0, 0 ], [ 1, 1, 0.001 ]],
-		],
-		XYZE: [
-			[ new Line( CircleGeometry( 1, 1 ), matLineGray ), null, [ 0, Math.PI / 2, 0 ]]
-		]
+		//E: [
+		//	[ new Line( CircleGeometry( 1.25, 1 ), matLineYellowTransparent ), null, [ 0, Math.PI / 2, 0 ]],
+		//	[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 1.17, 0, 0 ], [ 0, 0, - Math.PI / 2 ], [ 1, 1, 0.001 ]],
+		//	[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ - 1.17, 0, 0 ], [ 0, 0, Math.PI / 2 ], [ 1, 1, 0.001 ]],
+		//	[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 0, - 1.17, 0 ], [ Math.PI, 0, 0 ], [ 1, 1, 0.001 ]],
+		//	[ new Mesh( new CylinderGeometry( 0.03, 0, 0.15, 4, 1, false ), matLineYellowTransparent ), [ 0, 1.17, 0 ], [ 0, 0, 0 ], [ 1, 1, 0.001 ]],
+		//],
+		//XYZE: [
+		//	[ new Line( CircleGeometry( 1, 1 ), matLineGray ), null, [ 0, Math.PI / 2, 0 ]]
+		//]
 	};
 
 	var helperRotate = {
@@ -1012,12 +969,12 @@ var LSTransformControlsGizmo = function () {
 		Z: [
 			[ new Mesh( new TorusGeometry( 1, 0.1, 4, 24 ), matInvisible ), [ 0, 0, 0 ], [ 0, 0, - Math.PI / 2 ]],
 		],
-		E: [
-			[ new Mesh( new TorusGeometry( 1.25, 0.1, 2, 24 ), matInvisible ) ]
-		],
-		XYZE: [
-			[ new Mesh( new SphereGeometry( 0.7, 10, 8 ), matInvisible ) ]
-		]
+		//E: [
+		//	[ new Mesh( new TorusGeometry( 1.25, 0.1, 2, 24 ), matInvisible ) ]
+		//],
+		//XYZE: [
+		//	[ new Mesh( new SphereGeometry( 0.7, 10, 8 ), matInvisible ) ]
+		//]
 	};
 
 	var gizmoScale = {
@@ -1033,21 +990,21 @@ var LSTransformControlsGizmo = function () {
 			[ new Mesh( scaleHandleGeometry, matBlue ), [ 0, 0, 0.8 ], [ Math.PI / 2, 0, 0 ]],
 			[ new Line( lineGeometry, matLineBlue ), null, [ 0, - Math.PI / 2, 0 ], [ 0.8, 1, 1 ]]
 		],
-		XY: [
-			[ new Mesh( scaleHandleGeometry, matYellowTransparent ), [ 0.85, 0.85, 0 ], null, [ 2, 2, 0.2 ]],
-			[ new Line( lineGeometry, matLineYellow ), [ 0.855, 0.98, 0 ], null, [ 0.125, 1, 1 ]],
-			[ new Line( lineGeometry, matLineYellow ), [ 0.98, 0.855, 0 ], [ 0, 0, Math.PI / 2 ], [ 0.125, 1, 1 ]]
-		],
-		YZ: [
-			[ new Mesh( scaleHandleGeometry, matCyanTransparent ), [ 0, 0.85, 0.85 ], null, [ 0.2, 2, 2 ]],
-			[ new Line( lineGeometry, matLineCyan ), [ 0, 0.855, 0.98 ], [ 0, 0, Math.PI / 2 ], [ 0.125, 1, 1 ]],
-			[ new Line( lineGeometry, matLineCyan ), [ 0, 0.98, 0.855 ], [ 0, - Math.PI / 2, 0 ], [ 0.125, 1, 1 ]]
-		],
-		XZ: [
-			[ new Mesh( scaleHandleGeometry, matMagentaTransparent ), [ 0.85, 0, 0.85 ], null, [ 2, 0.2, 2 ]],
-			[ new Line( lineGeometry, matLineMagenta ), [ 0.855, 0, 0.98 ], null, [ 0.125, 1, 1 ]],
-			[ new Line( lineGeometry, matLineMagenta ), [ 0.98, 0, 0.855 ], [ 0, - Math.PI / 2, 0 ], [ 0.125, 1, 1 ]]
-		],
+		//XY: [
+		//	[ new Mesh( scaleHandleGeometry, matYellowTransparent ), [ 0.85, 0.85, 0 ], null, [ 2, 2, 0.2 ]],
+		//	[ new Line( lineGeometry, matLineYellow ), [ 0.855, 0.98, 0 ], null, [ 0.125, 1, 1 ]],
+		//	[ new Line( lineGeometry, matLineYellow ), [ 0.98, 0.855, 0 ], [ 0, 0, Math.PI / 2 ], [ 0.125, 1, 1 ]]
+		//],
+		//YZ: [
+		//	[ new Mesh( scaleHandleGeometry, matCyanTransparent ), [ 0, 0.85, 0.85 ], null, [ 0.2, 2, 2 ]],
+		//	[ new Line( lineGeometry, matLineCyan ), [ 0, 0.855, 0.98 ], [ 0, 0, Math.PI / 2 ], [ 0.125, 1, 1 ]],
+		//	[ new Line( lineGeometry, matLineCyan ), [ 0, 0.98, 0.855 ], [ 0, - Math.PI / 2, 0 ], [ 0.125, 1, 1 ]]
+		//],
+		//XZ: [
+		//	[ new Mesh( scaleHandleGeometry, matMagentaTransparent ), [ 0.85, 0, 0.85 ], null, [ 2, 0.2, 2 ]],
+		//	[ new Line( lineGeometry, matLineMagenta ), [ 0.855, 0, 0.98 ], null, [ 0.125, 1, 1 ]],
+		//	[ new Line( lineGeometry, matLineMagenta ), [ 0.98, 0, 0.855 ], [ 0, - Math.PI / 2, 0 ], [ 0.125, 1, 1 ]]
+		//],
 		XYZX: [
 			[ new Mesh( new BoxGeometry( 0.125, 0.125, 0.125 ), matWhiteTransparent.clone() ), [ 1.1, 0, 0 ]],
 		],
@@ -1069,15 +1026,15 @@ var LSTransformControlsGizmo = function () {
 		Z: [
 			[ new Mesh( new CylinderGeometry( 0.2, 0, 0.8, 4, 1, false ), matInvisible ), [ 0, 0, 0.5 ], [ Math.PI / 2, 0, 0 ]]
 		],
-		XY: [
-			[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0.85, 0.85, 0 ], null, [ 3, 3, 0.2 ]],
-		],
-		YZ: [
-			[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0, 0.85, 0.85 ], null, [ 0.2, 3, 3 ]],
-		],
-		XZ: [
-			[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0.85, 0, 0.85 ], null, [ 3, 0.2, 3 ]],
-		],
+		//XY: [
+		//	[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0.85, 0.85, 0 ], null, [ 3, 3, 0.2 ]],
+		//],
+		//YZ: [
+		//	[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0, 0.85, 0.85 ], null, [ 0.2, 3, 3 ]],
+		//],
+		//XZ: [
+		//	[ new Mesh( scaleHandleGeometry, matInvisible ), [ 0.85, 0, 0.85 ], null, [ 3, 0.2, 3 ]],
+		//],
 		XYZX: [
 			[ new Mesh( new BoxGeometry( 0.2, 0.2, 0.2 ), matInvisible ), [ 1.1, 0, 0 ]],
 		],
@@ -1662,16 +1619,16 @@ var LSTransformControlsPlane = function () {
 						alignVector.copy( this.eye ).cross( unitZ );
 						dirVector.copy( unitZ ).cross( alignVector );
 						break;
-					case 'XY':
-						dirVector.copy( unitZ );
-						break;
-					case 'YZ':
-						dirVector.copy( unitX );
-						break;
-					case 'XZ':
-						alignVector.copy( unitZ );
-						dirVector.copy( unitY );
-						break;
+					//case 'XY':
+					//	dirVector.copy( unitZ );
+					//	break;
+					//case 'YZ':
+					//	dirVector.copy( unitX );
+					//	break;
+					//case 'XZ':
+					//	alignVector.copy( unitZ );
+					//	dirVector.copy( unitY );
+					//	break;
 					case 'XYZ':
 					case 'E':
 						dirVector.set( 0, 0, 0 );
