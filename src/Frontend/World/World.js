@@ -183,7 +183,7 @@ class World {
 
         this.camera.getWorldPosition(this.cameraWorldPosition);
         this.raycaster.params.Line.threshold =
-            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
+            0.015 * this.camera.getWorldScale(this.cameraWorldScale).x;
         // Make the shadow resolution change as the camera changes
         this.lightParent.position.copy(this.cameraWorldPosition);
         this.lightParent.scale   .copy(this.cameraWorldScale   );

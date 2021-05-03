@@ -36,6 +36,9 @@ import { FilletTool } from './FilletTool.js';
 import { OffsetTool } from './OffsetTool.js';
 import { UndoTool } from './UndoTool.js';
 import { RedoTool } from './RedoTool.js';
+import { TranslateTool } from './TranslateTool.js';
+import { RotateTool } from './RotateTool.js';
+import { ScaleTool } from './ScaleTool.js';
 
 /** This class controls all of the Tool and Menu State Machines */
 class Tools {
@@ -54,11 +57,14 @@ class Tools {
             new DefaultTool   (this),
             new UndoTool      (this),
             new RedoTool      (this),
-            new UnionTool     (this),
-            new DifferenceTool(this),
+            new TranslateTool (this),
+            new RotateTool    (this),
+            new ScaleTool     (this),
             new CopyTool      (this),
             new RemoveTool    (this),
             new CleanEdgesTool(this),
+            new UnionTool     (this),
+            new DifferenceTool(this),
             new BoxTool       (this),
             new SphereTool    (this),
             new CylinderTool  (this),

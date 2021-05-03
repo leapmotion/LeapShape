@@ -140,6 +140,7 @@ class DefaultTool {
             }
         }
 
+        this.gizmo.size = this.world.inVR ? 2 : 1;
         this.updateGizmoVisibility();
 
         ray.hovering = this.draggingGizmo || ray.hovering;
