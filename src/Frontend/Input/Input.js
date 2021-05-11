@@ -35,8 +35,8 @@ class InteractionRay {
         this.justActivated = false;
         this.justDeactivated = false;
         this.activeMS = 0;
-        this.alreadyActivated = false;
-        this.lastAlreadyActivated = false;
+        this.hovering = false;
+        this.lastHovering = false;
     }
 }
 

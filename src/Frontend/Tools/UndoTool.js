@@ -53,7 +53,7 @@ class UndoTool {
     update(ray) { return; }
 
     /** Whether or not to show this tool in the menu */
-    shouldShow() { return this.world.inVR && this.world.history.undoObjects.children.length > 0; }
+    shouldShow() { return this.world.inVR; }// && this.world.history.undoObjects.children.length > 0; }
 }
 
 export { UndoTool };

@@ -187,8 +187,8 @@ class World {
 
         this.camera.getWorldPosition(this.cameraWorldPosition);
         this.raycaster.params.Line.threshold =
-            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
-        
+            0.015 * this.camera.getWorldScale(this.cameraWorldScale).x;
+
         // HACK to make Cascaded Shadow maps work at any scale...
         //this.csm.updateFrustums();
         this.csm.getBreaks();
@@ -216,7 +216,7 @@ class World {
         if (performance.now() - this.lastTimeInteractedWith < 2000 ||
             (this.renderer.xr && this.renderer.xr.enabled)) {
             // Manage Camera Control Schemes
-            let cameraControl = !ray.alreadyActivated;
+            let cameraControl = !ray.hovering;
             if (this.handsAreTracking) {
                 if (!this.locomotion) { this.locomotion = new LeapPinchLocomotion(this, this.leftPinch, this.rightPinch); }
                 if (cameraControl) { this.locomotion.update(); }
@@ -239,7 +239,7 @@ class World {
             }
 
             this.now = performance.now();
-            ray.lastAlreadyActivated = ray.alreadyActivated;
+            ray.lastHovering = ray.hovering;
 
             this.dirty = false;
 

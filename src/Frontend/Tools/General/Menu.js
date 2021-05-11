@@ -40,7 +40,7 @@ class Menu {
         this.cameraWorldScale = new THREE.Vector3();
         this.halfSpacing      = 25;
 
-        this.menuSphereGeo = new THREE.SphereBufferGeometry(0.020, 20);
+        this.menuSphereGeo = new THREE.SphereBufferGeometry(0.020, 20, 20);
         this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (0.025, 0.025);
 
         // Menu Container
@@ -118,7 +118,7 @@ class Menu {
                 } else {
                     this.menuHeld = false;
                     this.menuItems[i].material.color.lerp(this.highlightedColor, 0.15);
-                    if (!ray.active) { ray.alreadyActivated = true; }
+                    if (!ray.active) { ray.hovering = true; }
                 }
             } else {
                 if (this.menuItems[i].tool === this.tools.activeTool) {
@@ -129,13 +129,13 @@ class Menu {
             }
 
             // Lerp the Spheres to their Target Slot's position
-            this.menuItems[i].position.lerp(this.slots[activeMenuIndex].getWorldPosition(this.tempV3), 0.1);
+            this.menuItems[i].position.lerp(this.slots[activeMenuIndex].getWorldPosition(this.tempV3), 0.15);
 
             // Lerp the Spheres to their Target Slot's position
             this.menuItems[i].scale.copy(this.cameraWorldScale);
 
             // Make the Icon Face the Camera
-            this.menuItems[i].icon.quaternion.slerp(this.cameraWorldRot, 0.1);
+            this.menuItems[i].icon.quaternion.copy(this.cameraWorldRot);//slerp(this.cameraWorldRot, 0.1);
 
             activeMenuIndex += 1;
         }
@@ -154,7 +154,7 @@ class Menu {
 
         if (!ray.active) { this.menuHeld = false; }
 
-        ray.alreadyActivated = ray.alreadyActivated || this.menuHeld;
+        ray.hovering = ray.hovering || this.menuHeld;
     }
 
 }

@@ -18,7 +18,7 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { TransformControls } from '../../../node_modules/three/examples/jsm/controls/TransformControls.js';
+import { LSTransformControls } from './General/LSTransformControls.js';
 
 /** This class controls all of the DefaultTool behavior */
 class DefaultTool {
@@ -52,7 +52,7 @@ class DefaultTool {
         }
 
         // Initialize Transform Gizmo (which allows for the movement of objects around the scene)
-        this.gizmo = new TransformControls(this.world.camera, this.world.container);
+        this.gizmo = new LSTransformControls(this.world.camera, this.world.container);
         this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
         this.gizmo.setRotationSnap( THREE.MathUtils.degToRad( 15 ) );
         this.gizmo.setScaleSnap( 0.25 );
@@ -70,11 +70,12 @@ class DefaultTool {
                      q.z / Math.sqrt(1 - q.w * q.w));
                 this.angle = 2.0 * Math.acos(q.w) * 57.2958;
 
-                // Compensate position for rotation
+                // Compensate position for rotation and scale
                 let rotDis = this.startPos.clone().applyQuaternion(q).sub(this.startPos);
+                let scaDis = this.startPos.clone().multiplyScalar(this.gizmoTransform.scale.x).sub(this.startPos);
 
                 // Get the Delta between Recorded and Current Transformations
-                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis);
+                this.deltaPos = this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis).sub(scaDis);
 
                 // Move the object via that matrix
                 for (let i = 0; i < this.selected.length; i++) {
@@ -106,20 +107,23 @@ class DefaultTool {
     /** Update the DefaultTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
-        if (ray.alreadyActivated || this.state === -1) {
+        if (ray.hovering || this.state === -1) {
             return; // Tool is currently deactivated
         } else if (this.state === 0) {
             // Tool is currently in Selection Mode
+            this.gizmo.update(ray);
             if (ray.active) {
                 this.state = 1;
             }
         } else if (this.state === 1) {
+            this.gizmo.update(ray);
             this.world.dirty = true;
             if (this.draggingGizmo) {
                 this.gizmo.setTranslationSnap( this.tools.grid.gridPitch );
                 for (let i = 0; i < this.selected.length; i++) {
                     let rotDis = this.startPos.clone().applyQuaternion(this.gizmoTransform.quaternion).sub(this.startPos);
-                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis));
+                    let scaDis = this.startPos.clone().multiplyScalar(this.gizmoTransform.scale.x).sub(this.startPos);
+                    this.selected[i].position.copy(this.gizmoTransform.position.clone().sub(this.startPos).sub(rotDis).sub(scaDis));
                     this.selected[i].quaternion.copy(this.gizmoTransform.quaternion);
                     this.selected[i].scale.copy(this.gizmoTransform.scale);
                 }
@@ -138,9 +142,10 @@ class DefaultTool {
             }
         }
 
+        this.gizmo.size = this.world.inVR ? 2 : 1;
         this.updateGizmoVisibility();
 
-        ray.alreadyActivated = this.draggingGizmo || ray.alreadyActivated;
+        ray.hovering = this.draggingGizmo || ray.hovering;
     }
 
     /** Ask OpenCascade to Move the Shape on this Mesh

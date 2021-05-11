@@ -151,8 +151,8 @@ class LeapJSInput {
                         this.world.scene.add(slots[s]);
 
                         let chirality = (secondaryHandType === 'left' ? 1 : -1);
-                        this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
-                                          0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                        this.vec2.set((((s % 3) * 0.045) + 0.07) * chirality,
+                                          0.05 - (Math.floor(s / 3) * 0.055), 0.00).applyQuaternion(this.cameraWorldQuaternion);
                         this.vec.set(0.03 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
                             .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
                         
@@ -186,7 +186,7 @@ class LeapJSInput {
             this.ray.active = curSphere.visible;
             if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
             if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-            this.ray.alreadyActivated = false;
+            this.ray.hovering = false;
             this.prevActive = this.ray.active;
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;
@@ -326,7 +326,7 @@ class LeapJSInput {
         handGroup.arrow.visible = handGroup.handType === this.mainHand;
         handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
             applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
-        handGroup.arrow.setColor(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
+        handGroup.arrow.setColor(this.ray.lastHovering ? this.hoverColor : this.idleColor);
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();

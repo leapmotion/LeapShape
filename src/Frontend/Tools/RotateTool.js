@@ -18,29 +18,31 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './General/ToolUtils.js';
 
-/** This class controls all of the RemoveTool behavior */
-class RedoTool {
+/** This class controls all of the RotateTool behavior */
+class RotateTool {
 
-    /** Create the RedoTool
+    /** Create the RotateTool
      * @param {Tools} tools */
     constructor(tools) {
         this.tools  = tools;
         this.world  = this.tools.world;
         this.engine = this.tools.engine;
+        this.oc = oc; this.shapes = {};
 
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Redo.png' : '../../../textures/Redo.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Rotate.png' : '../../../textures/Rotate.png' );
         this.descriptor = {
-            name: "Redo Tool",
+            name: "Rotate Tool",
             icon: this.icon
         }
     }
 
     activate() {
-        this.world.history.Redo();
+        // Set the Transform Gizmo to Rotation Mode
+        this.tools.tools[0].gizmo.setMode( "rotate" );
+
         this.deactivate();
     }
 
@@ -48,12 +50,12 @@ class RedoTool {
         this.tools.activeTool = null;
     }
 
-    /** Update the RemoveTool's State Machine
+    /** Update the RotateTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) { return; }
 
     /** Whether or not to show this tool in the menu */
-    shouldShow() { return this.world.inVR; }// && this.world.history.redoObjects.children.length > 0; }
+    shouldShow() { return this.tools.tools[0].selected.length >= 1; }
 }
 
-export { RedoTool };
+export { RotateTool };

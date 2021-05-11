@@ -57,14 +57,14 @@ class MouseInput {
             this.ray.active = this.mouse.buttons    === 1;
             if ( this.ray.active && this.prevButton === 0) { this.ray.justActivated   = true; this.activeTime = 0; }
             if (!this.ray.active && this.prevButton === 1) { this.ray.justDeactivated = true; }
-            this.ray.alreadyActivated = false;
+            this.ray.hovering = false;
             this.prevButton = this.mouse.buttons;
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;
             this.lastTimestep = performance.now();
 
             // Changes the cursor between the "Hovering" and "Passive" state
-            this.world.container.style.cursor = this.ray.lastAlreadyActivated ? "pointer" : "default";
+            this.world.container.style.cursor = this.ray.lastHovering ? "pointer" : "default";
 
             // Set Ray Origin and Direction
             this.ray.ray.origin.setFromMatrixPosition(this.world.camera.matrixWorld);
