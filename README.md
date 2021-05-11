@@ -12,6 +12,17 @@
 
 Use simple gestures with your mouse or hands to model 3D shapes in your browser!
 
+<p align="center" >
+    <img src="./images/MakeBox.gif" width="192">
+    <img src="./images/MakeCylinder.gif" width="192">
+    <img src="./images/MakeSphere.gif" width="192">
+</p>
+<p align="center">
+    <img src="./images/MakeExtrusion.gif" width="192">
+    <img src="./images/MakeFillet.gif" width="192">
+    <img src="./images/MakeHollow.gif" width="192">
+</p>
+
 ## Features
  - Simple Interface for working with Boxes, Spheres, Cylinders, and Extrusions
  - Powerful CSG Operations allow for infinite configurability
