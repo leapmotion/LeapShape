@@ -19,10 +19,10 @@
 		"leapjs": "github:leapmotion/leapjs#patch-es6",
 		"opencascade.js": "github:zalo/opencascade.js",
 		"potpack": "^1.0.1",
-		"three": "^0.127.0"
+		"three": "^0.129.0"
 	},
 	"devDependencies": {
-		"@types/three": "^0.127.0",
-		"esbuild": "^0.9.7"
+		"@types/three": "^0.129.0",
+		"esbuild": "^0.12.6"
 	}
 }
