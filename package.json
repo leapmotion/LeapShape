@@ -16,7 +16,7 @@
 	"license": "Apache-2.0",
 	"bundledDependencies": false,
 	"dependencies": {
-		"leapjs": "github:leapmotion/leapjs#patch-es6",
+		"leapjs": "^1.1.1",
 		"opencascade.js": "github:zalo/opencascade.js",
 		"potpack": "^1.0.1",
 		"three": "^0.129.0"
