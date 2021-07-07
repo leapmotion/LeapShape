@@ -27,9 +27,9 @@ class LeapShapeEngine {
 
         // Initialize the OpenCascade Worker Thread
         if (typeof ESBUILD !== 'undefined') {
-            this.worker = new Worker(new URL( './Backend/mainWorker.js', import.meta.url )/*, { type: "module" }*/);
+            this.worker = new Worker(new URL( './Backend/mainWorker.js', import.meta.url ), { type: "module" });
         } else {
-            this.worker = new Worker('../src/Backend/mainWorker.js'/*, { type: "module" }*/);
+            this.worker = new Worker('../src/Backend/mainWorker.js', { type: "module" });
         }
 
         // Ping Pong Messages Back and Forth based on their registration in messageHandlers

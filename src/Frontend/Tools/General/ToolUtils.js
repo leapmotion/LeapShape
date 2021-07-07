@@ -16,7 +16,7 @@
 
 import * as THREE from '../../../../node_modules/three/build/three.module.js';
 import { World } from '../../World/World.js';
-import oc from  '../../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../../node_modules/opencascade.js/dist/opencascade.full.js';
 
 /** Returns whether Fragment Depth Buffers Exist on this hardware
  * @param {World} world */
@@ -135,10 +135,10 @@ class BackendFunctions {
         if (!this.surfaces) { this.surfaces = {}; }
         if (!(faceName in this.surfaces)) {
             let face = null; let face_index = 0;
-            let anExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_FACE);
-            for (anExplorer.Init(shape, this.oc.TopAbs_FACE); anExplorer.More(); anExplorer.Next()) {
+            let anExplorer = new this.oc.TopExp_Explorer_1();//shape, this.oc.TopAbs_FACE);
+            for (anExplorer.Init(shape, this.oc.TopAbs_ShapeEnum.TopAbs_FACE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); anExplorer.More(); anExplorer.Next()) {
                 if (face_index === faceIndex) {
-                    face = this.oc.TopoDS.prototype.Face(anExplorer.Current());
+                    face = this.oc.TopoDS.Face_1(anExplorer.Current());
                     break;
                 } else {
                     face_index += 1;
@@ -146,7 +146,7 @@ class BackendFunctions {
             }
 
             // Cache the Adapter Surface in surfaces
-            this.surfaces[faceName] = new this.oc.BRepAdaptor_Surface(face, false);
+            this.surfaces[faceName] = new this.oc.BRepAdaptor_Surface_2(face, false);
         }
         /** @type {oc.BRepAdaptor_Surface} */
         let adapter = this.surfaces[faceName];
@@ -188,9 +188,9 @@ class BackendFunctions {
         toReturn.uvs = uvs;
 
         // Get Surface Normal, Tangent, and Curvature Info
-        let surfaceHandle = this.oc.BRep_Tool.prototype.Surface(this.surfaces[faceName].Face());
+        let surfaceHandle = this.oc.BRep_Tool.Surface_2(this.surfaces[faceName].Face());
         if (!this.props) {
-            this.props = new this.oc.GeomLProp_SLProps(surfaceHandle, u, v, 1, 1);
+            this.props = new this.oc.GeomLProp_SLProps_1(surfaceHandle, u, v, 1, 1);
 
         }
         this.props.SetSurface(surfaceHandle); this.props.SetParameters(u, v);
@@ -203,7 +203,7 @@ class BackendFunctions {
         }
 
         // Capture Tangent Directions
-        let tempDir = new this.oc.gp_Dir();
+        let tempDir = new this.oc.gp_Dir_1();
         if (this.props.IsTangentUDefined()) {
             this.props.TangentU(tempDir);
             toReturn.tU = [0, 0, 0];

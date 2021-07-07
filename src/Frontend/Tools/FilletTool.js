@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 
@@ -205,9 +205,9 @@ class FilletTool {
 
         // Iterate through the edges of the shape and add them to the Fillet as they come
         let foundEdges = 0, edge_index = 0, edgeHashes = {};
-        if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_EDGE); }
-        for (this.edgeExplorer.Init(shape, this.oc.TopAbs_EDGE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
-            let edge = this.oc.TopoDS.prototype.Edge(this.edgeExplorer.Current());
+        if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer_1(); }//(shape, this.oc.TopAbs_EDGE); }
+        for (this.edgeExplorer.Init(shape, this.oc.TopAbs_ShapeEnum.TopAbs_EDGE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
+            let edge = this.oc.TopoDS.Edge_1(this.edgeExplorer.Current());
 
             // Edge explorer visits every edge twice; 
             // hash them to ensure visiting only once

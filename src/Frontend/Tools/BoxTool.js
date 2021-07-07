@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { Grid } from './General/Grid.js';
@@ -257,24 +257,24 @@ class BoxTool {
             let hitAnObject = hitObjectName in this.shapes;
 
             // Construct the Box Shape
-            let boxPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), new this.oc.gp_Dir(nx, ny, nz), new this.oc.gp_Dir(vx, vy, vz));
-            let shape = new this.oc.BRepPrimAPI_MakeBox(boxPlane, Math.abs(length), Math.abs(width), Math.abs(height)).Shape();
+            let boxPlane = new this.oc.gp_Ax2_2(new this.oc.gp_Pnt_3(x, y, z), new this.oc.gp_Dir_4(nx, ny, nz), new this.oc.gp_Dir_4(vx, vy, vz));
+            let shape = new this.oc.BRepPrimAPI_MakeBox_5(boxPlane, Math.abs(length), Math.abs(width), Math.abs(height)).Shape();
 
-            if (!shape || shape.IsNull()) { console.error("BRepPrimAPI_MakeBox did not like its arguments!"); }
+            if (!shape || !shape.IsNull || shape.IsNull()) { console.error("BRepPrimAPI_MakeBox did not like its arguments!"); }
 
             // If we hit an object, let's CSG this Box to it
             if (hitAnObject && height > 0) {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
-                let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
-                unionOp.SetFuzzyValue(0.0000001);
+                let unionOp = new this.oc.BRepAlgoAPI_Fuse_3(hitObject, shape);
+                //unionOp.SetFuzzyValue(0.0000001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
-                let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
-                differenceOp.SetFuzzyValue(0.0000001);
+                let differenceOp = new this.oc.BRepAlgoAPI_Cut_3(hitObject, shape);
+                //differenceOp.SetFuzzyValue(0.0000001);
                 differenceOp.Build();
                 return differenceOp.Shape();
             }

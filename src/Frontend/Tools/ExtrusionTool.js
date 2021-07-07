@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 
@@ -222,10 +222,10 @@ class ExtrusionTool {
 
             // Get a reference to the face to extrude
             let face = null; let face_index = 0;
-            let anExplorer = new this.oc.TopExp_Explorer(hitObject, this.oc.TopAbs_FACE);
-            for (anExplorer.Init(hitObject, this.oc.TopAbs_FACE); anExplorer.More(); anExplorer.Next()) {
+            let anExplorer = new this.oc.TopExp_Explorer_1();//(hitObject, this.oc.TopAbs_FACE);
+            for (anExplorer.Init(hitObject, this.oc.TopAbs_ShapeEnum.TopAbs_FACE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); anExplorer.More(); anExplorer.Next()) {
                 if (face_index === faceIndex) {
-                    face = this.oc.TopoDS.prototype.Face(anExplorer.Current());
+                    face = this.oc.TopoDS.Face_1(anExplorer.Current());
                     break;
                 } else {
                     face_index += 1;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import oc from '../../node_modules/opencascade.js/dist/opencascade.full.js';
+import * as oc from '../../node_modules/opencascade.js/dist/opencascade.full.js';
 import potpack from '../../node_modules/potpack/index.mjs';
 //importScripts('../../node_modules/potpack/index.js');
 
@@ -22,7 +22,7 @@ import potpack from '../../node_modules/potpack/index.mjs';
 class OpenCascadeMesher {
     
     /** Initialize the CAD Meshing System
-     * @param {oc} oc The OpenCascade Context */
+     * @param {oc.OpenCascadeInstance} oc The OpenCascade Context */
     constructor(oc) {
         this.oc = oc;
     }
@@ -30,18 +30,18 @@ class OpenCascadeMesher {
     /** Iterate over all the faces in this shape, calling `callback` on each one. */
     ForEachFace(shape, callback) {
         let face_index = 0;
-        if (!this.faceExplorer) { this.faceExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_FACE); }
-        for (this.faceExplorer.Init(shape, this.oc.TopAbs_FACE); this.faceExplorer.More(); this.faceExplorer.Next()) {
-            callback(face_index++, this.oc.TopoDS.prototype.Face(this.faceExplorer.Current()));
+        if (!this.faceExplorer) { this.faceExplorer = new this.oc.TopExp_Explorer_1(); }//shape, this.oc.TopAbs_FACE, this.oc.TopAbs_SHAPE); }
+        for (this.faceExplorer.Init(shape, this.oc.TopAbs_ShapeEnum.TopAbs_FACE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); this.faceExplorer.More(); this.faceExplorer.Next()) {
+            callback(face_index++, this.oc.TopoDS.Face_1(this.faceExplorer.Current()));
         }
     }
 
     /** Iterate over all the UNIQUE indices and edges in this shape, calling `callback` on each one. */
     ForEachEdge(shape, callback) {
         let edgeHashes = {}; let edgeIndex = 0;
-        if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer(shape, this.oc.TopAbs_EDGE); }
-        for (this.edgeExplorer.Init(shape, this.oc.TopAbs_EDGE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
-            let edge = this.oc.TopoDS.prototype.Edge(this.edgeExplorer.Current());
+        if (!this.edgeExplorer) { this.edgeExplorer = new this.oc.TopExp_Explorer_1(); }//shape, this.oc.TopAbs_EDGE, this.oc.TopAbs_SHAPE); }
+        for (this.edgeExplorer.Init(shape, this.oc.TopAbs_ShapeEnum.TopAbs_EDGE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); this.edgeExplorer.More(); this.edgeExplorer.Next()) {
+            let edge = this.oc.TopoDS.Edge_1(this.edgeExplorer.Current());
 
             // Edge explorer visits every edge twice; 
             // hash them to ensure visiting only once
@@ -55,7 +55,7 @@ class OpenCascadeMesher {
     }
 
     LengthOfCurve(geomAdaptor, UMin, UMax, segments = 5) {
-        let point1 = [0, 0, 0], point2 = [0, 0, 0], arcLength = 0, gpPnt = new this.oc.gp_Pnt();
+        let point1 = [0, 0, 0], point2 = [0, 0, 0], arcLength = 0, gpPnt = new this.oc.gp_Pnt_1();
         for (let s = UMin; s <= UMax; s += (UMax - UMin) / segments) {
             geomAdaptor.D0(s, gpPnt);
             point1 = [gpPnt.X(), gpPnt.Y(), gpPnt.Z()];
@@ -75,7 +75,7 @@ class OpenCascadeMesher {
      * @param {oc.TopoDS_Shape} shape OpenCascade Shape
      * @param {number} maxDeviation */
     shapeToMesh(shape, maxDeviation) {
-        if (!shape || shape.IsNull()) { console.error("Shape is null or undefined!"); return null; }
+        if (!shape || !shape.IsNull || shape.IsNull()) { console.error("Shape is null or undefined!"); return null; }
         let facelist = [], edgeList = []; let corrupt = false;
         try {
             //shape = new this.oc.TopoDS_Shape(shape);
@@ -83,7 +83,7 @@ class OpenCascadeMesher {
             Object.assign(fullShapeEdgeHashes, this.ForEachEdge(shape, (index, edge) => { }));
     
             // Set up the Incremental Mesh builder, with a precision
-            this.incrementalMesh = new this.oc.BRepMesh_IncrementalMesh(shape, maxDeviation, false, 0.5);
+            this.incrementalMesh = new this.oc.BRepMesh_IncrementalMesh_2(shape, maxDeviation, false, 0.5, false);
     
             // Construct the edge hashes to assign proper indices to the edges
             let fullShapeEdgeHashes2 = {};
@@ -91,8 +91,8 @@ class OpenCascadeMesher {
             // Iterate through the faces and triangulate each one
             let triangulations = []; let uv_boxes = []; let curFace = 0;
             this.ForEachFace(shape, (faceIndex, myFace) => {
-                if (!this.aLocation) { this.aLocation = new this.oc.TopLoc_Location(); }
-                let myT = this.oc.BRep_Tool.prototype.Triangulation(myFace, this.aLocation);
+                if (!this.aLocation) { this.aLocation = new this.oc.TopLoc_Location_1(); }
+                let myT = this.oc.BRep_Tool.Triangulation(myFace, this.aLocation);
                 if (myT.IsNull()) { console.error("Encountered Null Face!"); corrupt = true; }
     
                 let this_face = {
@@ -109,7 +109,7 @@ class OpenCascadeMesher {
                     VMin: 0, VMax: 0
                 };
     
-                if (!this.pc) { this.pc = new this.oc.Poly_Connect(myT); } else { this.pc.Load(myT); }
+                if (!this.pc) { this.pc = new this.oc.Poly_Connect_2(myT); } else { this.pc.Load(myT); }
                 let Nodes = myT.get().Nodes();
     
                 // Write vertex buffer
@@ -128,7 +128,7 @@ class OpenCascadeMesher {
                 this_face.average[2] /= Nodes.Length();
 
                 // Write UV buffer
-                let orient = myFace.Orientation();
+                let orient = myFace.Orientation_1();
                 if (myT.get().HasUVNodes()) {
                     // Get UV Bounds
                     let UMin = 0, UMax = 0, VMin = 0, VMax = 0;
@@ -152,17 +152,17 @@ class OpenCascadeMesher {
                     this_face.VMin = VMin; this_face.VMax = VMax;
 
                     // Compute the Arclengths of the Isoparametric Curves of the face
-                    let surfaceHandle = this.oc.BRep_Tool.prototype.Surface(myFace);
+                    let surfaceHandle = this.oc.BRep_Tool.Surface_2(myFace);
                     let surface = surfaceHandle.get();
                     let UIso_Handle = surface.UIso(UMin + ((UMax - UMin) * 0.5));
                     let VIso_Handle = surface.VIso(VMin + ((VMax - VMin) * 0.5));
                     if (!this.adaptorCurve) {
-                        this.adaptorCurve = new this.oc.GeomAdaptor_Curve(VIso_Handle);
+                        this.adaptorCurve = new this.oc.GeomAdaptor_Curve_2(VIso_Handle);
                     } else {
-                        this.adaptorCurve.Load(VIso_Handle);
+                        this.adaptorCurve.Load_1(VIso_Handle);
                     }
                     let w = this.LengthOfCurve(this.adaptorCurve, UMin, UMax);
-                    this.adaptorCurve.Load(UIso_Handle);
+                    this.adaptorCurve.Load_1(UIso_Handle);
                     let h = this.LengthOfCurve(this.adaptorCurve, VMin, VMax);
                     uv_boxes.push({w: w, h: h, index: curFace });
 
@@ -173,13 +173,13 @@ class OpenCascadeMesher {
                 
                         x = ((x - UMin) / (UMax - UMin));
                         y = ((y - VMin) / (VMax - VMin));
-                        if (orient !== this.oc.TopAbs_FORWARD) { x = 1.0 - x; }
+                        if (orient !== this.oc.TopAbs_Orientation.TopAbs_FORWARD) { x = 1.0 - x; }
     
                         this_face.uv_coord[(i * 2) + 0] = x;
                         this_face.uv_coord[(i * 2) + 1] = y;
                     }
 
-                    let planarChecker = new this.oc.GeomLib_IsPlanarSurface(surfaceHandle);
+                    let planarChecker = new this.oc.GeomLib_IsPlanarSurface(surfaceHandle, 0.00001);
                     this_face.is_planar = planarChecker.IsPlanar();
                     this.oc._free(planarChecker);
                 }
@@ -189,9 +189,8 @@ class OpenCascadeMesher {
                 let normalArrayKey = Nodes.Lower() + ", " + Nodes.Upper();
                 let myNormal = null;
                 if (this.normalArrays[normalArrayKey]) { myNormal = this.normalArrays[normalArrayKey]; } else {
-                    myNormal = new this.oc.TColgp_Array1OfDir(Nodes.Lower(), Nodes.Upper()); }
-                if (!this.SST) { this.SST = new this.oc.StdPrs_ToolTriangulatedShape(); }
-                this.SST.Normal(myFace, this.pc, myNormal);
+                myNormal = new this.oc.TColgp_Array1OfDir_2(Nodes.Lower(), Nodes.Upper()); }
+                this.oc.StdPrs_ToolTriangulatedShape.Normal(myFace, this.pc, myNormal);
                 this_face.normal_coord = new Array(myNormal.Length() * 3);
                 for (let i = 0; i < myNormal.Length(); i++) {
                     let d = myNormal.Value(i + 1).Transformed(this.aLocation.Transformation());
@@ -207,7 +206,7 @@ class OpenCascadeMesher {
                 for (let nt = 1; nt <= myT.get().NbTriangles(); nt++) {
                     let t = triangles.Value(nt);
                     let n1 = t.Value(1), n2 = t.Value(2), n3 = t.Value(3);
-                    if (orient !== this.oc.TopAbs_FORWARD) {
+                    if (orient !== this.oc.TopAbs_Orientation.TopAbs_FORWARD) {
                         let tmp = n1;
                         n1 = n2;
                         n2 = tmp;
@@ -231,7 +230,7 @@ class OpenCascadeMesher {
                             edge_index: -1
                         };
 
-                        let myP = this.oc.BRep_Tool.prototype.PolygonOnTriangulation(myEdge, myT, this.aLocation);
+                        let myP = this.oc.BRep_Tool.PolygonOnTriangulation_1(myEdge, myT, this.aLocation);
                         let edgeNodes = myP.get().Nodes();
 
                         // write vertex buffer
@@ -291,12 +290,12 @@ class OpenCascadeMesher {
                     };
     
                     if (!this.brepAdaptorCurve) {
-                        this.brepAdaptorCurve = new this.oc.BRepAdaptor_Curve(myEdge);
+                        this.brepAdaptorCurve = new this.oc.BRepAdaptor_Curve_2(myEdge);
                     } else {
                         this.brepAdaptorCurve.Initialize(myEdge);
                     }
                     if (!this.tangDef) {
-                        this.tangDef = new this.oc.GCPnts_TangentialDeflection(this.brepAdaptorCurve, maxDeviation, 0.1);
+                        this.tangDef = new this.oc.GCPnts_TangentialDeflection_2(this.brepAdaptorCurve, maxDeviation, 0.1, 2, 1.0e-9, 1.0e-7);
                     } else {
                         this.tangDef.Initialize(this.brepAdaptorCurve, maxDeviation, 0.1);
                     }
