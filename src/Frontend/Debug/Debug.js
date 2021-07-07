@@ -28,12 +28,12 @@ class Debug {
         engine.registerCallback("error", this.fakeError.bind(this));
 
         // Intercept Main Window Errors as well
-        //window.realConsoleError = console.error;
-        //window.addEventListener('error', (event) => {
-        //    let path = event.filename.split("/");
-        //    this.display((path[path.length - 1] + ":" + event.lineno + " - " + event.message));
-        //});
-        //console.error = this.fakeError.bind(this);
+        window.realConsoleError = console.error;
+        window.addEventListener('error', (event) => {
+            let path = event.filename.split("/");
+            this.display((path[path.length - 1] + ":" + event.lineno + " - " + event.message));
+        });
+        console.error = this.fakeError.bind(this);
         
         // Record whether we're on Safari or Mobile (unused so far)
         this.safari = /(Safari)/g.test( navigator.userAgent ) && ! /(Chrome)/g.test( navigator.userAgent );

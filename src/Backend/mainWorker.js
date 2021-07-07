@@ -77,7 +77,7 @@ class LeapShapeEngineWorker {
         
         /** @type {oc.TopoDS_Shape} */
         let shape = null;
-        //try {
+        try {
             shape = op(...payload.shapeArguments);
             if (shape && shape.isMetadata) {
                 // Return the output raw if it's marked as data
@@ -89,10 +89,10 @@ class LeapShapeEngineWorker {
                 if (meshData) { this.shapes[payload.name] = shape; }
                 return { name: payload.name, payload: meshData };
             }
-        //} catch (e) {
-        //    console.error("CAD Operation Failed!");
-        //    return { name: payload.name, payload: null };
-        //}
+        } catch (e) {
+            console.error("CAD Operation Failed!");
+            return { name: payload.name, payload: null };
+        }
     }
 
     /** Posts an error message back to the main thread
