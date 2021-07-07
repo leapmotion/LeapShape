@@ -200,7 +200,7 @@ class FilletTool {
         if (radius === 0) { console.error("Invalid Fillet Radius!");  return null; }
         let shape = this.shapes[shapeToFillet];
         let mkFillet = radius > 0 ?
-            new this.oc.BRepFilletAPI_MakeFillet (shape) :
+            new this.oc.BRepFilletAPI_MakeFillet (shape, this.oc.ChFi3d_FilletShape.ChFi3d_Rational) :
             new this.oc.BRepFilletAPI_MakeChamfer(shape);
 
         // Iterate through the edges of the shape and add them to the Fillet as they come
@@ -217,7 +217,7 @@ class FilletTool {
             if(!edgeHashes.hasOwnProperty(edgeHash)){
               edgeHashes[edgeHash] = edge_index;
               if (edges.includes(edge_index)) {
-                  mkFillet.Add(Math.abs(radius),edge);
+                  mkFillet.Add_2(Math.abs(radius),edge);
                   foundEdges++;
                 }
                 edge_index++;
@@ -225,7 +225,7 @@ class FilletTool {
         }
         if (foundEdges == 0) { console.error("Fillet Edges Not Found!"); return null; }
         mkFillet.Build(); // This call is where it will fail if it's going to fail!
-        return new this.oc.TopoDS_Solid(mkFillet.Shape());
+        return /*new this.oc.TopoDS_Solid(*/mkFillet.Shape();//);
     }
 
     raycastObject(ray, checkSelected) {

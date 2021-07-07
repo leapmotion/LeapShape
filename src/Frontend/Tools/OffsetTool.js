@@ -221,15 +221,15 @@ class OffsetTool {
         let inShape = this.shapes[hitObjectName];
         //if (offsetDistance === 0) { return inShape; }
         if (offsetDistance !== 0) {
-            let offsetOp = new this.oc.BRepOffsetAPI_MakeOffsetShape();
-            offsetOp.PerformByJoin(inShape, offsetDistance, 0.00001);
-            let outShape = new this.oc.TopoDS_Shape(offsetOp.Shape());
+            let offsetOp = new this.oc.BRepOffsetAPI_MakeOffsetShape_1();
+            offsetOp.PerformByJoin(inShape, offsetDistance, 0.00001,
+                this.oc.BRepOffset_Mode.BRepOffset_Skin, false, false, this.oc.GeomAbs_JoinType.GeomAbs_Arc, false);
+            let outShape = /*new this.oc.TopoDS_Shape(*/offsetOp.Shape();//);
 
             // Convert Shell to Solid as is expected
             if (outShape.ShapeType() == 3) {
-              let solidOffset = new this.oc.BRepBuilderAPI_MakeSolid();
-              solidOffset.Add(outShape);
-              outShape = new this.oc.TopoDS_Solid(solidOffset.Solid());
+              let solidOffset = new this.oc.BRepBuilderAPI_MakeSolid_3(outShape);
+              outShape = /*new this.oc.TopoDS_Solid(*/solidOffset.Solid();//);
             }
 
             if (offsetDistance > 0) {
@@ -241,8 +241,8 @@ class OffsetTool {
                 //hollowOp.MakeThickSolidByJoin(inShape, emptyList, offsetDistance, 0.00001);
                 //hollowOp.Build();
                 //return hollowOp.Shape();
-                let differenceCut = new this.oc.BRepAlgoAPI_Cut(inShape, outShape);
-                differenceCut.SetFuzzyValue(0.00001);
+                let differenceCut = new this.oc.BRepAlgoAPI_Cut_3(inShape, outShape);
+                //differenceCut.SetFuzzyValue(0.00001);
                 differenceCut.Build();
                 return differenceCut.Shape();
             }

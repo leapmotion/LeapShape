@@ -172,25 +172,25 @@ class DefaultTool {
     /** Create a moved shape in OpenCascade; to be executed on the Worker Thread */
     moveShape(shapeToMove, x, y, z, xDir, yDir, zDir, degrees, scale) {
         // Use three transforms until SetValues comes in...
-        let translation = new this.oc.gp_Trsf(),
-            rotation = new this.oc.gp_Trsf(),
-            scaling = new this.oc.gp_Trsf();
+        let translation = new this.oc.gp_Trsf_1(),
+            rotation    = new this.oc.gp_Trsf_1(),
+            scaling     = new this.oc.gp_Trsf_1();
         
         // Set Transformations
-        translation.SetTranslation(new this.oc.gp_Vec(x, y, z));
+        translation.SetTranslation_1(new this.oc.gp_Vec_4(x, y, z));
 
         if (degrees !== 0) {
-             rotation.SetRotation(
-                new this.oc.gp_Ax1(new this.oc.gp_Pnt(0, 0, 0), new this.oc.gp_Dir(
-                    new this.oc.gp_Vec(xDir, yDir, zDir))), degrees * 0.0174533);
+             rotation.SetRotation_1(
+                new this.oc.gp_Ax1_2(new this.oc.gp_Pnt_3(0, 0, 0), new this.oc.gp_Dir_2(
+                    new this.oc.gp_Vec_4(xDir, yDir, zDir))), degrees * 0.0174533);
         }
         if (scale !== 1) { scaling.SetScaleFactor(scale); }
 
         // Multiply together
         scaling.Multiply(rotation); translation.Multiply(scaling);
 
-        return new this.oc.TopoDS_Shape(this.shapes[shapeToMove].Moved(
-            new this.oc.TopLoc_Location(translation)));
+        return /*new this.oc.TopoDS_Shape(*/this.shapes[shapeToMove].Moved(
+            new this.oc.TopLoc_Location_2(translation));//);
     }
 
     updateGizmoVisibility() {
