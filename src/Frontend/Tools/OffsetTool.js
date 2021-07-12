@@ -242,7 +242,7 @@ class OffsetTool {
                 //hollowOp.Build();
                 //return hollowOp.Shape();
                 let differenceCut = new this.oc.BRepAlgoAPI_Cut_3(inShape, outShape);
-                //differenceCut.SetFuzzyValue(0.00001);
+                differenceCut.SetFuzzyValue(0.00001);
                 differenceCut.Build();
                 return differenceCut.Shape();
             }

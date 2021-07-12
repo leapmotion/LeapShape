@@ -243,7 +243,7 @@ class ExtrusionTool {
                 if (height > 0) {
                     // The Height is Positive, let's Union
                     let unionOp = new this.oc.BRepAlgoAPI_Fuse_3(hitObject, shape);
-                    //unionOp.SetFuzzyValue(0.00001);
+                    unionOp.SetFuzzyValue(0.00001);
                     unionOp.Build();
                     return unionOp.Shape();
                     //let unionOp = new this.oc.BRepBuilderAPI_Sewing(0.00001);
@@ -254,7 +254,7 @@ class ExtrusionTool {
                 } else if (height < 0) {
                     // The Height is Negative, let's Subtract
                     let differenceOp = new this.oc.BRepAlgoAPI_Cut_3(hitObject, shape);
-                    //differenceOp.SetFuzzyValue(0.00001);
+                    differenceOp.SetFuzzyValue(0.00001);
                     differenceOp.Build();
                     return differenceOp.Shape();
                 }

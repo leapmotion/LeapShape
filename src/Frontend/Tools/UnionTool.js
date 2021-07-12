@@ -109,7 +109,7 @@ class UnionTool {
 
                 //if (overlapChecker.InnerSolution()) {
                     let union = new this.oc.BRepAlgoAPI_Fuse_3(shape, fuseTool);
-                    //union.SetFuzzyValue(0.00001); 
+                    union.SetFuzzyValue(0.00001); 
                     union.Build();
                     shape = union.Shape();
                     fused = true;
