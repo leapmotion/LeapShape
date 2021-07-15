@@ -1,5 +1,21 @@
+/**
+ * Copyright 2021 Ultraleap, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import "../../../node_modules/leapjs/leap-1.1.0.js";
+import "../../../node_modules/leapjs/leap-1.1.1.js";
 import { World } from '../World/World.js';
 import { InteractionRay } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
@@ -135,8 +151,8 @@ class LeapJSInput {
                         this.world.scene.add(slots[s]);
 
                         let chirality = (secondaryHandType === 'left' ? 1 : -1);
-                        this.vec2.set(((Math.floor(s / 3) * 0.05) + 0.07) * chirality,
-                                          0.05 - ((s % 3) * 0.05), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                        this.vec2.set((((s % 3) * 0.045) + 0.07) * chirality,
+                                          0.05 - (Math.floor(s / 3) * 0.055), 0.00).applyQuaternion(this.cameraWorldQuaternion);
                         this.vec.set(0.03 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
                             .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
                         
@@ -170,7 +186,7 @@ class LeapJSInput {
             this.ray.active = curSphere.visible;
             if ( this.ray.active && !this.prevActive) { this.ray.justActivated   = true; this.activeTime = 0; }
             if (!this.ray.active &&  this.prevActive) { this.ray.justDeactivated = true; }
-            this.ray.alreadyActivated = false;
+            this.ray.hovering = false;
             this.prevActive = this.ray.active;
             if (this.ray.active) { this.activeTime += performance.now() - this.lastTimestep; }
             this.ray.activeMS = this.activeTime;
@@ -186,7 +202,7 @@ class LeapJSInput {
             this.world.cameraParent.attach(this.world.camera);
             this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -0.3)));
         }
-        this.world.handsAreTracking = handsAreTracking;
+        if (!this.world.mobile) { this.world.handsAreTracking = handsAreTracking; }
         if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
     }
 
@@ -308,7 +324,7 @@ class LeapJSInput {
         handGroup.arrow.visible = handGroup.handType === this.mainHand;
         handGroup.arrow.setDirection(this.vec.copy(this.ray.ray.direction).
             applyQuaternion(handGroup.getWorldQuaternion(this.quat2).invert()));
-        handGroup.arrow.setColor(this.ray.lastAlreadyActivated ? this.hoverColor : this.idleColor);
+        handGroup.arrow.setColor(this.ray.lastHovering ? this.hoverColor : this.idleColor);
 
         // Create a to-local-space transformation matrix
         let toLocal = handGroup.matrix.clone().invert();

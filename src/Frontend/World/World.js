@@ -1,3 +1,19 @@
+/**
+ * Copyright 2021 Ultraleap, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 //import Stats from '../../../node_modules/three/examples/jsm/libs/stats.module.js';
 //import { GUI } from '../../../node_modules/three/examples/jsm/libs/dat.gui.module.js';
@@ -29,7 +45,7 @@ class World {
         
         // camera and world
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color( 0xffffff );
+        this.scene.background = new THREE.Color( 0xeeeeee );
         //this.scene.fog = new THREE.Fog(0xffffff, 0.5, 1.3);
         this.scene.onBeforeRender = function(renderer, scene, camera) {
             if (camera.cameras && camera.cameras.length) {
@@ -51,7 +67,7 @@ class World {
 
         // ground
         this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
-                                   new THREE.MeshStandardMaterial({ color: 0x999999, depthWrite: false})); //, opacity: 0 
+                                   new THREE.MeshStandardMaterial({ color: 0x7f7f7f, depthWrite: false})); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
         //this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
@@ -75,7 +91,7 @@ class World {
         this.lightParent.add(this.lightTarget);
         this.light = new THREE.DirectionalLight( 0xffffff );
         this.light.position.set( 0, 20, 10);
-        this.light.castShadow = true;
+        this.light.castShadow = !this.mobile;
         this.light.frustumCulled = false;
         this.light.shadow.frustumCulled = false;
         this.light.shadow.camera.frustumCulled = false;
@@ -83,7 +99,7 @@ class World {
         this.light.shadow.camera.bottom = - 1;
         this.light.shadow.camera.left   = - 1;
         this.light.shadow.camera.right  =   1;
-        //this.light.shadow.autoUpdate = true;
+        this.light.shadow.autoUpdate = false;
         this.light.target = this.lightTarget;
         this.lightParent.add(this.light);
         this.scene.add( this.lightParent );
@@ -164,12 +180,10 @@ class World {
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
         this.inVR = this.renderer.xr.isPresenting;
-        this.raycaster.params.Line.threshold =
-            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
 
         this.camera.getWorldPosition(this.cameraWorldPosition);
         this.raycaster.params.Line.threshold =
-            0.01 * this.camera.getWorldScale(this.cameraWorldScale).x;
+            0.015 * this.camera.getWorldScale(this.cameraWorldScale).x;
         // Make the shadow resolution change as the camera changes
         this.lightParent.position.copy(this.cameraWorldPosition);
         this.lightParent.scale   .copy(this.cameraWorldScale   );
@@ -188,7 +202,7 @@ class World {
         if (performance.now() - this.lastTimeInteractedWith < 2000 ||
             (this.renderer.xr && this.renderer.xr.enabled)) {
             // Manage Camera Control Schemes
-            let cameraControl = !ray.alreadyActivated;
+            let cameraControl = !ray.hovering;
             if (this.handsAreTracking) {
                 if (!this.locomotion) { this.locomotion = new LeapPinchLocomotion(this, this.leftPinch, this.rightPinch); }
                 if (cameraControl) { this.locomotion.update(); }
@@ -197,7 +211,7 @@ class World {
             if (this.controls.enabled) { this.controls.update(); }
 
             // Render the scene (Normally or in WebXR)
-            this.light.shadow.needsUpdate = true;
+            this.light.shadow.needsUpdate = !this.mobile;
             this.renderer.render(this.scene, this.camera);
 
             // Also Render the scene to the Canvas if in WebXR
@@ -212,9 +226,17 @@ class World {
             }
 
             this.now = performance.now();
-            ray.lastAlreadyActivated = ray.alreadyActivated;
+            ray.lastHovering = ray.hovering;
 
             this.dirty = false;
+
+            // If we just entered VR, offset the camera parent by the camera position
+            if (this.inVR && !this.lastInVR) {
+                this.cameraParent.position.copy(this.camera.position)
+                    .multiplyScalar(-1.0).add(this.cameraWorldPosition);
+            }
+
+            this.lastInVR = this.inVR;
             //this.stats.update();
         } else if (performance.now() - this.lastTimeInteractedWith > 3000) {
             this.lastTimeInteractedWith += 1020; // Otherwise Update once per ~second...

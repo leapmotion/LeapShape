@@ -11,18 +11,18 @@
 		"name": "Ultraleap"
 	},
 	"scripts": {
-		"build": "esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --minify --sourcemap --format=esm --outdir=./build --external:fs --external:path --loader:.wasm=file --define:ESBUILD=true"
+		"build": "esbuild ./src/main.js ./src/Backend/mainWorker.js --bundle --minify --sourcemap --format=esm --target=es2020 --outdir=./build --external:fs --external:path --loader:.wasm=file --define:ESBUILD=true"
 	},
 	"license": "Apache-2.0",
 	"bundledDependencies": false,
 	"dependencies": {
-		"leapjs": "github:leapmotion/leapjs#patch-es6",
+		"leapjs": "^1.1.1",
 		"opencascade.js": "github:zalo/opencascade.js",
 		"potpack": "^1.0.1",
-		"three": "^0.127.0"
+		"three": "^0.129.0"
 	},
 	"devDependencies": {
-		"@types/three": "^0.127.0",
-		"esbuild": "^0.9.7"
+		"@types/three": "^0.129.0",
+		"esbuild": "^0.12.6"
 	}
 }

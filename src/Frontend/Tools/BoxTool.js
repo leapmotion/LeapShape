@@ -1,3 +1,19 @@
+/**
+ * Copyright 2021 Ultraleap, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
@@ -41,7 +57,7 @@ class BoxTool {
     /** Update the BoxTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) {
-        if (ray.alreadyActivated || this.state === -1) {
+        if (ray.hovering || this.state === -1) {
             return; // Tool is currently deactivated
         } else if(this.state === 0) {
             // Wait for the ray to be active and pointing at a drawable surface
@@ -98,7 +114,7 @@ class BoxTool {
 
                     this.state += 1;
                 }
-                ray.alreadyActivated = true;
+                ray.hovering = true;
             }
         } else if(this.state === 1) {
             // While holding, resize the Box
@@ -131,7 +147,7 @@ class BoxTool {
                 this.currentBox.position.add (this.heightAxis.clone().multiplyScalar(Math.abs(this.height) / 2.0));
                 this.currentBox.position.add (this.lengthAxis.clone().multiplyScalar(Math.abs(this.length) / 2.0));
             }
-            ray.alreadyActivated = true;
+            ray.hovering = true;
 
             // When let go, advance to waiting for the next drag
             if (!ray.active) {
@@ -154,7 +170,7 @@ class BoxTool {
                     this.currentBox.material = this.world.previewMaterial;
                     this.state += 1;
                 }
-                ray.alreadyActivated = true;
+                ray.hovering = true;
             }
         } else if(this.state === 3) {
             // Resize the Height while dragging
@@ -184,7 +200,7 @@ class BoxTool {
                 this.height > 0 ? 0.0  : 0.25,
                 this.height > 0 ? 0.25 : 0.0, 0.0);
 
-            ray.alreadyActivated = true;
+            ray.hovering = true;
 
             // When let go, deactivate and add to Undo!
             if (!ray.active) {

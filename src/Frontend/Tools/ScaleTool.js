@@ -18,12 +18,11 @@ import * as THREE from '../../../node_modules/three/build/three.module.js';
 import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
-import { snapToGrid } from './General/ToolUtils.js';
 
-/** This class controls all of the RemoveTool behavior */
-class RemoveTool {
+/** This class controls all of the ScaleTool behavior */
+class ScaleTool {
 
-    /** Create the RemoveTool
+    /** Create the ScaleTool
      * @param {Tools} tools */
     constructor(tools) {
         this.tools  = tools;
@@ -31,35 +30,27 @@ class RemoveTool {
         this.engine = this.tools.engine;
         this.oc = oc; this.shapes = {};
 
-        this.state = -1; // -1 is Deactivated
-        this.numRemoves = 0;
-
         // Create Metadata for the Menu System
         this.loader = new THREE.TextureLoader(); this.loader.setCrossOrigin ('');
-        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Remove.png' : '../../../textures/Remove.png' );
+        this.icon = this.loader.load ((typeof ESBUILD !== 'undefined') ? './textures/Scale.png' : '../../../textures/Scale.png' );
         this.descriptor = {
-            name: "Remove Tool",
+            name: "Scale Tool",
             icon: this.icon
         }
     }
 
     activate() {
-        // Get Selected Objects
-        this.selected = this.tools.tools[0].selected;
-        this.tools.tools[0].clearSelection();
-        for (let i = 0; i < this.selected.length; i++) {
-            this.world.history.removeShape(this.selected[i], "Object");
-        }
+        // Set the Transform Gizmo to Scaling Mode
+        this.tools.tools[0].gizmo.setMode( "scale" );
 
         this.deactivate();
     }
 
     deactivate() {
-        this.state = -1;
         this.tools.activeTool = null;
     }
 
-    /** Update the RemoveTool's State Machine
+    /** Update the ScaleTool's State Machine
      * @param {InteractionRay} ray The Current Input Ray */
     update(ray) { return; }
 
@@ -67,4 +58,4 @@ class RemoveTool {
     shouldShow() { return this.tools.tools[0].selected.length >= 1; }
 }
 
-export { RemoveTool };
+export { ScaleTool };

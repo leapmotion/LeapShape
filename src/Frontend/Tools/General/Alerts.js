@@ -1,5 +1,21 @@
+/**
+ * Copyright 2021 Ultraleap, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as THREE from '../../../../node_modules/three/build/three.module.js';
-import { HTMLMesh } from '../../World/three.html.js';
+import { TextMesh } from '../../World/TextMesh.js';
 
 /** This is an in-scene helper for measurements and precision placement. */
 class Alerts {
@@ -28,7 +44,7 @@ class Alerts {
         // Create a Text Updating Label for the General Alert Data
         this.labels = [];
         for (let i = 0; i < 5; i++) {
-            let label = new HTMLMesh(this.cursor.labelElem);
+            let label = new TextMesh("");
             label.layers.set(1); // Ignore Raycasts
             label.frustumCulled = false;
             this.alerts.add (label);
@@ -72,20 +88,13 @@ class Alerts {
         }
     }
 
-    displayInfo(text, colorName, time) {
-        // Display HTML Element
-        this.cursor.labelElem.style.display = "block";
-        // Set HTML Element's Text
-        this.cursor.labelElem.innerText = text;
-        this.cursor.labelElem.style.color = colorName||"black";
+    displayInfo(text, r = 0, g = 0, b = 0, time = 2000) {
         // Move end label to the beginning
         this.labels.splice(0, 0, this.labels.splice(this.labels.length - 1, 1)[0]); 
         // Render HTML Element's Text to the Mesh
-        this.labels[0].update(world);
+        this.labels[0].update(text, r, g, b);
         this.labels[0].lastUpdated = performance.now();
         this.labels[0].displayTime = time||2000;
-        // Hide HTML Element
-        this.cursor.labelElem.style.display = "none";
 
         // Update the target height to stack the labels on top of eachother
         let curTargetHeight = this.labels[0].canonicalPosition.y * 2;
@@ -98,7 +107,7 @@ class Alerts {
     }
 
     displayError(text) {
-        this.displayInfo(text, "red", 5000);
+        this.displayInfo(text, 255, 0, 0, 5000);
     }
 }
 
