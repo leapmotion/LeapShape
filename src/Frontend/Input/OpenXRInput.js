@@ -119,7 +119,7 @@ class OpenXRInput {
             this.controller2.children[0].visible = false;
 
             // Set Ray Origin and Input Direction
-            if (this.mainHand && !this.mainHand.visible) { this.mainHand = null; this.secondaryHand = null; }
+            if (this.mainHand && !this.mainHand   .visible) { this.mainHand = null; this.secondaryHand = null; }
             if (!this.mainHand && this.controller2.visible) { this.mainHand = this.controller2; this.secondaryHand = this.controller1;}
             if (!this.mainHand && this.controller1.visible) { this.mainHand = this.controller1; this.secondaryHand = this.controller2;}
             if (this.mainHand) {
@@ -142,17 +142,19 @@ class OpenXRInput {
                 }
 
                 // Set the Menu Buttons to appear beside the users' secondary hand
-                this.world.camera.getWorldQuaternion(this.cameraWorldQuaternion);
-                this.world.camera.getWorldScale     (this.cameraWorldScale);
+                //this.world.camera.getWorldQuaternion(this.cameraWorldQuaternion);
+                //this.world.camera.getWorldScale     (this.cameraWorldScale);
                 if (this.secondaryHand && this.world.parent.tools.menu) {
                     let slots = this.world.parent.tools.menu.slots;
                     if (slots) {
                         this.secondaryHandTransform = (this.secondaryHand == this.controller1 ?
                             this.hand1 : this.hand2).joints['middle-finger-phalanx-proximal'];
 
+                        if (!this.secondaryHandTransform) { this.secondaryHandTransform = this.secondaryHand; }
+                        
                         // Calculate whether the secondary hand's palm is facing the camera
-                        this.vec.set(0, -1, 0).applyQuaternion(this.secondaryHandTransform.getWorldQuaternion(this.quat));
-                        this.vec2.set(0, 0, -1).applyQuaternion(this.cameraWorldQuaternion);
+                        this.vec .set(0, -1, 0).applyQuaternion(this.secondaryHandTransform.getWorldQuaternion(this.quat));
+                        this.vec2.set(0, 0, -1).applyQuaternion(this.world.cameraWorldQuaternion);
                         let facing = this.vec.dot(this.vec2);
                         if (facing < 0.0) {
                             // Array the Menu Items next to the user's secondary hand
@@ -164,9 +166,9 @@ class OpenXRInput {
 
                                 let chirality = (this.secondaryHand == this.controller1 ? -1 : 1);
                                 this.vec2.set((((s % 3) * 0.045) + 0.07) * chirality,
-                                    0.05 - (Math.floor(s / 3) * 0.055), 0.00).applyQuaternion(this.cameraWorldQuaternion);
+                                    0.05 - (Math.floor(s / 3) * 0.055), 0.00).applyQuaternion(this.world.cameraWorldQuaternion);
                                 this.vec.set(-0.02 * chirality, 0, 0).applyQuaternion(this.quat).add(this.vec2)
-                                    .multiplyScalar(this.cameraWorldScale.x).add(this.vec3);
+                                    .multiplyScalar(this.world.cameraWorldScale.x).add(this.vec3);
                                 
                                 slots[s].position.copy(this.vec);
                                 oldParent.attach(slots[s]);
@@ -193,7 +195,7 @@ class OpenXRInput {
     }
 
     /** Does this input want to take control? */
-    isActive() { return (this.world.inVR && this.world.mobile) || /(Oculus)/g.test(navigator.userAgent); }
+    isActive() { return (this.world.inVR) || /(Oculus)/g.test(navigator.userAgent); } // && this.world.mobile
 
 }
 

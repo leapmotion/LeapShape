@@ -55,8 +55,9 @@ class World {
             }
         }
 
-        this.cameraWorldPosition = new THREE.Vector3(1,1,1);
-        this.cameraWorldScale    = new THREE.Vector3(1,1,1);
+        this.cameraWorldPosition   = new THREE.Vector3(1,1,1);
+        this.cameraWorldQuaternion = new THREE.Quaternion();
+        this.cameraWorldScale      = new THREE.Vector3(1,1,1);
         this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.0001, 1000 );
         this.camera.position.set( 0.1, 0.2, 0.3 );
         this.camera.layers.enableAll();
@@ -182,6 +183,8 @@ class World {
         this.inVR = this.renderer.xr.isPresenting;
 
         this.camera.getWorldPosition(this.cameraWorldPosition);
+        this.camera.getWorldQuaternion(this.cameraWorldQuaternion);
+        this.camera.getWorldScale     (this.cameraWorldScale);
         this.raycaster.params.Line.threshold =
             0.015 * this.camera.getWorldScale(this.cameraWorldScale).x;
         // Make the shadow resolution change as the camera changes
@@ -219,7 +222,7 @@ class World {
                 this.renderer.xr.enabled = false;
                 let oldFramebuffer = this.renderer._framebuffer;
                 this.renderer.state.bindXRFramebuffer( null );
-                //this.renderer.setRenderTarget( this.renderer.getRenderTarget() ); // Hack #15830
+                this.renderer.setRenderTarget( this.renderer.getRenderTarget() ); // Hack #15830
                 this.renderer.render(this.scene, this.camera);
                 this.renderer.xr.enabled = true;
                 this.renderer.state.bindXRFramebuffer(oldFramebuffer);
