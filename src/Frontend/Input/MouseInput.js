@@ -16,14 +16,15 @@
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import { World } from '../World/World.js';
-import { InteractionRay } from './Input.js';
+import { InteractionRay, Input } from './Input.js';
 
 /** This is the standard mouse (and touchscreen?) input. */
 class MouseInput {
     /** Initialize Mouse Capture
-     * @param {World} world */
-    constructor(world) {
-        this.world = world;
+     * @param {World} world 
+     * @param {Input} inputs  */
+     constructor(world, inputs) {
+        this.world = world; this.inputs = inputs;
         this.ray = new InteractionRay(new THREE.Ray());
         this.lastTimestep = performance.now();
         this.activeTime = 0;

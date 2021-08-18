@@ -17,7 +17,7 @@
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import "../../../node_modules/leapjs/leap-1.1.1.js";
 import { World } from '../World/World.js';
-import { InteractionRay } from './Input.js';
+import { InteractionRay, Input } from './Input.js';
 import { LeapFrameInterpolator } from './LeapFrameInterpolator.js';
 import { createDitherDepthMaterial } from '../Tools/General/ToolUtils.js';
 import { LeapTemporalWarping } from './LeapTemporalWarping.js';
@@ -25,9 +25,10 @@ import { LeapTemporalWarping } from './LeapTemporalWarping.js';
 /** This is the Leap Hand Tracking-based Input */
 class LeapJSInput {
     /** Initialize Leap.js Input
-     * @param {World} world */
-    constructor(world) {
-        this.world = world;
+     * @param {World} world 
+     * @param {Input} inputs  */
+    constructor(world, inputs) {
+        this.world = world; this.inputs = inputs;
         this.controller = new window.Leap.Controller({ optimizeHMD: false }).connect();
 
         this.hands = {};
@@ -104,7 +105,7 @@ class LeapJSInput {
             this.curInVR = this.world.inVR;
         }
 
-        let handsAreTracking = false;
+        this.handsAreTracking = false;
         for (let type in this.hands) {
             this.hands[type].markForHiding = true;
         }
@@ -112,7 +113,7 @@ class LeapJSInput {
             let hand = this.interpolatedFrame.hands[h];
             if (!hand.valid) { continue; }
             if (hand.type in this.hands) {
-                handsAreTracking = true;
+                this.handsAreTracking = true;
                 this.updateHand(hand);
                 this.updatePinching(hand);
 
@@ -194,7 +195,7 @@ class LeapJSInput {
         }
 
         // HACK: Reset the world's camera parenting scheme so orbit controls still work
-        if (!handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
+        if (!this.handsAreTracking && this.world.handsAreTracking && !this.world.inVR) {
             this.world.scene.attach(this.world.camera);
             this.world.cameraParent.position  .set(0, 0, 0);
             this.world.cameraParent.quaternion.identity();
@@ -202,8 +203,8 @@ class LeapJSInput {
             this.world.cameraParent.attach(this.world.camera);
             this.world.controls.target.copy(this.world.camera.localToWorld(new THREE.Vector3( 0, 0, -0.3)));
         }
-        if (!this.world.mobile) { this.world.handsAreTracking = handsAreTracking; }
-        if (!handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
+        if (!this.world.mobile) { this.world.handsAreTracking = this.handsAreTracking; }
+        if (!this.handsAreTracking || !this.hands[this.mainHand].visible) { this.mainHand = null; }
     }
 
     /** Does this input want to take control? */

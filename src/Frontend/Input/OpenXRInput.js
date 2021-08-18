@@ -16,16 +16,17 @@
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
 import { World } from '../World/World.js';
-import { InteractionRay } from './Input.js';
+import { InteractionRay, Input } from './Input.js';
 import { XRControllerModelFactory } from '../../../node_modules/three/examples/jsm/webxr/XRControllerModelFactory.js';
 import { XRHandModelFactory } from '../../../node_modules/three/examples/jsm/webxr/XRHandModelFactory.js';
 
 /** This manages all OpenXR-based input */
 class OpenXRInput {
     /** Initialize OpenXR Controller and Hand Tracking
-     * @param {World} world */
-    constructor(world) {
-        this.world = world;
+     * @param {World} world 
+     * @param {Input} inputs  */
+     constructor(world, inputs) {
+        this.world = world; this.inputs = inputs;
 
         this.vec  = new THREE.Vector3();    this.vec2  = new THREE.Vector3();   this.vec3 = new THREE.Vector3();
         this.quat = new THREE.Quaternion(); this.quat2 = new THREE.Quaternion();
@@ -195,7 +196,7 @@ class OpenXRInput {
     }
 
     /** Does this input want to take control? */
-    isActive() { return (this.world.inVR) || /(Oculus)/g.test(navigator.userAgent); } // && this.world.mobile
+    isActive() { return this.world.inVR && !this.inputs.inputs.hands.handsAreTracking; }
 
 }
 
