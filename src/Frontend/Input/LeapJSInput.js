@@ -262,6 +262,8 @@ class LeapJSInput {
 
         this. boneMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
         this.jointMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
+        this.world.csm.setupMaterial(this. boneMat);
+        this.world.csm.setupMaterial(this.jointMat);
 
         handGroup.bones = new THREE.InstancedMesh(
             new THREE.CylinderBufferGeometry(5, 5, 1),
