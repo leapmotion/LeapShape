@@ -16,9 +16,10 @@
 
 // Leave these next 4 lines exactly as they are.  The comments are toggled for ESBuild
 //import url from "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
-//import opencascade from '../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
-//import { OpenCascadeMesher } from './OpenCascadeMesher.js';
-importScripts('../../node_modules/opencascade.js/dist/opencascade.wasm.js', './OpenCascadeMesher.js');
+//import opencascade from '../../node_modules/opencascade.js/dist/opencascade.full.js';
+//importScripts('./OpenCascadeMesher.js');
+import opencascade, * as oc from '../../node_modules/opencascade.js/dist/opencascade.full.js';
+import { OpenCascadeMesher } from './OpenCascadeMesher.js';
 
 /** This is the CAD Engine Worker Thread, where all the real work happens */
 class LeapShapeEngineWorker {
@@ -32,7 +33,7 @@ class LeapShapeEngineWorker {
         new opencascade({
             locateFile(path) {
                 if (path.endsWith('.wasm')) {
-                    return (typeof ESBUILD !== 'undefined') ? "."+url : "../../node_modules/opencascade.js/dist/opencascade.wasm.wasm";
+                    return (typeof ESBUILD !== 'undefined') ? "."+url : "../../node_modules/opencascade.js/dist/opencascade.full.wasm";
                 }
                 return path;
             }
@@ -74,6 +75,7 @@ class LeapShapeEngineWorker {
         }
         let op = this.backendFunctions[payload.shapeFunction];
         
+        /** @type {oc.TopoDS_Shape} */
         let shape = null;
         try {
             shape = op(...payload.shapeArguments);
@@ -82,7 +84,7 @@ class LeapShapeEngineWorker {
                 return { name: payload.name, payload: shape };
             } else {
                 // Otherwise Convert the Shape to a Mesh + Metadata
-                if (!shape || shape.IsNull()) { console.error("Shape is null"); console.error(shape); }
+                if (!shape || !shape.IsNull || shape.IsNull()) { console.error("Shape is null"); console.error(shape); }
                 let meshData = this.mesher.shapeToMesh(shape, this.resolution, {}, {});
                 if (meshData) { this.shapes[payload.name] = shape; }
                 return { name: payload.name, payload: meshData };

@@ -17,7 +17,7 @@
 import { LeapShapeEngine } from '../../Backend/main.js';
 import { World } from './World.js';
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { OBJExporter } from '../../../node_modules/three/examples/jsm/exporters/OBJExporter.js';
 import { STLExporter } from '../../../node_modules/three/examples/jsm/exporters/STLExporter.js';
 import { GLTFExporter } from '../../../node_modules/three/examples/jsm/exporters/GLTFExporter.js';

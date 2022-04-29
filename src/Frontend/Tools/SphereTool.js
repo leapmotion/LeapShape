@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { Grid } from './General/Grid.js';
@@ -171,18 +171,17 @@ class SphereTool {
     /** Create a Sphere in OpenCascade; to be executed on the Worker Thread */
     createSphere(x, y, z, radius, hitObjectName) {
         if (radius != 0) {
-            let spherePlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, z), this.oc.gp.prototype.DZ());
-            let shape = new this.oc.BRepPrimAPI_MakeSphere(spherePlane, Math.abs(radius)).Shape();
+            let shape = new this.oc.BRepPrimAPI_MakeSphere_5(new this.oc.gp_Pnt_3(x, y, z), radius).Shape();
 
             if (hitObjectName in this.shapes) {
                 let hitObject = this.shapes[hitObjectName];
                 if (radius > 0) {
-                    let union = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
+                    let union = new this.oc.BRepAlgoAPI_Fuse_3(hitObject, shape);
                     union.SetFuzzyValue(0.00000001);
                     union.Build();
                     return union.Shape();
                 } else {
-                    let differenceCut = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
+                    let differenceCut = new this.oc.BRepAlgoAPI_Cut_3(hitObject, shape);
                     differenceCut.SetFuzzyValue(0.00000001);
                     differenceCut.Build();
                     return differenceCut.Shape();

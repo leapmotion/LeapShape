@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { Grid } from './General/Grid.js';
@@ -227,21 +227,21 @@ class CylinderTool {
             //if (hitAnObject) { x -= nx * this.resolution; y -= ny * this.resolution; z -= nz * this.resolution; }
 
             // Construct the Cylinder Shape
-            let cylinderPlane = new this.oc.gp_Ax2(new this.oc.gp_Pnt(x, y, centered ? z-height / 2 : z), new this.oc.gp_Dir(nx, ny, nz));
-            let shape = new this.oc.BRepPrimAPI_MakeCylinder(cylinderPlane, radius, Math.abs(height)).Shape();
+            let cylinderPlane = new this.oc.gp_Ax2_3(new this.oc.gp_Pnt_3(x, y, centered ? z-height / 2 : z), new this.oc.gp_Dir_4(nx, ny, nz));
+            let shape = new this.oc.BRepPrimAPI_MakeCylinder_3(cylinderPlane, radius, Math.abs(height)).Shape();
 
             // If we hit an object, let's CSG this Cylinder to it
             if (hitAnObject && height > 0) {
                 // The Height is Positive, let's Union
                 let hitObject = this.shapes[hitObjectName];
-                let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
+                let unionOp = new this.oc.BRepAlgoAPI_Fuse_3(hitObject, shape);
                 unionOp.SetFuzzyValue(0.00000001);
                 unionOp.Build();
                 return unionOp.Shape();
             } else if (hitAnObject && height < 0) {
                 // The Height is Negative, let's Subtract
                 let hitObject = this.shapes[hitObjectName];
-                let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
+                let differenceOp = new this.oc.BRepAlgoAPI_Cut_3(hitObject, shape);
                 differenceOp.SetFuzzyValue(0.00000001);
                 differenceOp.Build();
                 return differenceOp.Shape();

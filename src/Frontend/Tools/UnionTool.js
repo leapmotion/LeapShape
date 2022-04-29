@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { snapToGrid } from './General/ToolUtils.js';
@@ -103,12 +103,14 @@ class UnionTool {
                 console.log(shape, fuseTool);
 
                 // Check to see if shape and fuseTool are touching
-                //let overlapChecker = new this.oc.BRepExtrema_DistShapeShape(shape, fuseTool);
+                //let overlapChecker = new this.oc.BRepExtrema_DistShapeShape_2(shape, cuttingTool,
+                //    this.oc.Extrema_ExtFlag.Extrema_ExtFlag_MIN, this.oc.Extrema_ExtAlgo.Extrema_ExtAlgo_Grad);
                 //overlapChecker.Perform();
 
                 //if (overlapChecker.InnerSolution()) {
-                    let union = new this.oc.BRepAlgoAPI_Fuse(shape, fuseTool);
-                    union.SetFuzzyValue(0.00001); union.Build();
+                    let union = new this.oc.BRepAlgoAPI_Fuse_3(shape, fuseTool);
+                    union.SetFuzzyValue(0.00001); 
+                    union.Build();
                     shape = union.Shape();
                     fused = true;
                 //}

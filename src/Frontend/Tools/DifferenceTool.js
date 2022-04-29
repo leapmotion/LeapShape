@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 import { snapToGrid } from './General/ToolUtils.js';
@@ -100,12 +100,14 @@ class DifferenceTool {
                 let cuttingTool = this.shapes[differenceObjects[s]];
 
                 // Check to see if shape and fuseTool are touching
-                let overlapChecker = new this.oc.BRepExtrema_DistShapeShape(shape, cuttingTool);
+                let overlapChecker = new this.oc.BRepExtrema_DistShapeShape_2(shape, cuttingTool,
+                    this.oc.Extrema_ExtFlag.Extrema_ExtFlag_MIN, this.oc.Extrema_ExtAlgo.Extrema_ExtAlgo_Grad);
                 overlapChecker.Perform();
 
                 if (overlapChecker.Value() <= 0 || overlapChecker.InnerSolution()) {
-                    let differenceOp = new this.oc.BRepAlgoAPI_Cut(shape, cuttingTool);
-                    differenceOp.SetFuzzyValue(0.00001); differenceOp.Build();
+                    let differenceOp = new this.oc.BRepAlgoAPI_Cut_3(shape, cuttingTool);
+                    differenceOp.SetFuzzyValue(0.00001);
+                    differenceOp.Build();
                     shape = differenceOp.Shape();
                     cut = true;
                 } else { console.error("Skipping Shape; not touching..."); continue; }

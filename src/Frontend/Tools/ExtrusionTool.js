@@ -15,7 +15,7 @@
  */
 
 import * as THREE from '../../../node_modules/three/build/three.module.js';
-import oc from  '../../../node_modules/opencascade.js/dist/opencascade.wasm.module.js';
+import * as oc from  '../../../node_modules/opencascade.js/dist/opencascade.full.js';
 import { Tools } from './Tools.js';
 import { InteractionRay } from '../Input/Input.js';
 
@@ -222,10 +222,10 @@ class ExtrusionTool {
 
             // Get a reference to the face to extrude
             let face = null; let face_index = 0;
-            let anExplorer = new this.oc.TopExp_Explorer(hitObject, this.oc.TopAbs_FACE);
-            for (anExplorer.Init(hitObject, this.oc.TopAbs_FACE); anExplorer.More(); anExplorer.Next()) {
+            let anExplorer = new this.oc.TopExp_Explorer_1();//(hitObject, this.oc.TopAbs_FACE);
+            for (anExplorer.Init(hitObject, this.oc.TopAbs_ShapeEnum.TopAbs_FACE, this.oc.TopAbs_ShapeEnum.TopAbs_SHAPE); anExplorer.More(); anExplorer.Next()) {
                 if (face_index === faceIndex) {
-                    face = this.oc.TopoDS.prototype.Face(anExplorer.Current());
+                    face = this.oc.TopoDS.Face_1(anExplorer.Current());
                     break;
                 } else {
                     face_index += 1;
@@ -234,15 +234,15 @@ class ExtrusionTool {
 
             if (face) {
                 // Construct the Extrusion Shape
-                let shape = new this.oc.BRepPrimAPI_MakePrism(face,
-                    new this.oc.gp_Vec(nx, ny, nz), true, true).Shape();
+                let shape = new this.oc.BRepPrimAPI_MakePrism_1(face,
+                    new this.oc.gp_Vec_4(nx, ny, nz), true, true).Shape();
                 
                 if (!csg) { return shape; } // Return the Raw Shape
 
                 // Let's CSG this Extrusion onto/into the object it came from
                 if (height > 0) {
                     // The Height is Positive, let's Union
-                    let unionOp = new this.oc.BRepAlgoAPI_Fuse(hitObject, shape);
+                    let unionOp = new this.oc.BRepAlgoAPI_Fuse_3(hitObject, shape);
                     unionOp.SetFuzzyValue(0.00001);
                     unionOp.Build();
                     return unionOp.Shape();
@@ -253,7 +253,7 @@ class ExtrusionTool {
                     //return unionOp.SewedShape();
                 } else if (height < 0) {
                     // The Height is Negative, let's Subtract
-                    let differenceOp = new this.oc.BRepAlgoAPI_Cut(hitObject, shape);
+                    let differenceOp = new this.oc.BRepAlgoAPI_Cut_3(hitObject, shape);
                     differenceOp.SetFuzzyValue(0.00001);
                     differenceOp.Build();
                     return differenceOp.Shape();
