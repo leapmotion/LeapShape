@@ -40,8 +40,8 @@ class Menu {
         this.cameraWorldScale = new THREE.Vector3();
         this.halfSpacing      = 25;
 
-        this.menuSphereGeo = new THREE.SphereBufferGeometry(0.020, 20, 20);
-        this.menuPlaneGeo  = new THREE.PlaneBufferGeometry (0.025, 0.025);
+        this.menuSphereGeo = new THREE.SphereGeometry(0.020, 20, 20);
+        this.menuPlaneGeo  = new THREE.PlaneGeometry (0.025, 0.025);
 
         // Menu Container
         this.menu = new THREE.Group(); this.menuItems = [];

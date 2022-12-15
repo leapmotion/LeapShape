@@ -41,7 +41,7 @@ class FilletTool {
         this.startPos = new THREE.Vector3();
         this.dragging = false;
         this.cameraRelativeMovement = new THREE.Vector3();
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
         this.didHitEdge = false;
         this.tapThreshold = 300; // Touches below this threshold (in ms) are considered taps

@@ -67,7 +67,7 @@ class World {
         this.camera.getWorldPosition(this.cameraWorldPosition);
 
         // ground
-        this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2),
+        this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2),
                                    new THREE.MeshStandardMaterial({ color: 0x7f7f7f, depthWrite: false})); //, opacity: 0 
         this.mesh.rotation.x = - Math.PI / 2;
         //this.mesh.castShadow = true;
