@@ -101,7 +101,7 @@ class CylinderTool {
                     this.rayPlane.updateMatrixWorld(true);
 
                     // Spawn the Cylinder
-                    this.currentCylinder = new THREE.Mesh(new THREE.CylinderBufferGeometry(1, 1, 1, 50, 1), this.world.noDepthPreviewMaterial);
+                    this.currentCylinder = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1, 50, 1), this.world.noDepthPreviewMaterial);
                     this.currentCylinder.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentCylinder.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentCylinder.name = "Cylinder #" + this.numCylinders;

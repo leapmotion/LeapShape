@@ -264,7 +264,7 @@ class LeapJSInput {
         this.jointMat = new THREE.MeshPhongMaterial();//createDitherDepthMaterial(this.world);
 
         handGroup.bones = new THREE.InstancedMesh(
-            new THREE.CylinderBufferGeometry(5, 5, 1),
+            new THREE.CylinderGeometry(5, 5, 1),
             this.boneMat, 32);
         handGroup.bones.receiveShadow = true;
         handGroup.bones.castShadow = true;

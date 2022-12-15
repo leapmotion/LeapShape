@@ -102,7 +102,7 @@ class BoxTool {
                     this.rayPlane.updateMatrixWorld(true);
 
                     // Spawn the Box
-                    this.currentBox = new THREE.Mesh(new THREE.BoxBufferGeometry(1, 1, 1), this.world.noDepthPreviewMaterial);
+                    this.currentBox = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), this.world.noDepthPreviewMaterial);
                     this.currentBox.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentBox.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentBox.name = "Box #" + this.numBoxs;
