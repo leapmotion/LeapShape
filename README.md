@@ -1,5 +1,5 @@
 # [LeapShape](https://leapmotion.github.io/LeapShape/)
-<p align="center">
+<p align="left">
   <a href="https://github.com/leapmotion/LeapShape/deployments/activity_log?environment=github-pages">
       <img src="https://img.shields.io/github/deployments/leapmotion/LeapShape/github-pages?label=Github%20Pages%20Deployment" title="Github Pages Deployment"></a>
   <a href="https://github.com/leapmotion/LeapShape/commits/master">
@@ -9,7 +9,7 @@
 </p>
 
 > **Note**
-> This experiment is only compatible with [Tracking Software v5.0.0 releases](https://developer.leapmotion.com/releases#:~:text=TRACKING%20SOFTWARE%20WINDOWS%205.0.0) and older, with "Allow Web Apps" enabled.
+> Only compatible with [Tracking Software v5.0.0 releases](https://developer.leapmotion.com/releases#:~:text=TRACKING%20SOFTWARE%20WINDOWS%205.0.0) and older; Enable "Allow Web Apps".
 
 ## A Simple and Powerful 3D Modelling Tool
 
