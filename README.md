@@ -1,7 +1,7 @@
 # [LeapShape](https://leapmotion.github.io/LeapShape/)
 <p align="left">
   <a href="https://github.com/leapmotion/LeapShape/deployments/activity_log?environment=github-pages">
-      <img src="https://img.shields.io/github/deployments/leapmotion/LeapShape/github-pages?label=Github%20Pages%20Deployment" title="Github Pages Deployment"></a>
+      <img src="https://github.com/leapmotion/LeapShape/actions/workflows/main.yml/badge.svg" title="Github Pages Deployment"></a>
   <a href="https://github.com/leapmotion/LeapShape/commits/master">
       <img src="https://img.shields.io/github/last-commit/leapmotion/LeapShape" title="Last Commit Date"></a>
   <a href="https://github.com/leapmotion/LeapShape/blob/master/LICENSE">
