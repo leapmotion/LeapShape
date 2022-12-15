@@ -9,7 +9,7 @@
 </p>
 
 > **Note**
-> Only compatible with [Tracking Software v5.0.0 releases](https://developer.leapmotion.com/releases#:~:text=TRACKING%20SOFTWARE%20WINDOWS%205.0.0) and older; Enable "Allow Web Apps".
+> Hands only compatible with OpenXR and [Tracking v5.0.0 Releases](https://developer.leapmotion.com/releases#:~:text=TRACKING%20SOFTWARE%20WINDOWS%205.0.0) and older; Enable "Allow Web Apps".
 
 ## A Simple and Powerful 3D Modelling Tool
 
