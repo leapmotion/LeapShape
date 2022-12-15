@@ -8,6 +8,9 @@
       <img src="https://img.shields.io/github/license/leapmotion/LeapShape" title="License: Apache V2"></a>
 </p>
 
+> **Note**
+> This experiment is only compatible with [Tracking Software v5.0.0 releases](https://developer.leapmotion.com/releases#:~:text=TRACKING%20SOFTWARE%20WINDOWS%205.0.0) and older, with "Allow Web Apps" enabled.
+
 ## A Simple and Powerful 3D Modelling Tool
 
 Use simple gestures with your mouse or hands to model 3D shapes in your browser!
