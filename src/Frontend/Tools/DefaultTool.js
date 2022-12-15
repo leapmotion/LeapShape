@@ -37,7 +37,7 @@ class DefaultTool {
         this.hitObject = null;
         this.point = new THREE.Vector3();
         this.tangentAxis = new THREE.Vector3(); 
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.vec = new THREE.Vector3(), this.quat1 = new THREE.Quaternion(), this.quat2 = new THREE.Quaternion();
         this.xQuat = new THREE.Quaternion(), this.yQuat = new THREE.Quaternion();

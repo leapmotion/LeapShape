@@ -40,7 +40,7 @@ class OffsetTool {
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
         this.cameraRelativeMovement = new THREE.Vector3();
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
         let hasFragDepth = hasFragmentDepth(this.world);
         this.offsetMaterial = this.world.previewMaterial.clone();

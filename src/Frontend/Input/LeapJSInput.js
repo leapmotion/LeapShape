@@ -53,12 +53,12 @@ class LeapJSInput {
 
         // Set up Pinch Related Data
         this.pinchSpheres = {};
-        this.pinchSpheres['left'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
+        this.pinchSpheres['left'] = new THREE.Mesh(new THREE.SphereGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
         this.pinchSpheres['left'].material.color.setRGB(0.2, 0.5, 0.5);
         this.pinchSpheres['left'].name = "Left Pinch Sphere";
         this.pinchSpheres['left'].visible = false;
         this.pinchSpheres['left'].layers.set(1);
-        this.pinchSpheres['right'] = new THREE.Mesh(new THREE.SphereBufferGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
+        this.pinchSpheres['right'] = new THREE.Mesh(new THREE.SphereGeometry(20, 10, 10), new THREE.MeshPhongMaterial());
         this.pinchSpheres['right'].material.color.setRGB(0.5, 0.2, 0.2);
         this.pinchSpheres['right'].name = "Right Pinch Sphere";
         this.pinchSpheres['right'].visible = false;
@@ -273,7 +273,7 @@ class LeapJSInput {
 
         this.jointMat.color = new THREE.Color(0, 0.53, 0.808);
         handGroup.joints = new THREE.InstancedMesh(
-            new THREE.SphereBufferGeometry(1, 10, 10),
+            new THREE.SphereGeometry(1, 10, 10),
             this.jointMat, 32);
         handGroup.joints.receiveShadow = true;
         handGroup.joints.castShadow = true;

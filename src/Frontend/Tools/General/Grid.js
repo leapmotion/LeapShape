@@ -51,7 +51,7 @@ class Grid {
         //this.gridMesh.layers.set(1);
         //this.space.add(this.gridMesh);
 
-        this.sphereGeometry = new THREE.SphereBufferGeometry(0.001, 5, 5);
+        this.sphereGeometry = new THREE.SphereGeometry(0.001, 5, 5);
         this.gridSpheres = new THREE.InstancedMesh(this.sphereGeometry, new THREE.MeshBasicMaterial(), this.gridCells * (this.gridCells + 3) + 10);
         this.gridSpheres.castShadow = true;
         this.gridSpheres.layers.set(1);

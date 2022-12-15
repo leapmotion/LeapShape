@@ -37,7 +37,7 @@ class CylinderTool {
         this.distance = 0.001;
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.arrow = new THREE.ArrowHelper(
             new THREE.Vector3(1, 2, 0).normalize(), new THREE.Vector3(0, 0, 0), 0.03, 0x00ffff);

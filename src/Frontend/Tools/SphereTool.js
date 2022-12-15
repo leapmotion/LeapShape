@@ -38,7 +38,7 @@ class SphereTool {
         this.point = new THREE.Vector3();
         this.snappedPoint = new THREE.Vector3();
         this.cameraRelativeMovement = new THREE.Vector3();
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        new THREE.MeshBasicMaterial());
 
         // Create Metadata for the Menu System
@@ -86,7 +86,7 @@ class SphereTool {
                     this.point.copy(this.snappedPoint);
 
                     // Spawn the Sphere
-                    this.currentSphere = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 10, 10), this.world.previewMaterial);
+                    this.currentSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 10), this.world.previewMaterial);
                     this.currentSphere.material.color.setRGB(0.5, 0.5, 0.5);
                     this.currentSphere.material.emissive.setRGB(0, 0.25, 0.25);
                     this.currentSphere.name = "Sphere #" + this.numSpheres;

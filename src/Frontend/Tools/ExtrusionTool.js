@@ -36,7 +36,7 @@ class ExtrusionTool {
         this.height = 0.001;
         this.point = new THREE.Vector3();
         this.worldCameraScale = new THREE.Vector3();
-        this.rayPlane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000),
+        this.rayPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
                                        this.world.basicMaterial);
         this.extrusionMesh = null;
 
