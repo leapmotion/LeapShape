@@ -55,6 +55,8 @@ class TextTexture extends THREE.CanvasTexture {
 		super(canvas);
 
 		this.canvas = canvas;
+		this.canvas.width  = 404;
+		this.canvas.height = 150;
 		this.context = context;
 		
 		this.text = text;
@@ -72,14 +74,21 @@ class TextTexture extends THREE.CanvasTexture {
 			// Set the Canvas Width/Height
 			if (this.context.font !== font) { this.context.font = font; }
 			let rect = this.context.measureText(string);
-			this.canvas.width = rect.width;
-			this.canvas.height = rect.actualBoundingBoxDescent - rect.actualBoundingBoxAscent;
+
+			let newWidth  = rect.width;
+			let newHeight = rect.actualBoundingBoxDescent - rect.actualBoundingBoxAscent;
+
+			if (this.canvas.width !== newWidth || this.canvas.height !== newHeight) {
+				this.canvas.width  = Math.max(this.canvas.width , newWidth );
+				this.canvas.height = Math.max(this.canvas.height, newHeight);
+			}
+			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 			// Set the Text Style, Clear the Canvas, and Render the Text
 			this.context.font = font;
-			this.context.textBaseline = 'top';
+			this.context.textBaseline = 'bottom';
 			this.context.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", 0.8)";
-			this.context.fillText(string, 0, 0);
+			this.context.fillText(string, 0, this.canvas.height);
 		}
 
 		this.image = this.canvas;
