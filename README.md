@@ -53,6 +53,5 @@ LeapShape is based on several powerful libraries
  - [three.js](https://github.com/mrdoob/three.js/) (3D Rendering Engine)
  - [opencascade.js](https://github.com/donalffons/opencascade.js) (CAD Kernel)
  - [potpack](https://github.com/mapbox/potpack) (UV Atlas Packing)
- - [Noun Project](https://github.com/leapmotion/LeapShape/blob/main/textures/LICENSE.txt) (Icons)
  - [leapjs](https://github.com/leapmotion/leapjs) (Ultraleap Hand Tracking)
  - [esbuild](https://github.com/evanw/esbuild) (Build System)
